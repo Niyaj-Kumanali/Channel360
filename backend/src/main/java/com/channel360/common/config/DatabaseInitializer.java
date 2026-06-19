@@ -38,14 +38,14 @@ public class DatabaseInitializer implements CommandLineRunner {
     }
 
     private void executeStatements(String sql) {
-        String[] statements = sql.split(";");
-        for (String stmt : statements) {
+        String[] procedures = sql.split("\\$\\$\\s*;");
+        for (String stmt : procedures) {
             String trimmed = stmt.trim();
             if (trimmed.isEmpty()) {
                 continue;
             }
             try {
-                jdbcTemplate.execute(trimmed);
+                jdbcTemplate.execute(trimmed + "$$;");
             } catch (Exception e) {
                 log.error("Failed to execute statement: {}", trimmed.substring(0, Math.min(100, trimmed.length())), e);
             }

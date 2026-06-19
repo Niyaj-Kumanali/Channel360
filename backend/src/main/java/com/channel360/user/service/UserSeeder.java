@@ -1,38 +1,33 @@
-package com.channel360.auth.service;
+package com.channel360.user.service;
 
 import com.channel360.auth.dto.RegisterRequest;
+import com.channel360.auth.service.AuthService;
 import com.channel360.common.exception.DuplicateResourceException;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.role.entity.Role;
 import com.channel360.role.repository.RoleRepository;
 import com.channel360.user.dto.UserDto;
-import com.channel360.user.dto.request.CreateUserRequest;
 import com.channel360.user.entity.User;
 import com.channel360.user.repository.UserRepository;
-import com.channel360.user.service.UserService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-@Component
-@Order(1)
+//@Component
+//@Order(1)
 @Slf4j
 @RequiredArgsConstructor
 public class UserSeeder implements CommandLineRunner {
 
     private final AuthService authService;
-
+    private final RoleRepository roleRepository;
+    private final UserService userService;
     private final UserRepository userRepository;
 
-    private final RoleRepository roleRepository;
-
-    private final UserService userService;
 
     @Override
-    @Transactional
     public void run(String... args) throws Exception {
         log.info("UserSeeder started");
 

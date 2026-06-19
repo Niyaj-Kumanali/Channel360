@@ -4,7 +4,7 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  Popup,
+  AppWindow as Popup,
   X,
   LogOut,
 } from 'lucide-react';

@@ -34,6 +34,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = async (email: string, password: string) => {
+    console.log('Attempting login with email:', email);
+  
     const response = await apiService.post<any>('/auth/login', { email, password });
     if (response.success) {
       apiService.setTokens(response.data.accessToken, response.data.refreshToken);

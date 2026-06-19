@@ -21,6 +21,7 @@ export const LoginPage: React.FC = () => {
   });
 
   const onSubmit = (data: LoginFormData) => {
+    console.log('Login Form Data:', data);
     loginMutation.mutate(data);
   };
 

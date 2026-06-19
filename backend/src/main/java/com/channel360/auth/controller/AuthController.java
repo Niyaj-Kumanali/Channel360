@@ -11,6 +11,7 @@ import com.channel360.auth.service.AuthService;
 import com.channel360.common.response.ApiResponse;
 import com.channel360.user.entity.User;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
@@ -31,6 +33,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+        log.info("Login request received from: {}", request.getEmail());
         LoginResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
     }
