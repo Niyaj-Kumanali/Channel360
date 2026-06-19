@@ -86,4 +86,10 @@ public class AuthController {
         LoginResponse response = authService.refreshToken(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Token refreshed successfully"));
     }
+
+    @GetMapping("/menu")
+    public ResponseEntity<ApiResponse<List<MenuItem>>> getMenu() {
+        List<MenuItem> menu = menuService.getCurrentUserMenu();
+        return ResponseEntity.ok(ApiResponse.success(menu));
+    }
 }

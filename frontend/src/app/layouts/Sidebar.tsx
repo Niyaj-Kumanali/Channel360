@@ -1,30 +1,18 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  AppWindow as Popup,
-  X,
-  LogOut,
-} from 'lucide-react';
+import { X, LogOut, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/shared/hooks/useAuth';
-import { ROLES } from '@/shared/constants';
+import { useMenu } from '@/shared/hooks/useMenu';
+import { iconMap } from '@/shared/config/icon-map';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.USER] },
-  { to: '/users', icon: Users, label: 'Users', roles: [ROLES.SUPER_ADMIN, ROLES.ADMIN] },
-  { to: '/cms', icon: FileText, label: 'Homepage CMS', roles: [ROLES.SUPER_ADMIN, ROLES.ADMIN] },
-  { to: '/popups', icon: Popup, label: 'Popups', roles: [ROLES.SUPER_ADMIN, ROLES.ADMIN] },
-];
-
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { hasAnyRole, logout } = useAuth();
+  const { data: menuItems = [] } = useMenu();
 
   return (
     <>
@@ -41,12 +29,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
         <nav className="p-4 space-y-1">
-          {navItems.map((item) => {
+          {menuItems.map((item) => {
+            const Icon: LucideIcon | undefined = iconMap[item.icon];
+            if (!Icon) return null;
             if (!hasAnyRole(...item.roles)) return null;
             return (
               <NavLink
-                key={item.to}
-                to={item.to}
+                key={item.path}
+                to={item.path}
                 onClick={onClose}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -56,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   }`
                 }
               >
-                <item.icon className="h-5 w-5" />
+                <Icon className="h-5 w-5" />
                 {item.label}
               </NavLink>
             );
