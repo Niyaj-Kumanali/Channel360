@@ -19,14 +19,14 @@ public class PopupService {
     private final PopupMapper mapper;
 
     public List<HomepagePopupDto> getActivePopups() {
-        return repository.getActive()
+        return repository.spGetActive()
                 .stream()
                 .map(mapper::toDto)
                 .toList();
     }
 
     public List<HomepagePopupDto> getAllPopups() {
-        return repository.findAll()
+        return repository.spList()
                 .stream()
                 .map(mapper::toDto)
                 .toList();
@@ -41,15 +41,13 @@ public class PopupService {
     @Transactional
     public HomepagePopupDto createPopup(CreatePopupRequest request) {
         HomepagePopup popup = mapper.toEntity(request);
-        return mapper.toDto(
-                repository.create(
-                        popup.getTitle(), popup.getDescription(),
-                        popup.getImageUrl(), popup.getCtaButtonText(),
-                        popup.getCtaUrl(), popup.getPriority(),
-                        popup.isActive(), popup.getStartDate(),
-                        popup.getEndDate(), null
-                )
-        );
+        Long id = repository.spSave(null, popup.getTitle(), popup.getDescription(),
+                popup.getImageUrl(), popup.getCtaButtonText(), popup.getCtaUrl(),
+                popup.getPriority(), popup.isActive(), popup.getStartDate(),
+                popup.getEndDate(), null, null);
+        return repository.findById(id)
+                .map(mapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("HomepagePopup", "id", id));
     }
 
     @Transactional
@@ -57,13 +55,10 @@ public class PopupService {
         HomepagePopup popup = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("HomepagePopup", "id", id));
         mapper.updateEntity(request, popup);
-        repository.update(
-                id, popup.getTitle(), popup.getDescription(),
-                popup.getImageUrl(), popup.getCtaButtonText(),
-                popup.getCtaUrl(), popup.getPriority(),
-                popup.isActive(), popup.getStartDate(),
-                popup.getEndDate(), null
-        );
+        repository.spSave(id, popup.getTitle(), popup.getDescription(),
+                popup.getImageUrl(), popup.getCtaButtonText(), popup.getCtaUrl(),
+                popup.getPriority(), popup.isActive(), popup.getStartDate(),
+                popup.getEndDate(), null, null);
         return repository.findById(id)
                 .map(mapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("HomepagePopup", "id", id));
@@ -74,7 +69,7 @@ public class PopupService {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("HomepagePopup", "id", id);
         }
-        repository.deleteById(id);
+        repository.spDelete(id);
     }
 
     @Transactional
@@ -82,7 +77,7 @@ public class PopupService {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("HomepagePopup", "id", id);
         }
-        repository.toggleActive(id, null);
+        repository.spToggleActive(id, null);
         return repository.findById(id)
                 .map(mapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("HomepagePopup", "id", id));

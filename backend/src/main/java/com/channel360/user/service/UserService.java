@@ -3,7 +3,6 @@ package com.channel360.user.service;
 import com.channel360.common.exception.BadRequestException;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.response.PageResponse;
-import com.channel360.common.response.PaginatedResult;
 import com.channel360.role.repository.RoleRepository;
 import com.channel360.user.dto.UserDto;
 import com.channel360.user.dto.request.CreateUserRequest;
@@ -42,21 +41,15 @@ public class UserService {
     public PageResponse<UserDto> getAllUsers(UserFilterRequest filter) {
         String sortBy = toSnakeCase(filter.getSortBy());
 
-        PaginatedResult<User> result = userRepository.listPaginated(
-                filter.getSearch(),
-                filter.getStatus(),
-                filter.getRoleId(),
-                filter.getPage(),
-                filter.getSize(),
-                sortBy,
-                filter.getSortDir()
+        List<User> users = userRepository.spList(
+                filter.getSearch(), filter.getStatus(), filter.getRoleId(),
+                filter.getPage(), filter.getSize(), sortBy, filter.getSortDir()
+        );
+        long totalCount = userRepository.spCount(
+                filter.getSearch(), filter.getStatus(), filter.getRoleId()
         );
 
-        Page<User> page = new PageImpl<>(
-                result.data(),
-                PageRequest.of(filter.getPage(), filter.getSize()),
-                result.totalCount()
-        );
+        Page<User> page = new PageImpl<>(users, PageRequest.of(filter.getPage(), filter.getSize()), totalCount);
         Page<UserDto> dtoPage = page.map(userMapper::toDto);
         return PageResponse.from(dtoPage);
     }
@@ -72,23 +65,22 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("Email already in use: " + request.getEmail());
         }
-        if (userRepository.existsByEmployeeId(request.getEmployeeId())) {
+        if (request.getEmployeeId() != null && userRepository.existsByEmployeeId(request.getEmployeeId())) {
             throw new BadRequestException("Employee ID already in use: " + request.getEmployeeId());
         }
 
         String encodedPassword = passwordEncoder.encode(generateRandomPassword());
-        User user = userRepository.create(
-                request.getFirstName(), request.getLastName(), request.getEmail(),
-                encodedPassword, request.getMobileNumber(), request.getEmployeeId(),
-                "ACTIVE", null
-        );
+        Long id = userRepository.spSave(null, request.getFirstName(), request.getLastName(),
+                request.getEmail(), encodedPassword, request.getMobileNumber(),
+                request.getEmployeeId(), "ACTIVE", null, null);
 
         if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
             validateRolesExist(request.getRoleIds());
-            userRepository.assignRoles(user.getId(), request.getRoleIds(), null);
+            String joined = String.join(",", request.getRoleIds().stream().map(String::valueOf).toList());
+            userRepository.spAssignRoles(id, joined, null);
         }
 
-        return userMapper.toDto(userRepository.findById(user.getId()).orElseThrow());
+        return userMapper.toDto(userRepository.findById(id).orElseThrow());
     }
 
     @Transactional
@@ -98,14 +90,14 @@ public class UserService {
 
         userMapper.updateEntity(request, user);
 
-        userRepository.update(
-                id, user.getFirstName(), user.getLastName(), user.getEmail(),
-                user.getMobileNumber(), user.getEmployeeId(), user.getStatus(), null
-        );
+        userRepository.spSave(id, user.getFirstName(), user.getLastName(), user.getEmail(),
+                null, user.getMobileNumber(), user.getEmployeeId(),
+                user.getStatus(), null, null);
 
         if (request.getRoleIds() != null) {
             validateRolesExist(request.getRoleIds());
-            userRepository.assignRoles(id, request.getRoleIds(), null);
+            String joined = String.join(",", request.getRoleIds().stream().map(String::valueOf).toList());
+            userRepository.spAssignRoles(id, joined, null);
         }
 
         return userMapper.toDto(userRepository.findById(id).orElseThrow());
@@ -116,7 +108,7 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }
-        userRepository.deleteById(id);
+        userRepository.spDelete(id);
     }
 
     @Transactional
@@ -124,7 +116,7 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }
-        userRepository.activate(id, null);
+        userRepository.spSave(id, null, null, null, null, null, null, "ACTIVE", null, null);
         return userMapper.toDto(userRepository.findById(id).orElseThrow());
     }
 
@@ -133,7 +125,7 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }
-        userRepository.deactivate(id, null);
+        userRepository.spSave(id, null, null, null, null, null, null, "INACTIVE", null, null);
         return userMapper.toDto(userRepository.findById(id).orElseThrow());
     }
 
@@ -143,16 +135,17 @@ public class UserService {
             throw new ResourceNotFoundException("User", "id", id);
         }
         validateRolesExist(roleIds);
-        userRepository.assignRoles(id, roleIds, null);
+        String joined = String.join(",", roleIds.stream().map(String::valueOf).toList());
+        userRepository.spAssignRoles(id, joined, null);
         return userMapper.toDto(userRepository.findById(id).orElseThrow());
     }
 
     @Transactional
     public void resetPassword(Long id) {
-        User user = userRepository.findById(id)
+        userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         String newPassword = passwordEncoder.encode(generateRandomPassword());
-        userRepository.changePassword(id, newPassword);
+        userRepository.spChangePassword(id, newPassword);
     }
 
     public User getUserByEmail(String email) {

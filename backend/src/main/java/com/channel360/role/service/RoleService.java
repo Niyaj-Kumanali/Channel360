@@ -32,9 +32,10 @@ public class RoleService {
 
     @Transactional
     public RoleDto createRole(RoleDto roleDto) {
-        return roleMapper.toDto(
-                roleRepository.create(roleDto.getName(), roleDto.getDescription())
-        );
+        Long id = roleRepository.spSave(null, roleDto.getName(), roleDto.getDescription());
+        return roleRepository.findById(id)
+                .map(roleMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", id));
     }
 
     @Transactional
@@ -42,7 +43,7 @@ public class RoleService {
         if (!roleRepository.existsById(id)) {
             throw new ResourceNotFoundException("Role", "id", id);
         }
-        roleRepository.update(id, roleDto.getName(), roleDto.getDescription());
+        roleRepository.spSave(id, roleDto.getName(), roleDto.getDescription());
         return roleRepository.findById(id)
                 .map(roleMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", id));
@@ -53,6 +54,6 @@ public class RoleService {
         if (!roleRepository.existsById(id)) {
             throw new ResourceNotFoundException("Role", "id", id);
         }
-        roleRepository.deleteById(id);
+        roleRepository.spDelete(id);
     }
 }

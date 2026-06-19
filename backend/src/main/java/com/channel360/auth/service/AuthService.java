@@ -106,22 +106,19 @@ public class AuthService {
         Role defaultRole = roleRepository.findByName(AppConstants.ROLE_USER)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "name", AppConstants.ROLE_USER));
 
-        User saved = userRepository.create(
-                user.getFirstName(), user.getLastName(), user.getEmail(),
-                user.getPassword(), user.getMobileNumber(), user.getEmployeeId(),
-                "ACTIVE", null
-        );
+        Long id = userRepository.spSave(null, user.getFirstName(), user.getLastName(),
+                user.getEmail(), user.getPassword(), user.getMobileNumber(),
+                user.getEmployeeId(), "ACTIVE", null, null);
 
-        userRepository.assignRoles(saved.getId(), java.util.List.of(defaultRole.getId()), null);
-        return userRepository.findById(saved.getId()).orElseThrow();
+        userRepository.spAssignRoles(id, String.valueOf(defaultRole.getId()), null);
+        return userRepository.findById(id).orElseThrow();
     }
 
     @Transactional
     public void logout(String refreshTokenStr) {
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenStr)
+        refreshTokenRepository.findByToken(refreshTokenStr)
                 .orElseThrow(() -> new BadRequestException("Invalid refresh token"));
-
-        refreshTokenRepository.revoke(refreshTokenStr);
+        refreshTokenRepository.spRevoke(refreshTokenStr);
     }
 
     @Transactional
@@ -129,14 +126,14 @@ public class AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        User user = userRepository.findById(userDetails.getId())
+        userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userDetails.getId()));
 
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.getOldPassword(), userDetails.getPassword())) {
             throw new BadRequestException("Current password is incorrect");
         }
 
-        userRepository.changePassword(userDetails.getId(), passwordEncoder.encode(request.getNewPassword()));
+        userRepository.spChangePassword(userDetails.getId(), passwordEncoder.encode(request.getNewPassword()));
     }
 
     public void forgotPassword(ForgotPasswordRequest request) {
@@ -160,7 +157,7 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
 
-        userRepository.changePassword(user.getId(), passwordEncoder.encode(request.getNewPassword()));
+        userRepository.spChangePassword(user.getId(), passwordEncoder.encode(request.getNewPassword()));
 
         passwordResetTokens.remove(email);
     }
@@ -184,14 +181,14 @@ public class AuthService {
         }
 
         if (refreshToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            refreshTokenRepository.revoke(request.getRefreshToken());
+            refreshTokenRepository.spRevoke(request.getRefreshToken());
             throw new BadRequestException("Refresh token has expired");
         }
 
         User user = userRepository.findById(refreshToken.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", refreshToken.getUserId()));
 
-        refreshTokenRepository.revoke(request.getRefreshToken());
+        refreshTokenRepository.spRevoke(request.getRefreshToken());
 
         Set<String> roles = user.getRoles().stream()
                 .map(Role::getName)
@@ -211,11 +208,8 @@ public class AuthService {
     }
 
     private void saveRefreshToken(Long userId, String tokenStr) {
-        refreshTokenRepository.create(
-                tokenStr,
-                userId,
-                LocalDateTime.now().plusSeconds(
-                        jwtTokenProvider.getAccessTokenExpiration() / 1000 * 7)
-        );
+        refreshTokenRepository.spSave(null, tokenStr, userId,
+                LocalDateTime.now().plusSeconds(jwtTokenProvider.getAccessTokenExpiration() / 1000 * 7),
+                false);
     }
 }

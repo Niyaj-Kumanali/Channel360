@@ -8,7 +8,9 @@ import com.channel360.auth.dto.RefreshTokenRequest;
 import com.channel360.auth.dto.RegisterRequest;
 import com.channel360.auth.dto.ResetPasswordRequest;
 import com.channel360.auth.service.AuthService;
+import com.channel360.common.dto.MenuItem;
 import com.channel360.common.response.ApiResponse;
+import com.channel360.common.service.MenuService;
 import com.channel360.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -20,15 +22,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @Slf4j
 public class AuthController {
 
     private final AuthService authService;
+    private final MenuService menuService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, MenuService menuService) {
         this.authService = authService;
+        this.menuService = menuService;
     }
 
     @PostMapping("/login")

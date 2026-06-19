@@ -1,34 +1,19 @@
-CREATE OR REPLACE PROCEDURE sp_refresh_tokens_create(
-    IN p_user_id BIGINT,
+CREATE OR REPLACE PROCEDURE sp_refresh_tokens_save(
+    INOUT p_id BIGINT,
     IN p_token VARCHAR,
+    IN p_user_id BIGINT,
     IN p_expiry_date TIMESTAMP,
-    INOUT p_id BIGINT
+    IN p_revoked BOOLEAN
 )
 LANGUAGE plpgsql AS $$
 BEGIN
-    INSERT INTO refresh_tokens (token, user_id, expiry_date, revoked, created_at)
-    VALUES (p_token, p_user_id, p_expiry_date, FALSE, NOW())
-    RETURNING id INTO p_id;
-END;
-$$;
-
-CREATE OR REPLACE PROCEDURE sp_refresh_tokens_find_by_token(
-    IN p_token VARCHAR,
-    INOUT p_data REFCURSOR
-)
-LANGUAGE plpgsql AS $$
-BEGIN
-    OPEN p_data FOR SELECT * FROM refresh_tokens WHERE token = p_token;
-END;
-$$;
-
-CREATE OR REPLACE PROCEDURE sp_refresh_tokens_find_by_user_id(
-    IN p_user_id BIGINT,
-    INOUT p_data REFCURSOR
-)
-LANGUAGE plpgsql AS $$
-BEGIN
-    OPEN p_data FOR SELECT * FROM refresh_tokens WHERE user_id = p_user_id ORDER BY created_at DESC;
+    IF p_id IS NULL THEN
+        INSERT INTO refresh_tokens (token, user_id, expiry_date, revoked, created_at)
+        VALUES (p_token, p_user_id, p_expiry_date, COALESCE(p_revoked, FALSE), NOW())
+        RETURNING id INTO p_id;
+    ELSE
+        UPDATE refresh_tokens SET revoked = p_revoked WHERE id = p_id;
+    END IF;
 END;
 $$;
 

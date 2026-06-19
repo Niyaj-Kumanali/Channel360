@@ -20,14 +20,14 @@ public class CmsService {
     private final HomepageSectionMapper mapper;
 
     public List<HomepageSectionDto> getActiveSections() {
-        return repository.getActive()
+        return repository.spGetActive()
                 .stream()
                 .map(mapper::toDto)
                 .toList();
     }
 
     public List<HomepageSectionDto> getAllSections() {
-        return repository.findAll()
+        return repository.spList()
                 .stream()
                 .map(mapper::toDto)
                 .toList();
@@ -42,17 +42,14 @@ public class CmsService {
     @Transactional
     public HomepageSectionDto createSection(CreateSectionRequest request) {
         HomepageSection section = mapper.toEntity(request);
-        return mapper.toDto(
-                repository.create(
-                        section.getSectionName(), section.getSectionType(),
-                        section.getTitle(), section.getSubtitle(),
-                        section.getDescription(), section.getImageUrl(),
-                        section.getButtonText(), section.getButtonUrl(),
-                        section.getDisplayOrder(), section.isActive(),
-                        section.getStartDate(), section.getEndDate(),
-                        null
-                )
-        );
+        Long id = repository.spSave(null, section.getSectionName(), section.getSectionType(),
+                section.getTitle(), section.getSubtitle(), section.getDescription(),
+                section.getImageUrl(), section.getButtonText(), section.getButtonUrl(),
+                section.getDisplayOrder(), section.isActive(), section.getStartDate(),
+                section.getEndDate(), null, null);
+        return repository.findById(id)
+                .map(mapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("HomepageSection", "id", id));
     }
 
     @Transactional
@@ -60,15 +57,11 @@ public class CmsService {
         HomepageSection section = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("HomepageSection", "id", id));
         mapper.updateEntity(request, section);
-        repository.update(
-                id, section.getSectionName(), section.getSectionType(),
-                section.getTitle(), section.getSubtitle(),
-                section.getDescription(), section.getImageUrl(),
-                section.getButtonText(), section.getButtonUrl(),
-                section.getDisplayOrder(), section.isActive(),
-                section.getStartDate(), section.getEndDate(),
-                null
-        );
+        repository.spSave(id, section.getSectionName(), section.getSectionType(),
+                section.getTitle(), section.getSubtitle(), section.getDescription(),
+                section.getImageUrl(), section.getButtonText(), section.getButtonUrl(),
+                section.getDisplayOrder(), section.isActive(), section.getStartDate(),
+                section.getEndDate(), null, null);
         return repository.findById(id)
                 .map(mapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("HomepageSection", "id", id));
@@ -79,7 +72,7 @@ public class CmsService {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("HomepageSection", "id", id);
         }
-        repository.deleteById(id);
+        repository.spDelete(id);
     }
 
     @Transactional
@@ -89,7 +82,7 @@ public class CmsService {
                 .reduce((a, b) -> a + "," + b)
                 .map(s -> "[" + s + "]")
                 .orElse("[]");
-        repository.reorderSections(json);
+        repository.spReorder(json);
     }
 
     @Transactional
@@ -97,7 +90,7 @@ public class CmsService {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("HomepageSection", "id", id);
         }
-        repository.toggleActive(id, null);
+        repository.spToggleActive(id, null);
         return repository.findById(id)
                 .map(mapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("HomepageSection", "id", id));
