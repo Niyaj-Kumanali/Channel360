@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { roleApi } from '@/features/role/api/role.api';
-import type { Permission } from '@/features/auth/types/auth.types';
+import { menuApi } from '@/features/menu/api/menu.api';
+import type { Permission, MenuItemResponse } from '@/features/auth/types/auth.types';
 import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
 
 export const RoleFormPage: React.FC = () => {
   const { id } = useParams();
@@ -16,8 +18,24 @@ export const RoleFormPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItemResponse[]>([]);
+  const [selectedMenuItemIds, setSelectedMenuItemIds] = useState<number[]>([]);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  const loadMenuItems = async (roleId?: number) => {
+    try {
+      const [menuRes, roleMenuRes] = await Promise.all([
+        menuApi.getAll(),
+        roleId ? roleApi.getRoleMenuItems(roleId) : Promise.resolve(null),
+      ]);
+      if (menuRes.success) setMenuItems(menuRes.data);
+      if (roleMenuRes?.success) setSelectedMenuItemIds(roleMenuRes.data);
+    } catch {
+      // Menu data is non-critical; form can still work
+    }
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -37,10 +55,13 @@ export const RoleFormPage: React.FC = () => {
             setName(roleRes.data.name);
             setDescription(roleRes.data.description || '');
             setSelectedIds(roleRes.data.permissionIds);
+            await loadMenuItems(Number(id));
           } else {
             toast.error('Failed to load role');
             navigate('/admin/roles');
           }
+        } else {
+          await loadMenuItems();
         }
       } catch {
         toast.error('Failed to load data');
@@ -61,11 +82,31 @@ export const RoleFormPage: React.FC = () => {
 
   const toggleGroup = (perms: Permission[]) => {
     const groupIds = perms.map(p => p.id);
-    const allSelected = groupIds.every(id => selectedIds.includes(id));
+    const allSelected = groupIds.every(gid => selectedIds.includes(gid));
     if (allSelected) {
       setSelectedIds((prev) => prev.filter(id => !groupIds.includes(id)));
     } else {
       setSelectedIds((prev) => [...new Set([...prev, ...groupIds])]);
+    }
+  };
+
+  const toggleMenuItem = (itemId: number, childrenIds: number[]) => {
+    setSelectedMenuItemIds((prev) => {
+      const isSelected = prev.includes(itemId);
+      if (isSelected) {
+        return prev.filter(id => id !== itemId && !childrenIds.includes(id));
+      }
+      return [...new Set([...prev, itemId, ...childrenIds])];
+    });
+  };
+
+  const toggleAllMenuItems = () => {
+    const allIds = menuItems.map(m => m.id);
+    const allSelected = allIds.every(id => selectedMenuItemIds.includes(id));
+    if (allSelected) {
+      setSelectedMenuItemIds([]);
+    } else {
+      setSelectedMenuItemIds(allIds);
     }
   };
 
@@ -79,12 +120,18 @@ export const RoleFormPage: React.FC = () => {
     setSubmitting(true);
     try {
       const payload = { name: name.trim(), description: description.trim(), permissionIds: selectedIds };
-      if (isEdit) {
+      if (isEdit && id) {
         const res = await roleApi.update(Number(id), payload);
-        if (res.success) toast.success('Role updated');
+        if (res.success) {
+          await roleApi.setRoleMenuItems(Number(id), selectedMenuItemIds);
+          toast.success('Role updated');
+        }
       } else {
         const res = await roleApi.create(payload);
-        if (res.success) toast.success('Role created');
+        if (res.success) {
+          await roleApi.setRoleMenuItems(res.data.id, selectedMenuItemIds);
+          toast.success('Role created');
+        }
       }
       navigate('/admin/roles');
     } catch {
@@ -100,6 +147,11 @@ export const RoleFormPage: React.FC = () => {
     acc[group].push(p);
     return acc;
   }, {});
+
+  const topLevelItems = menuItems.filter(m => m.parentId === null);
+  const childItems = (parentId: number) => menuItems.filter(m => m.parentId === parentId);
+  const allIds = menuItems.map(m => m.id);
+  const allMenuSelected = allIds.length > 0 && allIds.every(id => selectedMenuItemIds.includes(id));
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]"><Loader size="lg" /></div>;
@@ -158,7 +210,7 @@ export const RoleFormPage: React.FC = () => {
           ) : (
             Object.entries(grouped).map(([group, perms]) => {
               const groupIds = perms.map(p => p.id);
-              const selectedCount = groupIds.filter(id => selectedIds.includes(id)).length;
+              const selectedCount = groupIds.filter(gid => selectedIds.includes(gid)).length;
               const allSelected = selectedCount === perms.length;
               return (
                 <div key={group}>
@@ -196,6 +248,91 @@ export const RoleFormPage: React.FC = () => {
                 </div>
               );
             })
+          )}
+        </div>
+
+        <div className="rounded-xl border border-border bg-card p-6 space-y-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Menu Visibility</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Select which sidebar menu items this role can see
+              </p>
+            </div>
+            {menuItems.length > 0 && (
+              <button
+                type="button"
+                onClick={toggleAllMenuItems}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {allMenuSelected
+                  ? 'Deselect all'
+                  : `Select all (${selectedMenuItemIds.length}/${allIds.length})`}
+              </button>
+            )}
+          </div>
+          {menuItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No menu items available.</p>
+          ) : (
+            <div className="space-y-1">
+              {topLevelItems.map((item) => {
+                const children = childItems(item.id);
+                const hasChildren = children.length > 0;
+                const isExpanded = expanded[item.label] ?? true;
+                const childrenIds = children.map(c => c.id);
+                const isChecked = selectedMenuItemIds.includes(item.id);
+
+                return (
+                  <div key={item.id}>
+                    <div
+                      className={cn(
+                        'flex items-center gap-2 rounded-lg border border-border px-3 py-2 cursor-pointer hover:bg-muted/30 transition-colors',
+                        isChecked && 'border-primary bg-primary/5'
+                      )}
+                    >
+                      {hasChildren && (
+                        <button
+                          type="button"
+                          onClick={() => setExpanded(prev => ({ ...prev, [item.label]: !isExpanded }))}
+                          className="h-4 w-4 shrink-0 text-muted-foreground hover:text-foreground"
+                        >
+                          <ChevronDown className={cn('h-4 w-4 transition-transform', isExpanded && 'rotate-180')} />
+                        </button>
+                      )}
+                      {!hasChildren && <div className="w-4" />}
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleMenuItem(item.id, childrenIds)}
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm font-medium text-foreground">{item.label}</span>
+                    </div>
+                    {hasChildren && isExpanded && (
+                      <div className="ml-7 mt-1 space-y-1 pl-4 border-l border-border">
+                        {children.map((child) => (
+                          <label
+                            key={child.id}
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg border border-border px-3 py-2 cursor-pointer hover:bg-muted/30 transition-colors',
+                              selectedMenuItemIds.includes(child.id) && 'border-primary bg-primary/5'
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedMenuItemIds.includes(child.id)}
+                              onChange={() => toggleMenuItem(child.id, [])}
+                              className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                            />
+                            <span className="text-sm text-foreground">{child.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 

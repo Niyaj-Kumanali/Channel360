@@ -17,8 +17,6 @@ public class MenuRequest {
 
     private String icon;
 
-    private String permissionName;
-
     private Integer displayOrder;
 
     private Boolean active;

@@ -82,32 +82,70 @@ WHERE r.name = 'ROLE_USER'
   AND p.name = 'dashboard.view'
 ON CONFLICT DO NOTHING;
 
--- Menu items (permission-driven, idempotent per-item inserts)
-INSERT INTO menu_items (label, path, icon, permission_name, display_order)
-SELECT 'Dashboard', '/dashboard', 'LayoutDashboard', 'dashboard.view', 1
+-- Menu items (role-visible, idempotent per-item inserts)
+INSERT INTO menu_items (label, path, icon, display_order)
+SELECT 'Dashboard', '/dashboard', 'LayoutDashboard', 1
 WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Dashboard' AND parent_id IS NULL);
 
-INSERT INTO menu_items (label, path, icon, permission_name, display_order)
-SELECT 'Content', '#', 'FileText', 'homepage.view', 2
+INSERT INTO menu_items (label, path, icon, display_order)
+SELECT 'Content', '#', 'FileText', 2
 WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Content' AND parent_id IS NULL);
 
-INSERT INTO menu_items (label, path, icon, permission_name, display_order)
-SELECT 'Roles', '/admin/roles', 'Shield', 'roles.view', 3
+INSERT INTO menu_items (label, path, icon, display_order)
+SELECT 'Roles', '/admin/roles', 'Shield', 3
 WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Roles' AND parent_id IS NULL);
 
-INSERT INTO menu_items (label, path, icon, permission_name, display_order)
-SELECT 'Menu', '/admin/menu', 'Menu', 'menu.manage', 4
+INSERT INTO menu_items (label, path, icon, display_order)
+SELECT 'Menu', '/admin/menu', 'Menu', 4
 WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Menu' AND parent_id IS NULL);
 
-INSERT INTO menu_items (parent_id, label, path, icon, permission_name, display_order)
-SELECT p.id, 'Homepage Sections', '/admin/sections', 'Layout', 'homepage.view', 1
+INSERT INTO menu_items (parent_id, label, path, icon, display_order)
+SELECT p.id, 'Homepage Sections', '/admin/sections', 'Layout', 1
 FROM menu_items p WHERE p.label = 'Content' AND p.parent_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Homepage Sections' AND parent_id IS NOT NULL);
 
-INSERT INTO menu_items (parent_id, label, path, icon, permission_name, display_order)
-SELECT p.id, 'Popups', '/admin/popups', 'Square', 'homepage.view', 2
+INSERT INTO menu_items (parent_id, label, path, icon, display_order)
+SELECT p.id, 'Popups', '/admin/popups', 'Square', 2
 FROM menu_items p WHERE p.label = 'Content' AND p.parent_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Popups' AND parent_id IS NOT NULL);
+
+-- Role-menu visibility (which roles can see which menu items)
+-- Idempotent: checks per (menu_item_id, role_id) pair
+INSERT INTO menu_item_roles (menu_item_id, role_id)
+SELECT m.id, r.id FROM menu_items m, roles r
+WHERE r.name IN ('ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_USER')
+  AND m.label = 'Dashboard'
+  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
+
+INSERT INTO menu_item_roles (menu_item_id, role_id)
+SELECT m.id, r.id FROM menu_items m, roles r
+WHERE r.name IN ('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')
+  AND m.label = 'Content'
+  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
+
+INSERT INTO menu_item_roles (menu_item_id, role_id)
+SELECT m.id, r.id FROM menu_items m, roles r
+WHERE r.name = 'ROLE_SUPER_ADMIN'
+  AND m.label = 'Roles'
+  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
+
+INSERT INTO menu_item_roles (menu_item_id, role_id)
+SELECT m.id, r.id FROM menu_items m, roles r
+WHERE r.name = 'ROLE_SUPER_ADMIN'
+  AND m.label = 'Menu'
+  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
+
+INSERT INTO menu_item_roles (menu_item_id, role_id)
+SELECT m.id, r.id FROM menu_items m, roles r
+WHERE r.name IN ('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')
+  AND m.label = 'Homepage Sections'
+  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
+
+INSERT INTO menu_item_roles (menu_item_id, role_id)
+SELECT m.id, r.id FROM menu_items m, roles r
+WHERE r.name IN ('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')
+  AND m.label = 'Popups'
+  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
 
 -- Homepage sections (seed data for CMS-managed homepage)
 -- Only inserts when table is empty to prevent duplicates across restarts

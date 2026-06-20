@@ -19,6 +19,9 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
     @Query("SELECT DISTINCT p.name FROM User u JOIN u.roles r JOIN r.permissions p WHERE u.id = :userId")
     Set<String> findPermissionNamesByUserId(@Param("userId") Long userId);
 
+    @Query("SELECT r.id FROM User u JOIN u.roles r WHERE u.id = :userId")
+    List<Long> findRoleIdsByUserId(@Param("userId") Long userId);
+
     boolean existsByEmail(String email);
 
     boolean existsByEmployeeId(String employeeId);

@@ -52,8 +52,8 @@ export interface MenuItemResponse {
   parentId: number | null;
   label: string;
   path: string;
-  icon: string;
-  permissionName: string | null;
+  icon: string | null;
+  roleIds: number[];
   displayOrder: number;
   active: boolean;
   createdAt: string;

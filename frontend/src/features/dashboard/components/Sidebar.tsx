@@ -1,31 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  Layout,
-  Square,
-  Shield,
-  Menu,
-  ChevronDown,
-  type LucideIcon,
-} from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { authApi } from '@/features/auth/api/auth.api';
 import type { MenuItem } from '@/features/auth/types/auth.types';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/ui/Logo';
 import { useTheme } from '@/app/hooks/useTheme';
-
-const iconMap: Record<string, LucideIcon> = {
-  LayoutDashboard,
-  Users,
-  FileText,
-  Layout,
-  Square,
-  Shield,
-  Menu,
-};
+import { iconMap } from '@/lib/icon-map';
 
 interface SidebarProps {
   open: boolean;
@@ -34,7 +15,7 @@ interface SidebarProps {
 
 const NavItem: React.FC<{ item: MenuItem; onNavigate: (path: string) => void; depth?: number }> = ({ item, onNavigate, depth = 0 }) => {
   const location = useLocation();
-  const Icon = iconMap[item.icon] || LayoutDashboard;
+  const Icon = iconMap[item.icon] || iconMap.LayoutDashboard;
   const isActive = location.pathname === item.path;
 
   return (
@@ -57,7 +38,7 @@ const NavItem: React.FC<{ item: MenuItem; onNavigate: (path: string) => void; de
 const NavGroup: React.FC<{ item: MenuItem; onNavigate: (path: string) => void }> = ({ item, onNavigate }) => {
   const [expanded, setExpanded] = useState(true);
   const location = useLocation();
-  const Icon = iconMap[item.icon] || LayoutDashboard;
+  const Icon = iconMap[item.icon] || iconMap.LayoutDashboard;
   const isChildActive = item.children?.some(c => location.pathname === c.path);
 
   return (

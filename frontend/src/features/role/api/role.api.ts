@@ -20,4 +20,10 @@ export const roleApi = {
 
   getAllPermissions: () =>
     apiClient.get<ApiResponse<Permission[]>>('/permissions'),
+
+  getRoleMenuItems: (roleId: number) =>
+    apiClient.get<ApiResponse<number[]>>(`/menu-items/roles/${roleId}`),
+
+  setRoleMenuItems: (roleId: number, menuItemIds: number[]) =>
+    apiClient.put<ApiResponse<void>>(`/menu-items/roles/${roleId}`, { menuItemIds }),
 };

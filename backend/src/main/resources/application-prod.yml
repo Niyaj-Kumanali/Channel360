@@ -1,0 +1,14 @@
+spring:
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    com.channel360: INFO
+    org.springframework.security: INFO

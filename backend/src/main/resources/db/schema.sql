@@ -115,6 +115,13 @@ CREATE TABLE IF NOT EXISTS menu_items (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS menu_item_roles (
+    menu_item_id BIGINT NOT NULL REFERENCES menu_items(id) ON DELETE CASCADE,
+    role_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    PRIMARY KEY (menu_item_id, role_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_menu_items_parent_id ON menu_items(parent_id);
 CREATE INDEX IF NOT EXISTS idx_menu_items_permission ON menu_items(permission_name);
 CREATE INDEX IF NOT EXISTS idx_menu_items_display_order ON menu_items(display_order);
+CREATE INDEX IF NOT EXISTS idx_menu_item_roles_role_id ON menu_item_roles(role_id);

@@ -3,11 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { menuApi } from '@/features/menu/api/menu.api';
-import { roleApi } from '@/features/role/api/role.api';
-import type { Permission } from '@/features/auth/types/auth.types';
 import type { MenuItemResponse } from '@/features/auth/types/auth.types';
 import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
+import { SelectField } from '@/components/ui/SelectField';
+import { iconMap, ICON_NAMES } from '@/lib/icon-map';
+
+const iconOptions = ICON_NAMES.map(name => ({
+  value: name,
+  label: name,
+  icon: React.createElement(iconMap[name], { className: 'h-4 w-4', key: name }),
+}));
 
 export const MenuFormPage: React.FC = () => {
   const { id } = useParams();
@@ -17,12 +23,10 @@ export const MenuFormPage: React.FC = () => {
   const [label, setLabel] = useState('');
   const [path, setPath] = useState('');
   const [icon, setIcon] = useState('');
-  const [permissionName, setPermissionName] = useState('');
   const [parentId, setParentId] = useState<number | ''>('');
   const [displayOrder, setDisplayOrder] = useState(0);
   const [active, setActive] = useState(true);
 
-  const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
   const [parentItems, setParentItems] = useState<MenuItemResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -30,12 +34,7 @@ export const MenuFormPage: React.FC = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const [permRes, menuRes] = await Promise.all([
-          roleApi.getAllPermissions(),
-          menuApi.getAll(),
-        ]);
-
-        if (permRes.success) setAllPermissions(permRes.data);
+        const menuRes = await menuApi.getAll();
         if (menuRes.success) setParentItems(menuRes.data.filter(m => m.parentId === null && (!isEdit || m.id !== Number(id))));
 
         if (isEdit && id) {
@@ -45,7 +44,6 @@ export const MenuFormPage: React.FC = () => {
             setLabel(item.label);
             setPath(item.path);
             setIcon(item.icon || '');
-            setPermissionName(item.permissionName || '');
             setParentId(item.parentId ?? '');
             setDisplayOrder(item.displayOrder);
             setActive(item.active);
@@ -81,7 +79,6 @@ export const MenuFormPage: React.FC = () => {
       const payload: Partial<MenuItemResponse> = {
         label: label.trim(),
         path: path.trim(),
-        permissionName: permissionName || null,
         parentId: parentId === '' ? null : parentId,
         displayOrder,
         active,
@@ -155,14 +152,15 @@ export const MenuFormPage: React.FC = () => {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">Icon Name</label>
-              <input
+              <SelectField
+                id="icon"
+                label="Icon"
                 value={icon}
-                onChange={(e) => setIcon(e.target.value)}
-                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                placeholder="e.g. LayoutDashboard, Shield, Users"
+                onChange={setIcon}
+                placeholder="-- No icon --"
+                options={iconOptions}
               />
-              <p className="text-xs text-muted-foreground">Lucide icon name (PascalCase). Must match the sidebar icon map.</p>
+              <p className="text-xs text-muted-foreground">Lucide icon shown in the sidebar.</p>
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">Display Order</label>
@@ -178,31 +176,14 @@ export const MenuFormPage: React.FC = () => {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">Required Permission</label>
-              <select
-                value={permissionName}
-                onChange={(e) => setPermissionName(e.target.value)}
-                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value="">-- Public (no permission required) --</option>
-                {allPermissions.map((p) => (
-                  <option key={p.id} value={p.name}>{p.name} - {p.description}</option>
-                ))}
-              </select>
-              <p className="text-xs text-muted-foreground">Users need this permission to see the menu item. Leave empty for public items.</p>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">Parent Item</label>
-              <select
-                value={parentId}
-                onChange={(e) => setParentId(e.target.value === '' ? '' : Number(e.target.value))}
-                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value="">-- Top Level --</option>
-                {parentItems.map((p) => (
-                  <option key={p.id} value={p.id}>{p.label}</option>
-                ))}
-              </select>
+              <SelectField
+                id="parent"
+                label="Parent Item"
+                value={String(parentId)}
+                onChange={(v) => setParentId(v === '' ? '' : Number(v))}
+                placeholder="-- Top Level --"
+                options={parentItems.map(p => ({ value: String(p.id), label: p.label }))}
+              />
               <p className="text-xs text-muted-foreground">Make this item a child of another menu item. Leave empty for top-level items.</p>
             </div>
           </div>

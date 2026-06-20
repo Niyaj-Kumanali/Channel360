@@ -35,14 +35,18 @@ public class PermissionAspect {
         }
 
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-        Set<String> userPermissions = userDetails.getPermissions();
+        Set<String> jwtPermissions = userDetails.getPermissions();
 
-        if (userPermissions == null || userPermissions.isEmpty()) {
-            log.info("No permissions in JWT for user {}, loading from DB", userDetails.getId());
-            userPermissions = userRepository.findPermissionNamesByUserId(userDetails.getId());
-            log.info("DB permissions for user {}: {}", userDetails.getId(), userPermissions);
-        } else {
-            log.info("JWT permissions for user {}: {}", userDetails.getId(), userPermissions);
+        Set<String> userPermissions = (jwtPermissions != null && !jwtPermissions.isEmpty())
+                ? jwtPermissions
+                : userRepository.findPermissionNamesByUserId(userDetails.getId());
+
+        // If the required permission isn't in the JWT, try loading from DB as fallback
+        if (!userPermissions.contains(requirePermission.value())) {
+            Set<String> dbPermissions = userRepository.findPermissionNamesByUserId(userDetails.getId());
+            if (dbPermissions.contains(requirePermission.value())) {
+                userPermissions = dbPermissions;
+            }
         }
 
         if (!userPermissions.contains(requirePermission.value())) {

@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/menu-items")
@@ -55,5 +57,18 @@ public class MenuController {
     public ResponseEntity<ApiResponse<Void>> reorderMenuItems(@RequestBody List<MenuRequest> items) {
         menuService.reorderMenuItems(items);
         return ResponseEntity.ok(ApiResponse.success(null, "Menu items reordered"));
+    }
+
+    @GetMapping("/roles/{roleId}")
+    @RequirePermission("menu.manage")
+    public ResponseEntity<ApiResponse<Set<Long>>> getRoleMenuItems(@PathVariable Long roleId) {
+        return ResponseEntity.ok(ApiResponse.success(menuService.getRoleMenuItemIds(roleId)));
+    }
+
+    @PutMapping("/roles/{roleId}")
+    @RequirePermission("menu.manage")
+    public ResponseEntity<ApiResponse<Void>> setRoleMenuItems(@PathVariable Long roleId, @RequestBody Map<String, List<Long>> body) {
+        menuService.setRoleMenuItemIds(roleId, body.get("menuItemIds"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Menu visibility updated for role"));
     }
 }
