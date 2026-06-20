@@ -38,13 +38,14 @@ public class JwtTokenProvider {
         this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
-    public String generateAccessToken(Long userId, Collection<String> roles) {
+    public String generateAccessToken(Long userId, Collection<String> roles, Collection<String> permissions) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenExpiration);
 
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim("roles", roles)
+                .claim("permissions", permissions)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(secretKey)
@@ -93,17 +94,27 @@ public class JwtTokenProvider {
 
     @SuppressWarnings("unchecked")
     public List<String> getRolesFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        Claims claims = getClaims(token);
         return ((List<String>) claims.get("roles")).stream()
                 .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
                 .collect(Collectors.toList());
     }
 
+    @SuppressWarnings("unchecked")
+    public List<String> getPermissionsFromToken(String token) {
+        Claims claims = getClaims(token);
+        return claims.get("permissions", List.class);
+    }
+
     public long getAccessTokenExpiration() {
         return accessTokenExpiration;
+    }
+
+    private Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

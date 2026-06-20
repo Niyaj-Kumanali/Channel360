@@ -85,3 +85,19 @@ CREATE INDEX IF NOT EXISTS idx_homepage_sections_type ON homepage_sections(secti
 CREATE INDEX IF NOT EXISTS idx_homepage_sections_deleted_flag ON homepage_sections(deleted_flag);
 CREATE INDEX IF NOT EXISTS idx_homepage_popups_active ON homepage_popups(active);
 CREATE INDEX IF NOT EXISTS idx_homepage_popups_deleted_flag ON homepage_popups(deleted_flag);
+
+CREATE TABLE IF NOT EXISTS permissions (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    module VARCHAR(50)
+);
+
+CREATE TABLE IF NOT EXISTS role_permissions (
+    role_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    permission_id BIGINT NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+    PRIMARY KEY (role_id, permission_id)
+);
+
+ALTER TABLE homepage_sections ADD COLUMN IF NOT EXISTS updated_by VARCHAR(255);
+ALTER TABLE homepage_popups ADD COLUMN IF NOT EXISTS updated_by VARCHAR(255);

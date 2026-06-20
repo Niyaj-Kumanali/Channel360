@@ -99,7 +99,12 @@ public class AuthService {
                 .map(role -> role.getName())
                 .collect(Collectors.toSet());
 
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), roles);
+        Set<String> permissionNames = user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(p -> p.getName())
+                .collect(Collectors.toSet());
+
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), roles, permissionNames);
         String refreshTokenStr = jwtTokenProvider.generateRefreshToken(user.getId());
 
         saveRefreshToken(user.getId(), refreshTokenStr);
@@ -229,7 +234,12 @@ public class AuthService {
                 .map(role -> role.getName())
                 .collect(Collectors.toSet());
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), roles);
+        Set<String> permissionNames = user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(p -> p.getName())
+                .collect(Collectors.toSet());
+
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), roles, permissionNames);
         String newRefreshTokenStr = jwtTokenProvider.generateRefreshToken(user.getId());
 
         saveRefreshToken(user.getId(), newRefreshTokenStr);

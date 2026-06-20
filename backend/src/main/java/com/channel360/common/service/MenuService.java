@@ -46,6 +46,13 @@ public class MenuService {
                 .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name(), RoleName.ROLE_ADMIN.name()))
                 .build();
 
+        MenuItem roles = MenuItem.builder()
+                .path("/admin/roles")
+                .label("Roles")
+                .icon("Shield")
+                .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name()))
+                .build();
+
         MenuItem cms = MenuItem.builder()
                 .path("#")
                 .label("Content")
@@ -67,7 +74,7 @@ public class MenuService {
                 )))
                 .build();
 
-        return List.of(dashboard, users, cms);
+        return List.of(dashboard, users, roles, cms);
     }
 
     private boolean hasAccess(MenuItem item, Set<String> userRoles) {

@@ -2,11 +2,14 @@ package com.channel360.homepage.repository;
 
 import com.channel360.homepage.entity.HomepagePopup;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HomepagePopupRepository extends JpaRepository<HomepagePopup, Long> {
@@ -28,4 +31,16 @@ public interface HomepagePopupRepository extends JpaRepository<HomepagePopup, Lo
 
     @Procedure("sp_homepage_popup_delete")
     void spDelete(@Param("p_id") Long id);
+
+    @Query("SELECT p FROM HomepagePopup p WHERE p.deletedFlag = false AND p.id = :id")
+    Optional<HomepagePopup> findActiveById(@Param("id") Long id);
+
+    @Query("SELECT p FROM HomepagePopup p WHERE p.deletedFlag = false ORDER BY p.priority DESC, p.id DESC")
+    List<HomepagePopup> findAllActive();
+
+    @Query("SELECT p FROM HomepagePopup p WHERE p.deletedFlag = false AND p.active = true " +
+           "AND (p.startDate IS NULL OR p.startDate <= CURRENT_TIMESTAMP) " +
+           "AND (p.endDate IS NULL OR p.endDate >= CURRENT_TIMESTAMP) " +
+           "ORDER BY p.priority DESC, p.id DESC")
+    List<HomepagePopup> findAllPublished();
 }

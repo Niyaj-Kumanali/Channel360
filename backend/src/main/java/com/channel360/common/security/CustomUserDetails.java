@@ -17,8 +17,9 @@ public class CustomUserDetails implements UserDetails {
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
     private final boolean enabled;
+    private final Set<String> permissions;
 
-    public CustomUserDetails(Long id, String email, String password, Set<String> roles, boolean enabled) {
+    public CustomUserDetails(Long id, String email, String password, Set<String> roles, boolean enabled, Set<String> permissions) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -27,6 +28,7 @@ public class CustomUserDetails implements UserDetails {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());
         this.enabled = enabled;
+        this.permissions = permissions;
     }
 
     @Override

@@ -2,17 +2,22 @@ package com.channel360.user.repository;
 
 import com.channel360.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom {
 
     Optional<User> findByEmail(String email);
+
+    @Query("SELECT DISTINCT p.name FROM User u JOIN u.roles r JOIN r.permissions p WHERE u.id = :userId")
+    Set<String> findPermissionNamesByUserId(@Param("userId") Long userId);
 
     boolean existsByEmail(String email);
 

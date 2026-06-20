@@ -16,6 +16,15 @@ export interface Role {
   id: number;
   name: string;
   description: string;
+  permissions: string[];
+  permissionIds: number[];
+}
+
+export interface Permission {
+  id: number;
+  name: string;
+  description: string;
+  module: string;
 }
 
 export interface LoginRequest {

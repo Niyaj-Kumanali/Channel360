@@ -6,6 +6,7 @@ import {
   FileText,
   Layout,
   Square,
+  Shield,
   ChevronDown,
   type LucideIcon,
 } from 'lucide-react';
@@ -21,7 +22,21 @@ const iconMap: Record<string, LucideIcon> = {
   FileText,
   Layout,
   Square,
+  Shield,
 };
+
+const fallbackMenu: MenuItem[] = [
+  { path: '/dashboard', label: 'Dashboard', icon: 'LayoutDashboard', roles: [] },
+  { path: '/users', label: 'Users', icon: 'Users', roles: [] },
+  { path: '/admin/roles', label: 'Roles', icon: 'Shield', roles: [] },
+  {
+    path: '#', label: 'Content', icon: 'FileText', roles: [],
+    children: [
+      { path: '/admin/sections', label: 'Homepage Sections', icon: 'Layout', roles: [] },
+      { path: '/admin/popups', label: 'Popups', icon: 'Square', roles: [] },
+    ],
+  },
+];
 
 interface SidebarProps {
   open: boolean;
@@ -85,12 +100,14 @@ const NavGroup: React.FC<{ item: MenuItem; onNavigate: (path: string) => void }>
 export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [menu, setMenu] = useState<MenuItem[]>(fallbackMenu);
 
   useEffect(() => {
     authApi.getMenu().then((res) => {
-      if (res.success) setMenu(res.data);
-    }).catch(() => {});
+      if (res.success && res.data.length > 0) setMenu(res.data);
+    }).catch(() => {
+      console.warn('Menu API failed, using fallback');
+    });
   }, []);
 
   const handleNavigate = (path: string) => {

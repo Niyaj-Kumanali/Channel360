@@ -1,6 +1,7 @@
 package com.channel360.homepage.controller;
 
 import com.channel360.common.dto.response.ApiResponse;
+import com.channel360.common.security.RequirePermission;
 import com.channel360.homepage.dto.request.HomepagePopupRequest;
 import com.channel360.homepage.dto.request.HomepageSectionRequest;
 import com.channel360.homepage.dto.response.HomepagePopupResponse;
@@ -9,7 +10,6 @@ import com.channel360.homepage.service.HomepageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,14 +39,14 @@ public class HomepageController {
     // --- Admin: Sections ---
 
     @GetMapping("/sections/admin")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @RequirePermission("homepage.manage")
     public ResponseEntity<ApiResponse<List<HomepageSectionResponse>>> getAllSections() {
         List<HomepageSectionResponse> sections = homepageService.getAllSections();
         return ResponseEntity.ok(ApiResponse.success(sections));
     }
 
     @GetMapping("/sections/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @RequirePermission("homepage.manage")
     public ResponseEntity<ApiResponse<HomepageSectionResponse>> getSection(@PathVariable Long id, Authentication auth) {
         HomepageSectionResponse section = homepageService.getSection(id, auth.getName());
         if (section == null) {
@@ -56,7 +56,7 @@ public class HomepageController {
     }
 
     @PostMapping("/sections")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @RequirePermission("homepage.manage")
     public ResponseEntity<ApiResponse<HomepageSectionResponse>> createSection(
             @Valid @RequestBody HomepageSectionRequest request,
             Authentication auth) {
@@ -66,7 +66,7 @@ public class HomepageController {
     }
 
     @PutMapping("/sections/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @RequirePermission("homepage.manage")
     public ResponseEntity<ApiResponse<HomepageSectionResponse>> updateSection(
             @PathVariable Long id,
             @Valid @RequestBody HomepageSectionRequest request,
@@ -77,7 +77,7 @@ public class HomepageController {
     }
 
     @DeleteMapping("/sections/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @RequirePermission("homepage.manage")
     public ResponseEntity<ApiResponse<Void>> deleteSection(@PathVariable Long id) {
         homepageService.deleteSection(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Section deleted"));
@@ -86,14 +86,14 @@ public class HomepageController {
     // --- Admin: Popups ---
 
     @GetMapping("/popups/admin")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @RequirePermission("homepage.manage")
     public ResponseEntity<ApiResponse<List<HomepagePopupResponse>>> getAllPopups() {
         List<HomepagePopupResponse> popups = homepageService.getAllPopups();
         return ResponseEntity.ok(ApiResponse.success(popups));
     }
 
     @GetMapping("/popups/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @RequirePermission("homepage.manage")
     public ResponseEntity<ApiResponse<HomepagePopupResponse>> getPopup(@PathVariable Long id) {
         HomepagePopupResponse popup = homepageService.getPopup(id);
         if (popup == null) {
@@ -103,7 +103,7 @@ public class HomepageController {
     }
 
     @PostMapping("/popups")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @RequirePermission("homepage.manage")
     public ResponseEntity<ApiResponse<HomepagePopupResponse>> createPopup(
             @Valid @RequestBody HomepagePopupRequest request,
             Authentication auth) {
@@ -113,7 +113,7 @@ public class HomepageController {
     }
 
     @PutMapping("/popups/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @RequirePermission("homepage.manage")
     public ResponseEntity<ApiResponse<HomepagePopupResponse>> updatePopup(
             @PathVariable Long id,
             @Valid @RequestBody HomepagePopupRequest request,
@@ -124,7 +124,7 @@ public class HomepageController {
     }
 
     @DeleteMapping("/popups/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @RequirePermission("homepage.manage")
     public ResponseEntity<ApiResponse<Void>> deletePopup(@PathVariable Long id) {
         homepageService.deletePopup(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Popup deleted"));

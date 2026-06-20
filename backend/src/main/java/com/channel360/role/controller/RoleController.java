@@ -1,6 +1,7 @@
 package com.channel360.role.controller;
 
 import com.channel360.common.dto.response.ApiResponse;
+import com.channel360.common.security.RequirePermission;
 import com.channel360.role.dto.response.RoleResponse;
 import com.channel360.role.service.RoleService;
 import jakarta.validation.Valid;
@@ -23,6 +24,7 @@ public class RoleController {
     }
 
     @PostMapping
+    @RequirePermission("roles.manage")
     public ResponseEntity<ApiResponse<RoleResponse>> createRole(@Valid @RequestBody RoleResponse roleDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(roleService.createRole(roleDto), "Role created successfully"));
@@ -34,11 +36,13 @@ public class RoleController {
     }
 
     @PutMapping("/{id}")
+    @RequirePermission("roles.manage")
     public ResponseEntity<ApiResponse<RoleResponse>> updateRole(@PathVariable Long id, @Valid @RequestBody RoleResponse roleDto) {
         return ResponseEntity.ok(ApiResponse.success(roleService.updateRole(id, roleDto), "Role updated successfully"));
     }
 
     @DeleteMapping("/{id}")
+    @RequirePermission("roles.manage")
     public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable Long id) {
         roleService.deleteRole(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Role deleted successfully"));

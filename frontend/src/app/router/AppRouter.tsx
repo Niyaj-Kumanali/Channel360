@@ -12,6 +12,8 @@ import { SectionListPage } from '@/features/cms/pages/SectionListPage';
 import { SectionFormPage } from '@/features/cms/pages/SectionFormPage';
 import { PopupListPage } from '@/features/cms/pages/PopupListPage';
 import { PopupFormPage } from '@/features/cms/pages/PopupFormPage';
+import { RoleListPage } from '@/features/role/pages/RoleListPage';
+import { RoleFormPage } from '@/features/role/pages/RoleFormPage';
 
 export const AppRouter: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -35,6 +37,9 @@ export const AppRouter: React.FC = () => {
           <Route path="/admin/popups" element={<PopupListPage />} />
           <Route path="/admin/popups/new" element={<PopupFormPage />} />
           <Route path="/admin/popups/:id" element={<PopupFormPage />} />
+          <Route path="/admin/roles" element={<RoleListPage />} />
+          <Route path="/admin/roles/new" element={<RoleFormPage />} />
+          <Route path="/admin/roles/:id" element={<RoleFormPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<Navigate to="/dashboard" replace />} />
           <Route path="/forgot-password" element={<Navigate to="/dashboard" replace />} />

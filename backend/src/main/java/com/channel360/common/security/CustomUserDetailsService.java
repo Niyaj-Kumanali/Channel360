@@ -30,12 +30,18 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .map(role -> role.getName())
                 .collect(Collectors.toSet());
 
+        Set<String> permissions = user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(permission -> permission.getName())
+                .collect(Collectors.toSet());
+
         return new CustomUserDetails(
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
                 roles,
-                !user.isDeletedFlag()
+                !user.isDeletedFlag(),
+                permissions
         );
     }
 }

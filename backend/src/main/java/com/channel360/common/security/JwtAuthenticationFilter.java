@@ -44,13 +44,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
                 Long userId = jwtTokenProvider.getUserIdFromToken(token);
                 List<String> roles = jwtTokenProvider.getRolesFromToken(token);
+                List<String> permissions = jwtTokenProvider.getPermissionsFromToken(token);
 
                 List<GrantedAuthority> authorities = roles.stream()
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
                 CustomUserDetails userDetails = new CustomUserDetails(
-                        userId, "", "", Set.copyOf(roles), true
+                        userId, "", "", Set.copyOf(roles), true,
+                        permissions != null ? Set.copyOf(permissions) : Set.of()
                 );
 
                 UsernamePasswordAuthenticationToken authentication =
