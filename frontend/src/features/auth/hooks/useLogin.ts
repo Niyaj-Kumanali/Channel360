@@ -1,9 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { authApi } from '../api/auth.api';
-import type { LoginFormData } from '../schemas/auth.schema';
-import { useAuth } from '@/shared/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import type { LoginFormData } from '@/features/auth/schemas/auth.schema';
 
 export const useLogin = () => {
   const navigate = useNavigate();
@@ -15,7 +14,7 @@ export const useLogin = () => {
     },
     onSuccess: () => {
       toast.success('Login successful');
-      navigate('/dashboard');
+      navigate('/');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Login failed');

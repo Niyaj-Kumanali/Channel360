@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, type ReactNode } from 'react';
-import type { User, AuthState } from '@/shared/types/auth.types';
-import { apiService } from '@/shared/services/api.service';
+import { apiClient } from '@/lib/api-client';
+import { authApi } from '@/features/auth/api/auth.api';
+import type { User, AuthState } from '@/features/auth/types/auth.types';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -34,31 +35,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = async (email: string, password: string) => {
-    console.log('Attempting login with email:', email);
-  
-    const response = await apiService.post<any>('/auth/login', { email, password });
-    if (response.success) {
-      apiService.setTokens(response.data.accessToken, response.data.refreshToken);
-      const userResponse = await apiService.get<User>('/auth/me');
-      if (userResponse.success) {
-        localStorage.setItem('user', JSON.stringify(userResponse.data));
-        setState({ user: userResponse.data, isAuthenticated: true, isLoading: false });
-      }
-    } else {
+    const response = await authApi.login({ email, password });
+    if (!response.success) {
       throw new Error(response.message || 'Login failed');
     }
+    apiClient.setTokens(response.data.accessToken, response.data.refreshToken);
+    const userResponse = await authApi.getMe();
+    if (!userResponse.success) {
+      throw new Error(userResponse.message || 'Failed to get user info');
+    }
+    localStorage.setItem('user', JSON.stringify(userResponse.data));
+    setState({ user: userResponse.data, isAuthenticated: true, isLoading: false });
   };
 
   const logout = async () => {
     try {
       const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
-        await apiService.post('/auth/logout', { refreshToken });
+        await authApi.logout(refreshToken);
       }
     } catch {
       // ignore
     } finally {
-      apiService.clearTokens();
+      apiClient.clearTokens();
       setState({ user: null, isAuthenticated: false, isLoading: false });
     }
   };

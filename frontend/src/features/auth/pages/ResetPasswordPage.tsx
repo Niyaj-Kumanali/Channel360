@@ -1,14 +1,15 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { resetPasswordSchema, type ResetPasswordFormData } from '../schemas/auth.schema';
-import { authApi } from '../api/auth.api';
-import { Input } from '@/shared/components/ui/Input';
-import { Button } from '@/shared/components/ui/Button';
-import { Card, CardContent, CardHeader } from '@/shared/components/ui/Card';
+import { ArrowLeft } from 'lucide-react';
+import { resetPasswordSchema, type ResetPasswordFormData } from '@/features/auth/schemas/auth.schema';
+import { authApi } from '@/features/auth/api/auth.api';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +22,12 @@ export const ResetPasswordPage: React.FC = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: ResetPasswordFormData) => authApi.resetPassword(data),
+    mutationFn: async (data: ResetPasswordFormData) => {
+      const response = await authApi.resetPassword(data);
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to reset password');
+      }
+    },
     onSuccess: () => {
       toast.success('Password reset successful');
       navigate('/login');
@@ -52,6 +58,12 @@ export const ResetPasswordPage: React.FC = () => {
             Reset Password
           </Button>
         </form>
+        <div className="mt-4 text-center">
+          <Link to="/login" className="text-sm text-primary-600 hover:text-primary-700">
+            <ArrowLeft className="h-4 w-4 inline mr-1" />
+            Back to Login
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );

@@ -5,11 +5,11 @@ import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Mail } from 'lucide-react';
-import { forgotPasswordSchema, type ForgotPasswordFormData } from '../schemas/auth.schema';
-import { authApi } from '../api/auth.api';
-import { Input } from '@/shared/components/ui/Input';
-import { Button } from '@/shared/components/ui/Button';
-import { Card, CardContent, CardHeader } from '@/shared/components/ui/Card';
+import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/features/auth/schemas/auth.schema';
+import { authApi } from '@/features/auth/api/auth.api';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 
 export const ForgotPasswordPage: React.FC = () => {
   const [sent, setSent] = React.useState(false);
@@ -19,7 +19,12 @@ export const ForgotPasswordPage: React.FC = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: ForgotPasswordFormData) => authApi.forgotPassword(data.email),
+    mutationFn: async (data: ForgotPasswordFormData) => {
+      const response = await authApi.forgotPassword(data);
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to send reset link');
+      }
+    },
     onSuccess: () => {
       setSent(true);
       toast.success('Reset link sent to your email');

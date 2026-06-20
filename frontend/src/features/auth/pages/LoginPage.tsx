@@ -3,10 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
-import { loginSchema, type LoginFormData } from '../schemas/auth.schema';
-import { useLogin } from '../hooks/useLogin';
-import { Input } from '@/shared/components/ui/Input';
-import { Button } from '@/shared/components/ui/Button';
+import { loginSchema, type LoginFormData } from '@/features/auth/schemas/auth.schema';
+import { useLogin } from '@/features/auth/hooks/useLogin';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 
 export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -21,7 +21,6 @@ export const LoginPage: React.FC = () => {
   });
 
   const onSubmit = (data: LoginFormData) => {
-    console.log('Login Form Data:', data);
     loginMutation.mutate(data);
   };
 
