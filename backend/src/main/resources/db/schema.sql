@@ -38,5 +38,50 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token);
+CREATE TABLE IF NOT EXISTS homepage_sections (
+    id BIGSERIAL PRIMARY KEY,
+    section_name VARCHAR(100) NOT NULL,
+    section_type VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    subtitle VARCHAR(255),
+    description TEXT,
+    image_url VARCHAR(500),
+    button_text VARCHAR(100),
+    button_url VARCHAR(500),
+    display_order INTEGER NOT NULL DEFAULT 0,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    start_date TIMESTAMP,
+    end_date TIMESTAMP,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(255),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted_flag BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS homepage_popups (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    image_url VARCHAR(500),
+    cta_button_text VARCHAR(100),
+    cta_url VARCHAR(500),
+    priority INTEGER NOT NULL DEFAULT 0,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    start_date TIMESTAMP,
+    end_date TIMESTAMP,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(255),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted_flag BOOLEAN NOT NULL DEFAULT FALSE
+);
+
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_employee_id ON users(employee_id);
+CREATE INDEX IF NOT EXISTS idx_homepage_sections_active ON homepage_sections(active);
+CREATE INDEX IF NOT EXISTS idx_homepage_sections_display_order ON homepage_sections(display_order);
+CREATE INDEX IF NOT EXISTS idx_homepage_sections_type ON homepage_sections(section_type);
+CREATE INDEX IF NOT EXISTS idx_homepage_sections_deleted_flag ON homepage_sections(deleted_flag);
+CREATE INDEX IF NOT EXISTS idx_homepage_popups_active ON homepage_popups(active);
+CREATE INDEX IF NOT EXISTS idx_homepage_popups_deleted_flag ON homepage_popups(deleted_flag);
