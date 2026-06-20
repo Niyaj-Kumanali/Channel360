@@ -92,7 +92,7 @@ export const RoleFormPage: React.FC = () => {
   }, {});
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full min-h-[24rem]"><Loader size="lg" /></div>;
+    return <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]"><Loader size="lg" /></div>;
   }
 
   return (

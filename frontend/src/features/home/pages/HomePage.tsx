@@ -114,7 +114,7 @@ export const HomePage: React.FC = () => {
       </header>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
+        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
           <Loader size="lg" />
         </div>
       ) : (

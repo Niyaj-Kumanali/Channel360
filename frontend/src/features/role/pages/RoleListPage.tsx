@@ -40,7 +40,7 @@ export const RoleListPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-48"><Loader /></div>;
+    return <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]"><Loader size="lg" /></div>;
   }
 
   return (

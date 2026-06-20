@@ -43,7 +43,7 @@ export const SectionListPage: React.FC = () => {
   const typeLabel = (type: string) => SECTION_TYPES.find(t => t.value === type)?.label || type;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-48"><Loader /></div>;
+    return <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]"><Loader size="lg" /></div>;
   }
 
   return (

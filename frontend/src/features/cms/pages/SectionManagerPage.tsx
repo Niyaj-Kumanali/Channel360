@@ -229,7 +229,25 @@ export const SectionManagerPage: React.FC = () => {
 
   const openEditor = (section: HomepageSection | null) => {
     setIsNew(!section);
-    setEditingSection(section ? { ...section } : null);
+    setEditingSection(section ? { ...section } : {
+      id: 0,
+      sectionName: '',
+      sectionType: '',
+      title: '',
+      subtitle: '',
+      description: '',
+      imageUrl: null,
+      buttonText: null,
+      buttonUrl: null,
+      displayOrder: 0,
+      active: true,
+      startDate: null,
+      endDate: null,
+      createdBy: null,
+      createdAt: '',
+      updatedBy: null,
+      updatedAt: '',
+    });
     setPanelOpen(true);
   };
 
@@ -284,7 +302,7 @@ export const SectionManagerPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]">
         <Loader size="lg" />
       </div>
     );
@@ -541,7 +559,7 @@ export const SectionManagerPage: React.FC = () => {
               <Button
                 onClick={handleSave}
                 className="gap-2"
-                disabled={!editingSection?.sectionName || (!isNew && !editingSection?.sectionType)}
+                disabled={!editingSection?.sectionName || !editingSection?.sectionType}
               >
                 <Save className="h-4 w-4" /> {isNew ? 'Create' : 'Save'}
               </Button>
