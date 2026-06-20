@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { cmsApi } from '@/features/cms/api/cms.api';
 import type { HomepageSection } from '@/features/cms/types/cms.types';
 import { SECTION_TYPES } from '@/features/cms/types/cms.types';
+import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
 
 export const SectionListPage: React.FC = () => {
@@ -42,7 +43,7 @@ export const SectionListPage: React.FC = () => {
   const typeLabel = (type: string) => SECTION_TYPES.find(t => t.value === type)?.label || type;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">Loading...</div>;
+    return <div className="flex items-center justify-center h-48"><Loader /></div>;
   }
 
   return (

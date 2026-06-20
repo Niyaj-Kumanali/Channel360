@@ -30,6 +30,7 @@ import toast from 'react-hot-toast';
 import { cmsApi } from '@/features/cms/api/cms.api';
 import { SectionRenderer } from '@/features/home/components/sections/SectionRenderer';
 import { Button } from '@/components/ui/Button';
+import { Loader } from '@/components/ui/Loader';
 import type { HomepageSection } from '@/features/cms/types/cms.types';
 import { SECTION_TYPES } from '@/features/cms/types/cms.types';
 
@@ -283,8 +284,8 @@ export const SectionManagerPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">
-        Loading...
+      <div className="flex items-center justify-center h-64">
+        <Loader size="lg" />
       </div>
     );
   }

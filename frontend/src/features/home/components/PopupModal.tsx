@@ -4,6 +4,23 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import type { HomepagePopup } from '@/features/cms/types/cms.types';
 
+const STORAGE_KEY = 'popup_dismissed';
+
+const loadDismissed = (): Set<number> => {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return new Set<number>(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set();
+  }
+};
+
+const persistDismissed = (ids: Set<number>) => {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+  } catch { /* ignore */ }
+};
+
 interface Props {
   popups: HomepagePopup[];
 }
@@ -11,7 +28,7 @@ interface Props {
 export const PopupModal: React.FC<Props> = ({ popups }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [dismissedIds, setDismissedIds] = useState<Set<number>>(new Set());
+  const [dismissedIds, setDismissedIds] = useState<Set<number>>(loadDismissed);
 
   const visible = popups.filter(p => !dismissedIds.has(p.id));
 
@@ -34,7 +51,11 @@ export const PopupModal: React.FC<Props> = ({ popups }) => {
   };
 
   const handleDismiss = () => {
-    setDismissedIds(prev => new Set(prev).add(current.id));
+    setDismissedIds(prev => {
+      const next = new Set(prev).add(current.id);
+      persistDismissed(next);
+      return next;
+    });
     if (currentIndex >= visible.length - 1) {
       setIsOpen(false);
       setCurrentIndex(0);

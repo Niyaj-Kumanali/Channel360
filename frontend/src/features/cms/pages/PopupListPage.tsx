@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { cmsApi } from '@/features/cms/api/cms.api';
 import type { HomepagePopup } from '@/features/cms/types/cms.types';
 import { Button } from '@/components/ui/Button';
+import { Loader } from '@/components/ui/Loader';
 
 export const PopupListPage: React.FC = () => {
   const [popups, setPopups] = useState<HomepagePopup[]>([]);
@@ -39,7 +40,7 @@ export const PopupListPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">Loading...</div>;
+    return <div className="flex items-center justify-center h-48"><Loader /></div>;
   }
 
   return (

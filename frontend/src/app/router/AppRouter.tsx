@@ -9,6 +9,7 @@ import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 import { DashboardLayout } from '@/features/dashboard/components/DashboardLayout';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { SectionManagerPage } from '@/features/cms/pages/SectionManagerPage';
+import { Loader } from '@/components/ui/Loader';
 import { PopupListPage } from '@/features/cms/pages/PopupListPage';
 import { PopupFormPage } from '@/features/cms/pages/PopupFormPage';
 import { RoleListPage } from '@/features/role/pages/RoleListPage';
@@ -20,7 +21,7 @@ export const AppRouter: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-primary-950">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
+        <Loader size="lg" className="text-white" />
       </div>
     );
   }

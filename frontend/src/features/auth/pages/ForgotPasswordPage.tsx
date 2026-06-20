@@ -83,14 +83,6 @@ export const ForgotPasswordPage: React.FC = () => {
         <Button type="submit" className="w-full h-11" isLoading={mutation.isPending}>
           Send Reset Link
         </Button>
-
-        <Link
-          to="/login"
-          className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Login
-        </Link>
       </form>
     </div>
   );

@@ -4,6 +4,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { roleApi } from '@/features/role/api/role.api';
 import type { Permission } from '@/features/auth/types/auth.types';
+import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
 
 export const RoleFormPage: React.FC = () => {
@@ -91,7 +92,7 @@ export const RoleFormPage: React.FC = () => {
   }, {});
 
   if (loading) {
-    return <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">Loading...</div>;
+    return <div className="flex items-center justify-center h-full min-h-[24rem]"><Loader size="lg" /></div>;
   }
 
   return (

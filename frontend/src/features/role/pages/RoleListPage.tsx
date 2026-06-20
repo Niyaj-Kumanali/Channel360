@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { roleApi } from '@/features/role/api/role.api';
 import type { Role } from '@/features/auth/types/auth.types';
+import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
 
 export const RoleListPage: React.FC = () => {
@@ -39,7 +40,7 @@ export const RoleListPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">Loading...</div>;
+    return <div className="flex items-center justify-center h-48"><Loader /></div>;
   }
 
   return (
