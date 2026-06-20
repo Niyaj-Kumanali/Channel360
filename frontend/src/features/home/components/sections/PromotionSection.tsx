@@ -20,13 +20,19 @@ export const PromotionSection: React.FC<Props> = ({ section }) => (
         {section.description && (
           <p className="mt-4 text-lg text-muted-foreground">{section.description}</p>
         )}
-        {section.buttonUrl && (
-          <a
-            href={section.buttonUrl}
-            className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            {section.buttonText || 'Learn More'} &rarr;
-          </a>
+        {(section.buttonText || section.buttonUrl) && (
+          section.buttonUrl ? (
+            <a
+              href={section.buttonUrl}
+              className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              {section.buttonText || 'Learn More'} &rarr;
+            </a>
+          ) : (
+            <span className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground">
+              {section.buttonText} &rarr;
+            </span>
+          )
         )}
       </div>
     </div>

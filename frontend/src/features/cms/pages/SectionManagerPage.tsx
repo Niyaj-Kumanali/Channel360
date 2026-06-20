@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Plus,
   GripVertical,
@@ -8,6 +8,17 @@ import {
   PanelRightOpen,
   X,
   Save,
+  Layout,
+  BarChart3,
+  Route,
+  Building2,
+  Star,
+  Megaphone,
+  Info,
+  Tag,
+  Image,
+  FileText,
+  Sparkles,
 } from 'lucide-react';
 import {
   DndContext,
@@ -34,18 +45,18 @@ import { Loader } from '@/components/ui/Loader';
 import type { HomepageSection } from '@/features/cms/types/cms.types';
 import { SECTION_TYPES } from '@/features/cms/types/cms.types';
 
-const typeIcon: Record<string, string> = {
-  hero_banner: '🎯',
-  stats_bar: '📊',
-  product_journey: '🔄',
-  business_areas: '🏢',
-  benefits: '⭐',
-  cta: '📢',
-  announcement: '📣',
-  info_block: 'ℹ️',
-  promotion: '🏷️',
-  image_card: '🖼️',
-  rich_content: '📝',
+const typeIcon: Record<string, React.ElementType> = {
+  hero_banner: Layout,
+  stats_bar: BarChart3,
+  product_journey: Route,
+  business_areas: Building2,
+  benefits: Star,
+  cta: Megaphone,
+  announcement: Sparkles,
+  info_block: Info,
+  promotion: Tag,
+  image_card: Image,
+  rich_content: FileText,
 };
 
 const typeLabel = (type: string) =>
@@ -72,6 +83,8 @@ const SortableSectionCard: React.FC<{
     transition,
   };
 
+  const Icon = typeIcon[section.sectionType] || FileText;
+
   return (
     <div
       ref={setNodeRef}
@@ -90,8 +103,8 @@ const SortableSectionCard: React.FC<{
         <GripVertical className="h-4 w-4" />
       </button>
 
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-sm">
-        {typeIcon[section.sectionType] || '📄'}
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+        <Icon className="h-4 w-4" />
       </div>
 
       <div className="min-w-0 flex-1 cursor-pointer" onClick={onEdit}>
@@ -300,6 +313,12 @@ export const SectionManagerPage: React.FC = () => {
 
   const activeSection = activeId ? sections.find(s => s.id === activeId) : null;
 
+  const previewSections = useMemo(() => {
+    if (!editingSection || !panelOpen) return sections;
+    if (isNew) return [...sections, editingSection];
+    return sections.map(s => s.id === editingSection.id ? editingSection : s);
+  }, [sections, editingSection, panelOpen, isNew]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]">
@@ -391,7 +410,7 @@ export const SectionManagerPage: React.FC = () => {
                 Add sections to see a live preview
               </div>
             ) : (
-              sections
+              previewSections
                 .filter(s => s.active)
                 .map(section => (
                   <SectionRenderer key={section.id} section={section} />
@@ -401,168 +420,192 @@ export const SectionManagerPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Edit Panel (slide-over) */}
+      {/* Edit Panel (slide-over with preview) */}
       {panelOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="fixed inset-0 bg-black/40" onClick={() => setPanelOpen(false)} />
-          <div className="relative w-full max-w-lg bg-background border-l border-border shadow-2xl overflow-y-auto">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-6 py-4">
-              <h2 className="text-lg font-semibold text-foreground">
-                {isNew ? 'New Section' : 'Edit Section'}
-              </h2>
-              <button
-                onClick={() => setPanelOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
+          <div className="relative w-[calc(100vw-6rem)] bg-background shadow-2xl flex">
+            {/* Preview (2/3) */}
+            <div className="flex-[2] overflow-y-auto border-r border-border">
+              <div className="flex items-center gap-2 border-b border-border px-4 py-2 bg-muted/30">
+                <div className="flex gap-1.5">
+                  <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                </div>
+                <span className="text-xs text-muted-foreground ml-2">{window.location.origin} — Preview</span>
+              </div>
+              <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 56px)' }}>
+                {editingSection?.active ? (
+                  <SectionRenderer key="preview" section={editingSection} />
+                ) : (
+                  <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
+                    This section is inactive and won't appear on the homepage.
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="p-6 space-y-5">
-              {isNew && (
+            {/* Form (1/3) */}
+            <div className="w-1/3 shrink-0 overflow-y-auto">
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-5 py-4">
+                <h2 className="text-lg font-semibold text-foreground">
+                  {isNew ? 'New Section' : 'Edit Section'}
+                </h2>
+                <button
+                  onClick={() => setPanelOpen(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-5">
+                {isNew && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Section Type</label>
+                    <select
+                      value={editingSection?.sectionType || ''}
+                      onChange={(e) => setEditingSection(prev => prev ? { ...prev, sectionType: e.target.value } : null)}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >
+                      <option value="">Select type...</option>
+                      {SECTION_TYPES.map(t => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-muted-foreground mt-1">Determines how the section looks and what data it expects. Cannot be changed after creation.</p>
+                  </div>
+                )}
+
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Section Type</label>
-                  <select
-                    value={editingSection?.sectionType || ''}
-                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, sectionType: e.target.value } : null)}
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Section Name</label>
+                  <input
+                    value={editingSection?.sectionName || ''}
+                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, sectionName: e.target.value } : null)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    <option value="">Select type...</option>
-                    {SECTION_TYPES.map(t => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">Determines how the section looks and what data it expects. Cannot be changed after creation.</p>
+                    placeholder="e.g. Hero Banner"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Internal label used to identify this section in the admin panel.</p>
                 </div>
-              )}
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Section Name</label>
-                <input
-                  value={editingSection?.sectionName || ''}
-                  onChange={(e) => setEditingSection(prev => prev ? { ...prev, sectionName: e.target.value } : null)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="e.g. Hero Banner"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Internal label used to identify this section in the admin panel.</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Title</label>
-                <input
-                  value={editingSection?.title || ''}
-                  onChange={(e) => setEditingSection(prev => prev ? { ...prev, title: e.target.value } : null)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="e.g. Complete Visibility Across Your Channel Ecosystem"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Main heading displayed on the section. Usually the largest text.</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Subtitle</label>
-                <input
-                  value={editingSection?.subtitle || ''}
-                  onChange={(e) => setEditingSection(prev => prev ? { ...prev, subtitle: e.target.value } : null)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="e.g. Enterprise Channel Management Platform"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Smaller text below the title. Used as a tagline or badge label.</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Description</label>
-                <textarea
-                  value={editingSection?.description || ''}
-                  onChange={(e) => setEditingSection(prev => prev ? { ...prev, description: e.target.value } : null)}
-                  rows={3}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
-                  placeholder="e.g. Track the complete lifecycle of products across your distribution network..."
-                />
-                <p className="text-xs text-muted-foreground mt-1">For basic sections: paragraph text. For Stats/Journey/Areas/Benefits: JSON array of items.</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Image URL</label>
-                <input
-                  value={editingSection?.imageUrl || ''}
-                  onChange={(e) => setEditingSection(prev => prev ? { ...prev, imageUrl: e.target.value } : null)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Background or featured image. Uses a publicly accessible URL.</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Button Text</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Title</label>
                   <input
-                    value={editingSection?.buttonText || ''}
-                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, buttonText: e.target.value } : null)}
+                    value={editingSection?.title || ''}
+                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, title: e.target.value } : null)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="e.g. Access Platform"
+                    placeholder="e.g. Complete Visibility Across Your Channel Ecosystem"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Label on the call-to-action button.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Main heading displayed on the section. Usually the largest text.</p>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Button URL</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Subtitle</label>
                   <input
-                    value={editingSection?.buttonUrl || ''}
-                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, buttonUrl: e.target.value } : null)}
+                    value={editingSection?.subtitle || ''}
+                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, subtitle: e.target.value } : null)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="e.g. /login or https://..."
+                    placeholder="e.g. Enterprise Channel Management Platform"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Where the CTA button links to. Internal paths or full URLs.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Smaller text below the title. Used as a tagline or badge label.</p>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Description</label>
+                  <textarea
+                    value={editingSection?.description || ''}
+                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, description: e.target.value } : null)}
+                    rows={3}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                    placeholder="e.g. Track the complete lifecycle of products across your distribution network..."
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">For basic sections: paragraph text. For Stats/Journey/Areas/Benefits: JSON array of items.</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Image URL</label>
+                  <input
+                    value={editingSection?.imageUrl || ''}
+                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, imageUrl: e.target.value } : null)}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Background or featured image. Uses a publicly accessible URL.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Button Text</label>
+                    <input
+                      value={editingSection?.buttonText || ''}
+                      onChange={(e) => setEditingSection(prev => prev ? { ...prev, buttonText: e.target.value } : null)}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      placeholder="e.g. Access Platform"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Label on the call-to-action button.</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Button URL</label>
+                    <input
+                      value={editingSection?.buttonUrl || ''}
+                      onChange={(e) => setEditingSection(prev => prev ? { ...prev, buttonUrl: e.target.value } : null)}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      placeholder="e.g. /login or https://..."
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Where the CTA button links to. Internal paths or full URLs.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Start Date</label>
+                    <input
+                      type="datetime-local"
+                      value={editingSection?.startDate ? editingSection.startDate.slice(0, 16) : ''}
+                      onChange={(e) => setEditingSection(prev => prev ? { ...prev, startDate: e.target.value ? e.target.value + ':00' : null } : null)}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Leave empty to show immediately. Section hides until this time if set.</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">End Date</label>
+                    <input
+                      type="datetime-local"
+                      value={editingSection?.endDate ? editingSection.endDate.slice(0, 16) : ''}
+                      onChange={(e) => setEditingSection(prev => prev ? { ...prev, endDate: e.target.value ? e.target.value + ':00' : null } : null)}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Section automatically hides after this time. Leave empty for no expiry.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="relative inline-flex h-6 w-11 cursor-pointer items-center">
+                    <input
+                      type="checkbox"
+                      checked={editingSection?.active ?? true}
+                      onChange={(e) => setEditingSection(prev => prev ? { ...prev, active: e.target.checked } : null)}
+                      className="peer sr-only"
+                    />
+                    <span className="absolute inset-0 rounded-full bg-muted peer-checked:bg-primary transition-colors" />
+                    <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow peer-checked:translate-x-5 transition-transform" />
+                  </label>
+                  <span className="text-sm text-foreground">Active</span>
+                </div>
+                <p className="text-xs text-muted-foreground -mt-3">When inactive, the section won't appear on the public homepage.</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Start Date</label>
-                  <input
-                    type="datetime-local"
-                    value={editingSection?.startDate ? editingSection.startDate.slice(0, 16) : ''}
-                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, startDate: e.target.value ? e.target.value + ':00' : null } : null)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Leave empty to show immediately. Section hides until this time if set.</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">End Date</label>
-                  <input
-                    type="datetime-local"
-                    value={editingSection?.endDate ? editingSection.endDate.slice(0, 16) : ''}
-                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, endDate: e.target.value ? e.target.value + ':00' : null } : null)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Section automatically hides after this time. Leave empty for no expiry.</p>
-                </div>
+              <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border bg-background px-5 py-4">
+                <Button variant="outline" onClick={() => setPanelOpen(false)}>Cancel</Button>
+                <Button
+                  onClick={handleSave}
+                  className="gap-2"
+                  disabled={!editingSection?.sectionName || !editingSection?.sectionType}
+                >
+                  <Save className="h-4 w-4" /> {isNew ? 'Create' : 'Save'}
+                </Button>
               </div>
-
-              <div className="flex items-center gap-3">
-                <label className="relative inline-flex h-6 w-11 cursor-pointer items-center">
-                  <input
-                    type="checkbox"
-                    checked={editingSection?.active ?? true}
-                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, active: e.target.checked } : null)}
-                    className="peer sr-only"
-                  />
-                  <span className="absolute inset-0 rounded-full bg-muted peer-checked:bg-primary transition-colors" />
-                  <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow peer-checked:translate-x-5 transition-transform" />
-                </label>
-                <span className="text-sm text-foreground">Active</span>
-              </div>
-              <p className="text-xs text-muted-foreground -mt-3">When inactive, the section won't appear on the public homepage.</p>
-            </div>
-
-            <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border bg-background px-6 py-4">
-              <Button variant="outline" onClick={() => setPanelOpen(false)}>Cancel</Button>
-              <Button
-                onClick={handleSave}
-                className="gap-2"
-                disabled={!editingSection?.sectionName || !editingSection?.sectionType}
-              >
-                <Save className="h-4 w-4" /> {isNew ? 'Create' : 'Save'}
-              </Button>
             </div>
           </div>
         </div>

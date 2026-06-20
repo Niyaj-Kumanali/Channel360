@@ -27,13 +27,19 @@ export const ImageCardSection: React.FC<Props> = ({ section }) => (
             {section.description && (
               <p className="mt-3 text-muted-foreground leading-relaxed">{section.description}</p>
             )}
-            {section.buttonUrl && (
-              <a
-                href={section.buttonUrl}
-                className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-              >
-                {section.buttonText || 'View Details'} &rarr;
-              </a>
+            {(section.buttonText || section.buttonUrl) && (
+              section.buttonUrl ? (
+                <a
+                  href={section.buttonUrl}
+                  className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  {section.buttonText || 'View Details'} &rarr;
+                </a>
+              ) : (
+                <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                  {section.buttonText} &rarr;
+                </span>
+              )
             )}
           </div>
         </div>

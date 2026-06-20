@@ -28,12 +28,18 @@ export const HeroBannerSection: React.FC<Props> = ({ section }) => (
           </p>
         )}
         <div className="mt-10 flex items-center justify-center gap-4">
-          {section.buttonUrl && (
-            <Link to={section.buttonUrl}>
+          {(section.buttonText || section.buttonUrl) && (
+            section.buttonUrl ? (
+              <Link to={section.buttonUrl}>
+                <Button size="lg" className="gap-2">
+                  {section.buttonText || 'Get Started'} <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
               <Button size="lg" className="gap-2">
-                {section.buttonText || 'Get Started'} <ArrowRight className="h-4 w-4" />
+                {section.buttonText} <ArrowRight className="h-4 w-4" />
               </Button>
-            </Link>
+            )
           )}
         </div>
         <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">

@@ -29,13 +29,19 @@ export const InfoBlockSection: React.FC<Props> = ({ section }) => (
                 className="mt-8 rounded-xl border border-border object-cover w-full"
               />
             )}
-            {section.buttonUrl && (
-              <a
-                href={section.buttonUrl}
-                className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-              >
-                {section.buttonText || 'Learn More'} &rarr;
-              </a>
+            {(section.buttonText || section.buttonUrl) && (
+              section.buttonUrl ? (
+                <a
+                  href={section.buttonUrl}
+                  className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  {section.buttonText || 'Learn More'} &rarr;
+                </a>
+              ) : (
+                <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                  {section.buttonText} &rarr;
+                </span>
+              )
             )}
           </div>
         </div>

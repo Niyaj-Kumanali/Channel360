@@ -19,13 +19,19 @@ export const AnnouncementSection: React.FC<Props> = ({ section }) => (
             <p className="mt-0.5 text-sm text-muted-foreground">{section.description}</p>
           )}
         </div>
-        {section.buttonUrl && (
-          <a
-            href={section.buttonUrl}
-            className="ml-auto shrink-0 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-          >
-            {section.buttonText || 'Learn More'} &rarr;
-          </a>
+        {(section.buttonText || section.buttonUrl) && (
+          section.buttonUrl ? (
+            <a
+              href={section.buttonUrl}
+              className="ml-auto shrink-0 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            >
+              {section.buttonText || 'Learn More'} &rarr;
+            </a>
+          ) : (
+            <span className="ml-auto shrink-0 text-sm font-medium text-primary">
+              {section.buttonText} &rarr;
+            </span>
+          )
         )}
       </div>
     </div>
