@@ -4,6 +4,7 @@ import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.security.RequirePermission;
 import com.channel360.homepage.dto.request.HomepagePopupRequest;
 import com.channel360.homepage.dto.request.HomepageSectionRequest;
+import com.channel360.homepage.dto.request.SectionReorderRequest;
 import com.channel360.homepage.dto.response.HomepagePopupResponse;
 import com.channel360.homepage.dto.response.HomepageSectionResponse;
 import com.channel360.homepage.service.HomepageService;
@@ -81,6 +82,13 @@ public class HomepageController {
     public ResponseEntity<ApiResponse<Void>> deleteSection(@PathVariable Long id) {
         homepageService.deleteSection(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Section deleted"));
+    }
+
+    @PutMapping("/sections/reorder")
+    @RequirePermission("homepage.manage")
+    public ResponseEntity<ApiResponse<Void>> reorderSections(@Valid @RequestBody SectionReorderRequest request) {
+        homepageService.reorderSections(request.getItems());
+        return ResponseEntity.ok(ApiResponse.success(null, "Sections reordered"));
     }
 
     // --- Admin: Popups ---

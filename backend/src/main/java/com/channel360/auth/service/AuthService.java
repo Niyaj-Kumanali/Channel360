@@ -35,7 +35,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -65,10 +64,11 @@ public class AuthService {
     private final EmailService emailService;
 
     @Value("${app.frontend-url}")
-    private final String frontendUrl;
+    private String frontendUrl;
 
     private final Map<String, ResetTokenEntry> passwordResetTokens = new HashMap<>();
 
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
@@ -152,7 +152,7 @@ public class AuthService {
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
             String resetToken = UUID.randomUUID().toString();
             passwordResetTokens.put(request.getEmail(),
-                    new ResetTokenEntry(resetToken, LocalDateTime.now().plus(RESET_TOKEN_EXPIRY_MINUTES, ChronoUnit.MINUTES)));
+                    new ResetTokenEntry(resetToken, LocalDateTime.now().plusMinutes(RESET_TOKEN_EXPIRY_MINUTES)));
 
             String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
 
@@ -164,9 +164,8 @@ public class AuthService {
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        ResetTokenEntry entry = passwordResetTokens.entrySet().stream()
-                .filter(e -> e.getValue().token().equals(request.getToken()))
-                .map(Map.Entry::getValue)
+        ResetTokenEntry entry = passwordResetTokens.values().stream()
+                .filter(resetTokenEntry -> resetTokenEntry.token().equals(request.getToken()))
                 .findFirst()
                 .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
 

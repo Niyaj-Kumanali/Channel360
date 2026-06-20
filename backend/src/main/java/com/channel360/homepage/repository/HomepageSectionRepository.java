@@ -2,6 +2,7 @@ package com.channel360.homepage.repository;
 
 import com.channel360.homepage.entity.HomepageSection;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
@@ -46,4 +47,8 @@ public interface HomepageSectionRepository extends JpaRepository<HomepageSection
            "AND (s.endDate IS NULL OR s.endDate >= CURRENT_TIMESTAMP) " +
            "ORDER BY s.displayOrder ASC, s.id DESC")
     List<HomepageSection> findAllPublished();
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE HomepageSection s SET s.displayOrder = :displayOrder WHERE s.id = :id")
+    void updateDisplayOrder(@Param("id") Long id, @Param("displayOrder") Integer displayOrder);
 }

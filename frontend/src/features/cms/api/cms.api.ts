@@ -2,6 +2,11 @@ import { apiClient } from '@/lib/api-client';
 import type { ApiResponse } from '@/features/auth/types/api.types';
 import type { HomepageSection, HomepageSectionRequest, HomepagePopup, HomepagePopupRequest } from '@/features/cms/types/cms.types';
 
+interface ReorderItem {
+  id: number;
+  displayOrder: number;
+}
+
 export const cmsApi = {
   // Sections
   getAllSections: () =>
@@ -18,6 +23,9 @@ export const cmsApi = {
 
   deleteSection: (id: number) =>
     apiClient.delete<ApiResponse<void>>(`/homepage/sections/${id}`),
+
+  reorderSections: (items: ReorderItem[]) =>
+    apiClient.put<ApiResponse<void>>('/homepage/sections/reorder', { items }),
 
   // Popups
   getAllPopups: () =>

@@ -2,11 +2,10 @@ package com.channel360.auth.dto.response;
 
 import lombok.*;
 
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
 public class LoginResponse {
 
     private String accessToken;

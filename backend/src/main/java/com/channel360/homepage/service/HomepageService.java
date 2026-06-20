@@ -2,6 +2,7 @@ package com.channel360.homepage.service;
 
 import com.channel360.homepage.dto.request.HomepagePopupRequest;
 import com.channel360.homepage.dto.request.HomepageSectionRequest;
+import com.channel360.homepage.dto.request.SectionReorderRequest;
 import com.channel360.homepage.dto.response.HomepagePopupResponse;
 import com.channel360.homepage.dto.response.HomepageSectionResponse;
 import com.channel360.homepage.entity.HomepagePopup;
@@ -69,6 +70,13 @@ public class HomepageService {
         return sectionRepository.findAllPublished().stream()
                 .map(this::mapSection)
                 .toList();
+    }
+
+    @Transactional
+    public void reorderSections(List<SectionReorderRequest.SectionOrderItem> items) {
+        for (SectionReorderRequest.SectionOrderItem item : items) {
+            sectionRepository.updateDisplayOrder(item.getId(), item.getDisplayOrder());
+        }
     }
 
     @Transactional

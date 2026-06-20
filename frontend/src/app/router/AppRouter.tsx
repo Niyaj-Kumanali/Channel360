@@ -8,8 +8,7 @@ import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 import { DashboardLayout } from '@/features/dashboard/components/DashboardLayout';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
-import { SectionListPage } from '@/features/cms/pages/SectionListPage';
-import { SectionFormPage } from '@/features/cms/pages/SectionFormPage';
+import { SectionManagerPage } from '@/features/cms/pages/SectionManagerPage';
 import { PopupListPage } from '@/features/cms/pages/PopupListPage';
 import { PopupFormPage } from '@/features/cms/pages/PopupFormPage';
 import { RoleListPage } from '@/features/role/pages/RoleListPage';
@@ -31,9 +30,9 @@ export const AppRouter: React.FC = () => {
       {isAuthenticated ? (
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/admin/sections" element={<SectionListPage />} />
-          <Route path="/admin/sections/new" element={<SectionFormPage />} />
-          <Route path="/admin/sections/:id" element={<SectionFormPage />} />
+          <Route path="/admin/sections" element={<SectionManagerPage />} />
+          <Route path="/admin/sections/new" element={<Navigate to="/admin/sections" replace />} />
+          <Route path="/admin/sections/:id" element={<Navigate to="/admin/sections" replace />} />
           <Route path="/admin/popups" element={<PopupListPage />} />
           <Route path="/admin/popups/new" element={<PopupFormPage />} />
           <Route path="/admin/popups/:id" element={<PopupFormPage />} />
