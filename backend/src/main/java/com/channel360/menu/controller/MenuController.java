@@ -5,14 +5,13 @@ import com.channel360.common.security.RequirePermission;
 import com.channel360.common.service.MenuService;
 import com.channel360.menu.dto.MenuRequest;
 import com.channel360.menu.dto.MenuResponse;
+import com.channel360.menu.dto.MenuWithPermissions;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/menu-items")
@@ -59,16 +58,9 @@ public class MenuController {
         return ResponseEntity.ok(ApiResponse.success(null, "Menu items reordered"));
     }
 
-    @GetMapping("/roles/{roleId}")
+    @GetMapping("/with-permissions")
     @RequirePermission("menu.manage")
-    public ResponseEntity<ApiResponse<Set<Long>>> getRoleMenuItems(@PathVariable Long roleId) {
-        return ResponseEntity.ok(ApiResponse.success(menuService.getRoleMenuItemIds(roleId)));
-    }
-
-    @PutMapping("/roles/{roleId}")
-    @RequirePermission("menu.manage")
-    public ResponseEntity<ApiResponse<Void>> setRoleMenuItems(@PathVariable Long roleId, @RequestBody Map<String, List<Long>> body) {
-        menuService.setRoleMenuItemIds(roleId, body.get("menuItemIds"));
-        return ResponseEntity.ok(ApiResponse.success(null, "Menu visibility updated for role"));
+    public ResponseEntity<ApiResponse<List<MenuWithPermissions>>> getMenusWithPermissions() {
+        return ResponseEntity.ok(ApiResponse.success(menuService.getMenusWithPermissions()));
     }
 }

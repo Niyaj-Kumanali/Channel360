@@ -4,7 +4,10 @@ import com.channel360.common.dto.response.MenuItem;
 import com.channel360.common.security.CustomUserDetails;
 import com.channel360.menu.dto.MenuRequest;
 import com.channel360.menu.dto.MenuResponse;
+import com.channel360.menu.dto.MenuWithPermissions;
+import com.channel360.menu.dto.PermissionItem;
 import com.channel360.menu.repository.MenuItemRepository;
+import com.channel360.role.repository.PermissionRepository;
 import com.channel360.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,7 @@ public class MenuService {
     private static final Logger log = LoggerFactory.getLogger(MenuService.class);
 
     private final MenuItemRepository menuItemRepository;
+    private final PermissionRepository permissionRepository;
     private final UserRepository userRepository;
 
     // --- Public menu (role-based filtering for sidebar) ---
@@ -45,22 +48,22 @@ public class MenuService {
             return List.of();
         }
 
-        List<Long> visibleMenuItemIds = menuItemRepository.findMenuItemIdsByRoleIds(userRoleIds);
-        Set<Long> visibleSet = new HashSet<>(visibleMenuItemIds);
+        Set<Long> visibleIds = new HashSet<>(menuItemRepository.findMenuItemIdsByRoleIds(userRoleIds));
 
         List<com.channel360.menu.entity.MenuItem> parentItems =
                 menuItemRepository.findByParentIdIsNullAndActiveTrueOrderByDisplayOrder();
 
         List<MenuItem> result = new ArrayList<>();
         for (com.channel360.menu.entity.MenuItem parent : parentItems) {
-            if (!visibleSet.contains(parent.getId())) continue;
-
             List<com.channel360.menu.entity.MenuItem> children =
                     menuItemRepository.findByParentIdAndActiveTrueOrderByDisplayOrder(parent.getId());
             List<MenuItem> childItems = children.stream()
-                    .filter(c -> visibleSet.contains(c.getId()))
+                    .filter(c -> visibleIds.contains(c.getId()))
                     .map(this::toMenuItemDto)
                     .toList();
+
+            boolean parentVisible = visibleIds.contains(parent.getId()) || !childItems.isEmpty();
+            if (!parentVisible) continue;
 
             MenuItem dto = toMenuItemDto(parent);
             if (!childItems.isEmpty()) {
@@ -124,47 +127,34 @@ public class MenuService {
         }
     }
 
-    // --- Role-menu visibility management ---
+    // --- Menus with nested permissions ---
 
-    public Set<Long> getRoleMenuItemIds(Long roleId) {
-        return new HashSet<>(menuItemRepository.findMenuItemIdsByRoleId(roleId));
-    }
-
-    @Transactional
-    public void setRoleMenuItemIds(Long roleId, List<Long> menuItemIds) {
-        Set<Long> oldIds = new HashSet<>(menuItemRepository.findMenuItemIdsByRoleId(roleId));
-
-        menuItemRepository.deleteRoleMenuItems(roleId);
-        for (Long itemId : menuItemIds) {
-            menuItemRepository.addRoleMenuItem(itemId, roleId);
-        }
-
-        syncRolePermissions(roleId, oldIds, new HashSet<>(menuItemIds));
-    }
-
-    private void syncRolePermissions(Long roleId, Set<Long> oldIds, Set<Long> newIds) {
-        // Permissions to ADD — from newly assigned menu items
-        Set<Long> added = new HashSet<>(newIds);
-        added.removeAll(oldIds);
-        if (!added.isEmpty()) {
-            for (String name : menuItemRepository.findPermissionNamesByMenuItemIds(new ArrayList<>(added))) {
-                if (name != null && !name.isBlank()) {
-                    menuItemRepository.addRolePermissionIfNotExists(roleId, name);
-                }
-            }
-        }
-
-        // Permissions to REMOVE — from unassigned items, but only if no remaining item still needs it
-        Set<Long> removed = new HashSet<>(oldIds);
-        removed.removeAll(newIds);
-        if (!removed.isEmpty()) {
-            for (String name : menuItemRepository.findPermissionNamesByMenuItemIds(new ArrayList<>(removed))) {
-                if (name != null && !name.isBlank()
-                        && menuItemRepository.countAssignedMenuItemsWithPermission(roleId, name) == 0) {
-                    menuItemRepository.deleteRolePermissionByName(roleId, name);
-                }
-            }
-        }
+    @Transactional(readOnly = true)
+    public List<MenuWithPermissions> getMenusWithPermissions() {
+        return menuItemRepository.findAllByOrderByDisplayOrder().stream()
+                .map(item -> {
+                    List<PermissionItem> perms = permissionRepository.findByMenuId(item.getId())
+                            .stream()
+                            .map(p -> PermissionItem.builder()
+                                    .id(p.getId())
+                                    .name(p.getName())
+                                    .description(p.getDescription())
+                                    .module(p.getModule())
+                                    .build())
+                            .toList();
+                    return MenuWithPermissions.builder()
+                            .id(item.getId())
+                            .parentId(item.getParentId())
+                            .label(item.getLabel())
+                            .path(item.getPath())
+                            .icon(item.getIcon())
+                            .displayOrder(item.getDisplayOrder())
+                            .active(item.getActive())
+                            .permissionName(item.getPermissionName())
+                            .permissions(perms)
+                            .build();
+                })
+                .toList();
     }
 
     // --- Helpers ---
@@ -179,14 +169,12 @@ public class MenuService {
     }
 
     private MenuResponse toMenuResponse(com.channel360.menu.entity.MenuItem entity) {
-        List<Long> roleIds = menuItemRepository.findRoleIdsByMenuItemId(entity.getId());
         return MenuResponse.builder()
                 .id(entity.getId())
                 .parentId(entity.getParentId())
                 .label(entity.getLabel())
                 .path(entity.getPath())
                 .icon(entity.getIcon())
-                .roleIds(roleIds)
                 .permissionName(entity.getPermissionName())
                 .displayOrder(entity.getDisplayOrder())
                 .active(entity.getActive())

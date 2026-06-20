@@ -25,4 +25,7 @@ public class Permission {
 
     @Column(length = 50)
     private String module;
+
+    @Column(name = "menu_id")
+    private Long menuId;
 }

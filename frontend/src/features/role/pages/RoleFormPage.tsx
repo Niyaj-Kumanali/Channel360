@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { roleApi } from '@/features/role/api/role.api';
-import { menuApi } from '@/features/menu/api/menu.api';
-import type { Permission, MenuItemResponse } from '@/features/auth/types/auth.types';
+import type { MenuWithPermissions } from '@/features/auth/types/auth.types';
 import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -16,37 +15,25 @@ export const RoleFormPage: React.FC = () => {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItemResponse[]>([]);
-  const [selectedMenuItemIds, setSelectedMenuItemIds] = useState<number[]>([]);
+  const [selectedPermissionIds, setSelectedPermissionIds] = useState<number[]>([]);
+  const [menus, setMenus] = useState<MenuWithPermissions[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const loadMenuItems = async (roleId?: number) => {
-    try {
-      const [menuRes, roleMenuRes] = await Promise.all([
-        menuApi.getAll(),
-        roleId ? roleApi.getRoleMenuItems(roleId) : Promise.resolve(null),
-      ]);
-      if (menuRes.success) setMenuItems(menuRes.data);
-      if (roleMenuRes?.success) setSelectedMenuItemIds(roleMenuRes.data);
-    } catch {
-      // Menu data is non-critical; form can still work
-    }
-  };
-
   useEffect(() => {
     const init = async () => {
       try {
-        const [permRes] = await Promise.all([
-          roleApi.getAllPermissions(),
+        const [menuRes] = await Promise.all([
+          roleApi.getMenusWithPermissions(),
           isEdit ? roleApi.getById(Number(id)) : Promise.resolve(null),
         ]);
 
-        if (permRes.success) {
-          setAllPermissions(permRes.data);
+        if (menuRes.success) {
+          setMenus(menuRes.data);
+          const expandedMap: Record<string, boolean> = {};
+          menuRes.data.forEach(m => { expandedMap[m.label] = true; });
+          setExpanded(expandedMap);
         }
 
         if (isEdit) {
@@ -54,14 +41,11 @@ export const RoleFormPage: React.FC = () => {
           if (roleRes.success) {
             setName(roleRes.data.name);
             setDescription(roleRes.data.description || '');
-            setSelectedIds(roleRes.data.permissionIds);
-            await loadMenuItems(Number(id));
+            setSelectedPermissionIds(roleRes.data.permissionIds);
           } else {
             toast.error('Failed to load role');
             navigate('/admin/roles');
           }
-        } else {
-          await loadMenuItems();
         }
       } catch {
         toast.error('Failed to load data');
@@ -75,39 +59,65 @@ export const RoleFormPage: React.FC = () => {
   }, [id]);
 
   const togglePermission = (permId: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(permId) ? prev.filter((p) => p !== permId) : [...prev, permId]
+    setSelectedPermissionIds(prev =>
+      prev.includes(permId) ? prev.filter(p => p !== permId) : [...prev, permId]
     );
   };
 
-  const toggleGroup = (perms: Permission[]) => {
-    const groupIds = perms.map(p => p.id);
-    const allSelected = groupIds.every(gid => selectedIds.includes(gid));
-    if (allSelected) {
-      setSelectedIds((prev) => prev.filter(id => !groupIds.includes(id)));
+  const handleViewToggle = (menu: MenuWithPermissions) => {
+    if (!menu.permissionName) return;
+    const viewPerm = menu.permissions.find(p => p.name === menu.permissionName);
+    if (!viewPerm) return;
+
+    const isViewSelected = selectedPermissionIds.includes(viewPerm.id);
+    if (isViewSelected) {
+      const childIds = menu.permissions.filter(p => p.id !== viewPerm.id).map(p => p.id);
+      setSelectedPermissionIds(prev => prev.filter(id => id !== viewPerm.id && !childIds.includes(id)));
     } else {
-      setSelectedIds((prev) => [...new Set([...prev, ...groupIds])]);
+      setSelectedPermissionIds(prev => [...prev, viewPerm.id]);
     }
   };
 
-  const toggleMenuItem = (itemId: number, childrenIds: number[]) => {
-    setSelectedMenuItemIds((prev) => {
-      const isSelected = prev.includes(itemId);
-      if (isSelected) {
-        return prev.filter(id => id !== itemId && !childrenIds.includes(id));
+  const handleChildToggle = (menu: MenuWithPermissions, permId: number) => {
+    const newIds = selectedPermissionIds.includes(permId)
+      ? selectedPermissionIds.filter(id => id !== permId)
+      : [...selectedPermissionIds, permId];
+
+    const viewPerm = menu.permissionName
+      ? menu.permissions.find(p => p.name === menu.permissionName)
+      : null;
+
+    if (viewPerm && !newIds.includes(viewPerm.id)) {
+      newIds.push(viewPerm.id);
+    }
+
+    setSelectedPermissionIds(newIds);
+  };
+
+  const topLevelMenus = useMemo(() => menus.filter(m => m.parentId == null), [menus]);
+  const childMenus = useMemo(() => {
+    const map: Record<number, MenuWithPermissions[]> = {};
+    menus.forEach(m => {
+      if (m.parentId != null) {
+        if (!map[m.parentId]) map[m.parentId] = [];
+        map[m.parentId].push(m);
       }
-      return [...new Set([...prev, itemId, ...childrenIds])];
     });
+    return map;
+  }, [menus]);
+
+  const isViewChecked = (menu: MenuWithPermissions) => {
+    if (!menu.permissionName) return true;
+    const viewPerm = menu.permissions.find(p => p.name === menu.permissionName);
+    return viewPerm ? selectedPermissionIds.includes(viewPerm.id) : true;
   };
 
-  const toggleAllMenuItems = () => {
-    const allIds = menuItems.map(m => m.id);
-    const allSelected = allIds.every(id => selectedMenuItemIds.includes(id));
-    if (allSelected) {
-      setSelectedMenuItemIds([]);
-    } else {
-      setSelectedMenuItemIds(allIds);
-    }
+  const isViewDisabled = (menu: MenuWithPermissions) => {
+    if (!menu.permissionName) return true;
+    const viewPerm = menu.permissions.find(p => p.name === menu.permissionName);
+    if (!viewPerm) return true;
+    const childPerms = menu.permissions.filter(p => p.id !== viewPerm.id);
+    return childPerms.some(p => selectedPermissionIds.includes(p.id));
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -119,19 +129,15 @@ export const RoleFormPage: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const payload = { name: name.trim(), description: description.trim(), permissionIds: selectedIds };
+      const payload = { name: name.trim(), description: description.trim(), permissionIds: selectedPermissionIds };
       if (isEdit && id) {
         const res = await roleApi.update(Number(id), payload);
-        if (res.success) {
-          await roleApi.setRoleMenuItems(Number(id), selectedMenuItemIds);
-          toast.success('Role updated');
-        }
+        if (res.success) toast.success('Role updated');
+        else { toast.error('Failed to update role'); return; }
       } else {
         const res = await roleApi.create(payload);
-        if (res.success) {
-          await roleApi.setRoleMenuItems(res.data.id, selectedMenuItemIds);
-          toast.success('Role created');
-        }
+        if (res.success) toast.success('Role created');
+        else { toast.error('Failed to create role'); return; }
       }
       navigate('/admin/roles');
     } catch {
@@ -140,18 +146,6 @@ export const RoleFormPage: React.FC = () => {
       setSubmitting(false);
     }
   };
-
-  const grouped = allPermissions.reduce<Record<string, Permission[]>>((acc, p) => {
-    const group = p.module || 'General';
-    if (!acc[group]) acc[group] = [];
-    acc[group].push(p);
-    return acc;
-  }, {});
-
-  const topLevelItems = menuItems.filter(m => m.parentId === null);
-  const childItems = (parentId: number) => menuItems.filter(m => m.parentId === parentId);
-  const allIds = menuItems.map(m => m.id);
-  const allMenuSelected = allIds.length > 0 && allIds.every(id => selectedMenuItemIds.includes(id));
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]"><Loader size="lg" /></div>;
@@ -202,131 +196,181 @@ export const RoleFormPage: React.FC = () => {
 
         <div className="rounded-xl border border-border bg-card p-6 space-y-5">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Permissions</h2>
-            <p className="text-sm text-muted-foreground mt-1">Select the permissions to assign to this role</p>
+            <h2 className="text-lg font-semibold text-foreground">Permissions & Menu Access</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Check the permissions you want this role to have. Each sidebar menu item (like Dashboard, Roles, Content) is shown with its linked permissions below it.
+            </p>
+            <ul className="text-xs text-muted-foreground mt-2 space-y-1.5 bg-muted/50 rounded-lg px-3 py-2.5 border border-border list-disc list-inside">
+              <li><strong>View</strong> checkbox — checking this lets the role <em>see</em> that menu item in the sidebar. If it has children (like Content → Homepage Sections), the children are greyed out until View is checked.</li>
+              <li><strong>Create / Edit / Delete</strong> checkboxes — these appear below a menu. Checking any of them <strong>automatically checks</strong> the View checkbox too (since you need access to the page to perform actions on it).</li>
+              <li><strong>Greyed-out / locked</strong> checkboxes — when a child checkbox is checked, the parent View becomes locked (you can't uncheck it while a child depends on it). Uncheck all children first, then you can uncheck View.</li>
+              <li><strong>Parent menus</strong> (like Content) appear in the sidebar automatically when any child menu has a granted permission.</li>
+            </ul>
           </div>
-          {allPermissions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No permissions available.</p>
-          ) : (
-            Object.entries(grouped).map(([group, perms]) => {
-              const groupIds = perms.map(p => p.id);
-              const selectedCount = groupIds.filter(gid => selectedIds.includes(gid)).length;
-              const allSelected = selectedCount === perms.length;
-              return (
-                <div key={group}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-medium text-foreground capitalize">{group}</h3>
-                    <button
-                      type="button"
-                      onClick={() => toggleGroup(perms)}
-                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {allSelected ? 'Deselect all' : `Select all (${selectedCount}/${perms.length})`}
-                    </button>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {perms.map((perm) => (
-                      <label
-                        key={perm.id}
-                        className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.includes(perm.id)}
-                          onChange={() => togglePermission(perm.id)}
-                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                        />
-                        <div className="min-w-0">
-                          <span className="text-sm font-medium text-foreground">{perm.name}</span>
-                          {perm.description && (
-                            <p className="text-xs text-muted-foreground truncate">{perm.description}</p>
-                          )}
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
 
-        <div className="rounded-xl border border-border bg-card p-6 space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Menu Visibility</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Select which sidebar menu items this role can see
-              </p>
-            </div>
-            {menuItems.length > 0 && (
-              <button
-                type="button"
-                onClick={toggleAllMenuItems}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {allMenuSelected
-                  ? 'Deselect all'
-                  : `Select all (${selectedMenuItemIds.length}/${allIds.length})`}
-              </button>
-            )}
-          </div>
-          {menuItems.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No menu items available.</p>
+          {topLevelMenus.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No menus available.</p>
           ) : (
-            <div className="space-y-1">
-              {topLevelItems.map((item) => {
-                const children = childItems(item.id);
+            <div className="space-y-2">
+              {topLevelMenus.map(menu => {
+                const children = childMenus[menu.id] || [];
                 const hasChildren = children.length > 0;
-                const isExpanded = expanded[item.label] ?? true;
-                const childrenIds = children.map(c => c.id);
-                const isChecked = selectedMenuItemIds.includes(item.id);
+                const isExpanded = expanded[menu.label] ?? true;
+                const viewChecked = isViewChecked(menu);
+                const viewDisabled = isViewDisabled(menu);
 
                 return (
-                  <div key={item.id}>
-                    <div
-                      className={cn(
-                        'flex items-center gap-2 rounded-lg border border-border px-3 py-2 cursor-pointer hover:bg-muted/30 transition-colors',
-                        isChecked && 'border-primary bg-primary/5'
-                      )}
-                    >
-                      {hasChildren && (
-                        <button
-                          type="button"
-                          onClick={() => setExpanded(prev => ({ ...prev, [item.label]: !isExpanded }))}
-                          className="h-4 w-4 shrink-0 text-muted-foreground hover:text-foreground"
-                        >
-                          <ChevronDown className={cn('h-4 w-4 transition-transform', isExpanded && 'rotate-180')} />
-                        </button>
-                      )}
-                      {!hasChildren && <div className="w-4" />}
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggleMenuItem(item.id, childrenIds)}
-                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                      />
-                      <span className="text-sm font-medium text-foreground">{item.label}</span>
-                    </div>
-                    {hasChildren && isExpanded && (
-                      <div className="ml-7 mt-1 space-y-1 pl-4 border-l border-border">
-                        {children.map((child) => (
+                  <div key={menu.id}>
+                    <div className="rounded-lg border border-border bg-muted/10 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        {hasChildren && (
+                          <button
+                            type="button"
+                            onClick={() => setExpanded(prev => ({ ...prev, [menu.label]: !isExpanded }))}
+                            className="h-4 w-4 shrink-0 text-muted-foreground hover:text-foreground"
+                          >
+                            <ChevronDown className={cn('h-4 w-4 transition-transform', isExpanded && 'rotate-180')} />
+                          </button>
+                        )}
+                        {!hasChildren && <div className="w-4" />}
+                        <span className="text-sm font-semibold text-foreground">{menu.label}</span>
+
+                        {menu.permissions.map(p => p.name === menu.permissionName).filter(Boolean).length > 0 && (
                           <label
-                            key={child.id}
                             className={cn(
-                              'flex items-center gap-2 rounded-lg border border-border px-3 py-2 cursor-pointer hover:bg-muted/30 transition-colors',
-                              selectedMenuItemIds.includes(child.id) && 'border-primary bg-primary/5'
+                              'flex items-center gap-1.5 ml-auto cursor-pointer',
+                              viewDisabled && 'opacity-50'
                             )}
                           >
                             <input
                               type="checkbox"
-                              checked={selectedMenuItemIds.includes(child.id)}
-                              onChange={() => toggleMenuItem(child.id, [])}
+                              checked={viewChecked}
+                              disabled={viewDisabled}
+                              onChange={() => handleViewToggle(menu)}
                               className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                             />
-                            <span className="text-sm text-foreground">{child.label}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {menu.permissionName ? menu.permissionName.split('.').pop() : 'View'}
+                            </span>
                           </label>
-                        ))}
+                        )}
+                      </div>
+                    </div>
+
+                    {hasChildren && isExpanded && (
+                      <div className="ml-6 mt-1 space-y-1 pl-4 border-l border-border">
+                        {children.map(child => {
+                          const childViewPerm = child.permissionName
+                            ? child.permissions.find(p => p.name === child.permissionName)
+                            : null;
+                          const childViewChecked = childViewPerm
+                            ? selectedPermissionIds.includes(childViewPerm.id)
+                            : true;
+                          const childViewDisabled = childViewPerm
+                            ? child.permissions.some(
+                                p => p.id !== childViewPerm.id && selectedPermissionIds.includes(p.id)
+                              )
+                            : true;
+
+                          return (
+                            <div key={child.id}>
+                              <div className="rounded-lg border border-border px-3 py-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium text-foreground">{child.label}</span>
+                                  {childViewPerm && (
+                                    <label className={cn('flex items-center gap-1.5 ml-auto', childViewDisabled && 'opacity-50')}>
+                                      <input
+                                        type="checkbox"
+                                        checked={childViewChecked}
+                                        disabled={childViewDisabled}
+                                        onChange={() => {
+                                          const newIds = childViewChecked
+                                            ? selectedPermissionIds.filter(id => id !== childViewPerm.id)
+                                            : [...selectedPermissionIds, childViewPerm.id];
+                                          if (!childViewChecked) {
+                                            const childPermIds = child.permissions
+                                              .filter(p => p.id !== childViewPerm.id)
+                                              .map(p => p.id);
+                                            childPermIds.forEach(cpId => {
+                                              if (!newIds.includes(cpId)) newIds.push(cpId);
+                                            });
+                                          }
+                                          setSelectedPermissionIds(newIds);
+                                        }}
+                                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                                      />
+                                      <span className="text-xs text-muted-foreground">
+                                        {child.permissionName ? child.permissionName.split('.').pop() : 'View'}
+                                      </span>
+                                    </label>
+                                  )}
+                                </div>
+                              </div>
+
+                              {child.permissions.length > 0 && (
+                                <div className="ml-6 mt-1 space-y-1">
+                                  {child.permissions
+                                    .filter(p => child.permissionName ? p.name !== child.permissionName : true)
+                                    .map(perm => (
+                                      <label
+                                        key={perm.id}
+                                        className={cn(
+                                          'flex items-center gap-3 rounded-lg border border-border p-2.5 cursor-pointer hover:bg-muted/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5',
+                                          !childViewChecked && 'opacity-40 pointer-events-none'
+                                        )}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedPermissionIds.includes(perm.id)}
+                                          onChange={() => handleChildToggle(child, perm.id)}
+                                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                                        />
+                                        <div className="min-w-0">
+                                          <span className="text-sm text-foreground">
+                                            {perm.name.includes('.') ? perm.name.split('.').pop() : perm.name}
+                                          </span>
+                                          {perm.description && (
+                                            <p className="text-xs text-muted-foreground truncate">{perm.description}</p>
+                                          )}
+                                        </div>
+                                      </label>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {menu.permissions.length > 0 && isExpanded && (
+                      <div className="ml-6 mt-1 space-y-1 pl-4">
+                        {menu.permissions
+                          .filter(p => menu.permissionName ? p.name !== menu.permissionName : true)
+                          .map(perm => (
+                            <label
+                              key={perm.id}
+                              className={cn(
+                                'flex items-center gap-3 rounded-lg border border-border p-2.5 cursor-pointer hover:bg-muted/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5',
+                                !viewChecked && 'opacity-40 pointer-events-none'
+                              )}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedPermissionIds.includes(perm.id)}
+                                onChange={() => handleChildToggle(menu, perm.id)}
+                                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                              />
+                              <div className="min-w-0">
+                                <span className="text-sm text-foreground">
+                                  {perm.name.includes('.') ? perm.name.split('.').pop() : perm.name}
+                                </span>
+                                {perm.description && (
+                                  <p className="text-xs text-muted-foreground truncate">{perm.description}</p>
+                                )}
+                              </div>
+                            </label>
+                          ))}
                       </div>
                     )}
                   </div>

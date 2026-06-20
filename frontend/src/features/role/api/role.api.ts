@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/api-client';
 import type { ApiResponse } from '@/features/auth/types/api.types';
-import type { Role, Permission } from '@/features/auth/types/auth.types';
+import type { Role, Permission, MenuWithPermissions } from '@/features/auth/types/auth.types';
 
 export const roleApi = {
   getAll: () =>
@@ -21,9 +21,6 @@ export const roleApi = {
   getAllPermissions: () =>
     apiClient.get<ApiResponse<Permission[]>>('/permissions'),
 
-  getRoleMenuItems: (roleId: number) =>
-    apiClient.get<ApiResponse<number[]>>(`/menu-items/roles/${roleId}`),
-
-  setRoleMenuItems: (roleId: number, menuItemIds: number[]) =>
-    apiClient.put<ApiResponse<void>>(`/menu-items/roles/${roleId}`, { menuItemIds }),
+  getMenusWithPermissions: () =>
+    apiClient.get<ApiResponse<MenuWithPermissions[]>>('/menu-items/with-permissions'),
 };

@@ -53,12 +53,23 @@ export interface MenuItemResponse {
   label: string;
   path: string;
   icon: string | null;
-  roleIds: number[];
   displayOrder: number;
   active: boolean;
   permissionName?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface MenuWithPermissions {
+  id: number;
+  parentId: number | null;
+  label: string;
+  path: string;
+  icon: string | null;
+  displayOrder: number;
+  active: boolean;
+  permissionName: string | null;
+  permissions: Permission[];
 }
 
 export interface AuthState {

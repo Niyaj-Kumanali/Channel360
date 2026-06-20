@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, Save, X, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { menuApi } from '@/features/menu/api/menu.api';
 import { roleApi } from '@/features/role/api/role.api';
-import type { MenuItemResponse, Role, Permission } from '@/features/auth/types/auth.types';
+import type { MenuItemResponse, Permission } from '@/features/auth/types/auth.types';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
 import { Input } from '@/components/ui/Input';
@@ -39,29 +39,18 @@ const emptyForm: MenuFormData = {
 };
 
 export const MenuListPage: React.FC = () => {
-  const [roles, setRoles] = useState<Role[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemResponse[]>([]);
-  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
-  const [checkedIds, setCheckedIds] = useState<number[]>([]);
-  const [saving, setSaving] = useState(false);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState<MenuFormData>(emptyForm);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
 
-  const fetchAll = async () => {
+  const fetchData = async () => {
     try {
-      const [roleRes, menuRes, permRes] = await Promise.all([
-        roleApi.getAll().catch(() => null),
+      const [menuRes, permRes] = await Promise.all([
         menuApi.getAll().catch(() => null),
         roleApi.getAllPermissions().catch(() => null),
       ]);
-      if (roleRes?.success) {
-        setRoles(roleRes.data);
-        if (!selectedRoleId && roleRes.data.length > 0) {
-          setSelectedRoleId(roleRes.data[0].id);
-        }
-      }
       if (menuRes?.success) setMenuItems(menuRes.data);
       if (permRes?.success) setPermissions(permRes.data);
     } finally {
@@ -69,39 +58,7 @@ export const MenuListPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchAll();
-  }, []);
-
-  useEffect(() => {
-    if (!selectedRoleId) return;
-    roleApi.getRoleMenuItems(selectedRoleId).then(res => {
-      if (res.success) setCheckedIds(res.data);
-    }).catch(() => {});
-  }, [selectedRoleId]);
-
-  const saveVisibility = async () => {
-    if (!selectedRoleId) return;
-    setSaving(true);
-    try {
-      const res = await roleApi.setRoleMenuItems(selectedRoleId, checkedIds);
-      if (res.success) toast.success('Menu visibility saved');
-    } catch {
-      toast.error('Failed to save menu visibility');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const toggleItem = (itemId: number, childrenIds: number[]) => {
-    setCheckedIds(prev => {
-      const isChecked = prev.includes(itemId);
-      if (isChecked) {
-        return prev.filter(id => id !== itemId && !childrenIds.includes(id));
-      }
-      return [...new Set([...prev, itemId, ...childrenIds])];
-    });
-  };
+  useEffect(() => { fetchData(); }, []);
 
   const openAddModal = () => {
     setFormData(emptyForm);
@@ -147,11 +104,7 @@ export const MenuListPage: React.FC = () => {
         toast.success('Menu item created');
       }
       setShowModal(false);
-      await fetchAll();
-      if (selectedRoleId) {
-        const roleRes = await roleApi.getRoleMenuItems(selectedRoleId);
-        if (roleRes.success) setCheckedIds(roleRes.data);
-      }
+      await fetchData();
     } catch {
       toast.error('Failed to save menu item');
     }
@@ -163,11 +116,7 @@ export const MenuListPage: React.FC = () => {
       const res = await menuApi.delete(id);
       if (res.success) {
         toast.success('Menu item deleted');
-        await fetchAll();
-        if (selectedRoleId) {
-          const roleRes = await roleApi.getRoleMenuItems(selectedRoleId);
-          if (roleRes.success) setCheckedIds(roleRes.data);
-        }
+        await fetchData();
       }
     } catch {
       toast.error('Failed to delete menu item');
@@ -176,8 +125,7 @@ export const MenuListPage: React.FC = () => {
 
   const topLevelItems = menuItems.filter(m => m.parentId == null);
   const childItems = (parentId: number) => menuItems.filter(m => m.parentId === parentId);
-  const permissionOptions = permissions
-    .map(p => ({ value: p.name, label: `${p.name} (${p.module})` }));
+  const permissionOptions = permissions.map(p => ({ value: p.name, label: `${p.name} (${p.module})` }));
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]"><Loader size="lg" /></div>;
@@ -187,9 +135,12 @@ export const MenuListPage: React.FC = () => {
     <div className="mx-auto max-w-4xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Menu Management</h1>
+          <h1 className="text-2xl font-bold text-foreground">Menu Structure</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Select a role to configure which menu items it can see
+            Manage the master sidebar menu structure. This defines what menu items exist — <strong>not</strong> who can see them.
+          </p>
+          <p className="text-xs text-muted-foreground mt-1.5 bg-muted/50 rounded-lg px-3 py-2 border border-border max-w-xl">
+            <strong>Instructions:</strong> Create parent items (e.g. Content) and nest child items under them. The <strong>Required Permission</strong> field links a menu item to a permission — roles that have that permission will see the menu. Parent menus auto-appear when any child has a granted permission. Leave it blank for always-visible items. Role-to-permission assignment is done on the <strong>Role Management</strong> page.
           </p>
         </div>
         <Button onClick={openAddModal} className="gap-2">
@@ -197,131 +148,79 @@ export const MenuListPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Role tabs */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {roles.map(role => (
-          <button
-            key={role.id}
-            type="button"
-            onClick={() => setSelectedRoleId(role.id)}
-            className={cn(
-              'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-              selectedRoleId === role.id
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-card border border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-            )}
-          >
-            {role.name}
-          </button>
-        ))}
+      <div className="rounded-xl border border-border bg-card p-6">
+        {topLevelItems.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-8 text-center">
+            No menu items yet. Click "Add Menu Item" to create one.
+          </p>
+        ) : (
+          <div className="space-y-1">
+            {topLevelItems.map(item => {
+              const children = childItems(item.id);
+              const hasChildren = children.length > 0;
+
+              return (
+                <div key={item.id}>
+                  <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2.5 transition-colors">
+                    <span className="flex-1 text-sm font-medium text-foreground">{item.label}</span>
+                    <span className="text-xs text-muted-foreground hidden sm:inline">{item.path}</span>
+                    <span className="text-xs text-muted-foreground hidden md:inline">{item.icon}</span>
+                    {item.permissionName && (
+                      <span className="text-xs rounded-full bg-primary/10 px-2 py-0.5 text-primary">{item.permissionName}</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => openEditModal(item)}
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteItem(item.id, item.label)}
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  {hasChildren && (
+                    <div className="ml-6 mt-1 space-y-1 pl-4 border-l border-border">
+                      {children.map(child => (
+                        <div
+                          key={child.id}
+                          className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 transition-colors"
+                        >
+                          <span className="flex-1 text-sm text-foreground">{child.label}</span>
+                          <span className="text-xs text-muted-foreground hidden sm:inline">{child.path}</span>
+                          <span className="text-xs text-muted-foreground hidden md:inline">{child.icon}</span>
+                          {child.permissionName && (
+                            <span className="text-xs rounded-full bg-primary/10 px-2 py-0.5 text-primary">{child.permissionName}</span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(child)}
+                            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteItem(child.id, child.label)}
+                            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Menu tree */}
-      {selectedRoleId && (
-        <div className="rounded-xl border border-border bg-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-foreground">
-              Menu Items for {roles.find(r => r.id === selectedRoleId)?.name}
-            </h2>
-            <span className="text-xs text-muted-foreground">
-              {checkedIds.length} / {menuItems.length} selected
-            </span>
-          </div>
-
-          {topLevelItems.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">
-              No menu items yet. Click "Add Menu Item" to create one.
-            </p>
-          ) : (
-            <div className="space-y-1">
-              {topLevelItems.map(item => {
-                const children = childItems(item.id);
-                const hasChildren = children.length > 0;
-                const childrenIds = children.map(c => c.id);
-                const isChecked = checkedIds.includes(item.id);
-
-                return (
-                  <div key={item.id}>
-                    <div
-                      className={cn(
-                        'flex items-center gap-2 rounded-lg border px-3 py-2.5 transition-colors',
-                        isChecked ? 'border-primary bg-primary/5' : 'border-border'
-                      )}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggleItem(item.id, childrenIds)}
-                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                      />
-                      <span className="flex-1 text-sm font-medium text-foreground">{item.label}</span>
-                      <span className="text-xs text-muted-foreground hidden sm:inline">{item.icon}</span>
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(item)}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteItem(item.id, item.label)}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                    {hasChildren && (
-                      <div className="ml-6 mt-1 space-y-1 pl-4 border-l border-border">
-                        {children.map(child => (
-                          <div
-                            key={child.id}
-                            className={cn(
-                              'flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors',
-                              checkedIds.includes(child.id) ? 'border-primary bg-primary/5' : 'border-border'
-                            )}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checkedIds.includes(child.id)}
-                              onChange={() => toggleItem(child.id, [])}
-                              className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                            />
-                            <span className="flex-1 text-sm text-foreground">{child.label}</span>
-                            <span className="text-xs text-muted-foreground hidden sm:inline">{child.icon}</span>
-                            <button
-                              type="button"
-                              onClick={() => openEditModal(child)}
-                              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => deleteItem(child.id, child.label)}
-                              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="mt-6 flex justify-end">
-            <Button onClick={saveVisibility} isLoading={saving} className="gap-2">
-              <Save className="h-4 w-4" /> Save Visibility
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowModal(false)}>
           <div className="w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-lg" onClick={e => e.stopPropagation()}>

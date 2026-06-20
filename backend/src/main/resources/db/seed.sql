@@ -45,16 +45,29 @@ VALUES ('roles.delete', 'Delete roles', 'roles')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO permissions (name, description, module)
-VALUES ('homepage.view', 'View homepage sections and popups', 'cms')
+VALUES ('sections.view', 'View homepage sections', 'sections')
 ON CONFLICT (name) DO NOTHING;
 INSERT INTO permissions (name, description, module)
-VALUES ('homepage.create', 'Create homepage sections and popups', 'cms')
+VALUES ('sections.create', 'Create homepage sections', 'sections')
 ON CONFLICT (name) DO NOTHING;
 INSERT INTO permissions (name, description, module)
-VALUES ('homepage.edit', 'Edit homepage sections and popups', 'cms')
+VALUES ('sections.edit', 'Edit homepage sections', 'sections')
 ON CONFLICT (name) DO NOTHING;
 INSERT INTO permissions (name, description, module)
-VALUES ('homepage.delete', 'Delete homepage sections and popups', 'cms')
+VALUES ('sections.delete', 'Delete homepage sections', 'sections')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO permissions (name, description, module)
+VALUES ('popups.view', 'View homepage popups', 'popups')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('popups.create', 'Create homepage popups', 'popups')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('popups.edit', 'Edit homepage popups', 'popups')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('popups.delete', 'Delete homepage popups', 'popups')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO permissions (name, description, module)
@@ -67,7 +80,7 @@ SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'ROLE_SUPER_ADMIN'
 ON CONFLICT DO NOTHING;
 
--- ROLE_ADMIN gets dashboard.view, all users.*, all homepage.*
+-- ROLE_ADMIN gets dashboard.view + users.* only (not content/permissions/menu)
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'ROLE_ADMIN'
@@ -100,59 +113,21 @@ SELECT 'Menu', '/admin/menu', 'Menu', 4, 'menu.manage'
 WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Menu' AND parent_id IS NULL);
 
 INSERT INTO menu_items (parent_id, label, path, icon, display_order, permission_name)
-SELECT p.id, 'Homepage Sections', '/admin/sections', 'Layout', 1, 'homepage.view'
+SELECT p.id, 'Homepage Sections', '/admin/sections', 'Layout', 1, 'sections.view'
 FROM menu_items p WHERE p.label = 'Content' AND p.parent_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Homepage Sections' AND parent_id IS NOT NULL);
 
 INSERT INTO menu_items (parent_id, label, path, icon, display_order, permission_name)
-SELECT p.id, 'Popups', '/admin/popups', 'Square', 2, 'homepage.view'
+SELECT p.id, 'Popups', '/admin/popups', 'Square', 2, 'popups.view'
 FROM menu_items p WHERE p.label = 'Content' AND p.parent_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Popups' AND parent_id IS NOT NULL);
 
--- Update permission_name on pre-existing rows from earlier seeds
-UPDATE menu_items SET permission_name = 'dashboard.view' WHERE label = 'Dashboard' AND parent_id IS NULL AND permission_name IS NULL;
-UPDATE menu_items SET permission_name = 'roles.view' WHERE label = 'Roles' AND parent_id IS NULL AND permission_name IS NULL;
-UPDATE menu_items SET permission_name = 'menu.manage' WHERE label = 'Menu' AND parent_id IS NULL AND permission_name IS NULL;
-UPDATE menu_items SET permission_name = 'homepage.view' WHERE label = 'Homepage Sections' AND permission_name IS NULL;
-UPDATE menu_items SET permission_name = 'homepage.view' WHERE label = 'Popups' AND permission_name IS NULL;
-
--- Role-menu visibility (which roles can see which menu items)
--- Idempotent: checks per (menu_item_id, role_id) pair
-INSERT INTO menu_item_roles (menu_item_id, role_id)
-SELECT m.id, r.id FROM menu_items m, roles r
-WHERE r.name IN ('ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_USER')
-  AND m.label = 'Dashboard'
-  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
-
-INSERT INTO menu_item_roles (menu_item_id, role_id)
-SELECT m.id, r.id FROM menu_items m, roles r
-WHERE r.name IN ('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')
-  AND m.label = 'Content'
-  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
-
-INSERT INTO menu_item_roles (menu_item_id, role_id)
-SELECT m.id, r.id FROM menu_items m, roles r
-WHERE r.name = 'ROLE_SUPER_ADMIN'
-  AND m.label = 'Roles'
-  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
-
-INSERT INTO menu_item_roles (menu_item_id, role_id)
-SELECT m.id, r.id FROM menu_items m, roles r
-WHERE r.name = 'ROLE_SUPER_ADMIN'
-  AND m.label = 'Menu'
-  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
-
-INSERT INTO menu_item_roles (menu_item_id, role_id)
-SELECT m.id, r.id FROM menu_items m, roles r
-WHERE r.name IN ('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')
-  AND m.label = 'Homepage Sections'
-  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
-
-INSERT INTO menu_item_roles (menu_item_id, role_id)
-SELECT m.id, r.id FROM menu_items m, roles r
-WHERE r.name IN ('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')
-  AND m.label = 'Popups'
-  AND NOT EXISTS (SELECT 1 FROM menu_item_roles mir WHERE mir.menu_item_id = m.id AND mir.role_id = r.id);
+-- Map each permission to its controlling menu item
+UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Dashboard' AND parent_id IS NULL)           WHERE name = 'dashboard.view';
+UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Roles' AND parent_id IS NULL)                WHERE module = 'roles';
+UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Menu' AND parent_id IS NULL)                 WHERE module = 'menu';
+UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Homepage Sections')                          WHERE module = 'sections';
+UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Popups')                                     WHERE module = 'popups';
 
 -- Homepage sections (seed data for CMS-managed homepage)
 -- Only inserts when table is empty to prevent duplicates across restarts

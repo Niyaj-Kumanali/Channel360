@@ -22,13 +22,16 @@ const NavItem: React.FC<{ item: MenuItem; onNavigate: (path: string) => void; de
     <button
       onClick={() => onNavigate(item.path)}
       className={cn(
-        'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+        'flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors outline-none focus:outline-none focus-visible:outline-none relative',
         isActive
-          ? 'bg-primary/10 text-primary'
+          ? depth === 0 ? 'bg-primary/10 text-primary' : 'text-primary'
           : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-        depth > 0 && 'pl-9'
+        depth === 0 ? 'gap-3' : ''
       )}
     >
+      {depth > 0 && isActive && (
+        <span className="absolute left-[-8.5px] top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary" />
+      )}
       {depth === 0 && <Icon className="h-4 w-4 shrink-0" />}
       {item.label}
     </button>
@@ -46,7 +49,7 @@ const NavGroup: React.FC<{ item: MenuItem; onNavigate: (path: string) => void }>
       <button
         onClick={() => setExpanded(!expanded)}
         className={cn(
-          'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+          'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors outline-none focus:outline-none focus-visible:outline-none',
           isChildActive
             ? 'text-primary'
             : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
@@ -57,7 +60,7 @@ const NavGroup: React.FC<{ item: MenuItem; onNavigate: (path: string) => void }>
         <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', expanded && 'rotate-180')} />
       </button>
       {expanded && item.children && (
-        <div className="mt-1 space-y-1 pl-3 border-l border-border ml-3">
+        <div className="mt-1 space-y-1 ml-5 pl-1 border-l border-border">
           {item.children.map(child => (
             <NavItem key={child.path} item={child} onNavigate={onNavigate} depth={1} />
           ))}
