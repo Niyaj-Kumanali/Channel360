@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,7 +45,28 @@ public class MenuService {
                 .roles(List.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN"))
                 .build();
 
-        return List.of(dashboard, users);
+        MenuItem cms = MenuItem.builder()
+                .path("#")
+                .label("Content")
+                .icon("FileText")
+                .roles(List.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN"))
+                .children(new ArrayList<>(List.of(
+                    MenuItem.builder()
+                        .path("/admin/sections")
+                        .label("Homepage Sections")
+                        .icon("Layout")
+                        .roles(List.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN"))
+                        .build(),
+                    MenuItem.builder()
+                        .path("/admin/popups")
+                        .label("Popups")
+                        .icon("Square")
+                        .roles(List.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN"))
+                        .build()
+                )))
+                .build();
+
+        return List.of(dashboard, users, cms);
     }
 
     private boolean hasAccess(MenuItem item, Set<String> userRoles) {
