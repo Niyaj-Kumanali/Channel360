@@ -70,17 +70,20 @@ public class UserService {
         }
 
         String encodedPassword = passwordEncoder.encode(generateRandomPassword());
-        Long id = userRepository.spSave(null, request.getFirstName(), request.getLastName(),
+        userRepository.spSave(null, request.getFirstName(), request.getLastName(),
                 request.getEmail(), encodedPassword, request.getMobileNumber(),
                 request.getEmployeeId(), "ACTIVE", null, null);
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.getEmail()));
 
         if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
             validateRolesExist(request.getRoleIds());
             String joined = String.join(",", request.getRoleIds().stream().map(String::valueOf).toList());
-            userRepository.spAssignRoles(id, joined, null);
+            userRepository.spAssignRoles(user.getId(), joined, null);
         }
 
-        return userMapper.toDto(userRepository.findById(id).orElseThrow());
+        return userMapper.toDto(user);
     }
 
     @Transactional

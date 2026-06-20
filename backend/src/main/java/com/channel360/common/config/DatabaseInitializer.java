@@ -11,9 +11,11 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import org.springframework.core.annotation.Order;
 
 @Slf4j
 @Component
+@Order(1)
 @RequiredArgsConstructor
 public class DatabaseInitializer implements CommandLineRunner {
 

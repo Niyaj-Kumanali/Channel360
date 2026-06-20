@@ -32,10 +32,10 @@ public class RoleService {
 
     @Transactional
     public RoleDto createRole(RoleDto roleDto) {
-        Long id = roleRepository.spSave(null, roleDto.getName(), roleDto.getDescription());
-        return roleRepository.findById(id)
+        roleRepository.spSave(null, roleDto.getName(), roleDto.getDescription());
+        return roleRepository.findByName(roleDto.getName())
                 .map(roleMapper::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleDto.getName()));
     }
 
     @Transactional

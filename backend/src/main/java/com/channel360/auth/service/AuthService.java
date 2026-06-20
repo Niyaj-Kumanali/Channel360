@@ -106,12 +106,14 @@ public class AuthService {
         Role defaultRole = roleRepository.findByName(AppConstants.ROLE_USER)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "name", AppConstants.ROLE_USER));
 
-        Long id = userRepository.spSave(null, user.getFirstName(), user.getLastName(),
+        userRepository.spSave(null, user.getFirstName(), user.getLastName(),
                 user.getEmail(), user.getPassword(), user.getMobileNumber(),
                 user.getEmployeeId(), "ACTIVE", null, null);
 
-        userRepository.spAssignRoles(id, String.valueOf(defaultRole.getId()), null);
-        return userRepository.findById(id).orElseThrow();
+        User savedUser = userRepository.findByEmail(user.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", user.getEmail()));
+        userRepository.spAssignRoles(savedUser.getId(), String.valueOf(defaultRole.getId()), null);
+        return savedUser;
     }
 
     @Transactional
