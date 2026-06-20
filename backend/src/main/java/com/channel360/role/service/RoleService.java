@@ -1,7 +1,7 @@
 package com.channel360.role.service;
 
 import com.channel360.common.exception.ResourceNotFoundException;
-import com.channel360.role.dto.RoleDto;
+import com.channel360.role.dto.response.RoleResponse;
 import com.channel360.role.mapper.RoleMapper;
 import com.channel360.role.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,21 +17,21 @@ public class RoleService {
     private final RoleRepository roleRepository;
     private final RoleMapper roleMapper;
 
-    public List<RoleDto> getAllRoles() {
+    public List<RoleResponse> getAllRoles() {
         return roleRepository.findAll()
                 .stream()
                 .map(roleMapper::toDto)
                 .toList();
     }
 
-    public RoleDto getRoleById(Long id) {
+    public RoleResponse getRoleById(Long id) {
         return roleRepository.findById(id)
                 .map(roleMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", id));
     }
 
     @Transactional
-    public RoleDto createRole(RoleDto roleDto) {
+    public RoleResponse createRole(RoleResponse roleDto) {
         roleRepository.spSave(null, roleDto.getName(), roleDto.getDescription());
         return roleRepository.findByName(roleDto.getName())
                 .map(roleMapper::toDto)
@@ -39,7 +39,7 @@ public class RoleService {
     }
 
     @Transactional
-    public RoleDto updateRole(Long id, RoleDto roleDto) {
+    public RoleResponse updateRole(Long id, RoleResponse roleDto) {
         if (!roleRepository.existsById(id)) {
             throw new ResourceNotFoundException("Role", "id", id);
         }

@@ -1,4 +1,4 @@
-package com.channel360.auth.dto;
+package com.channel360.auth.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

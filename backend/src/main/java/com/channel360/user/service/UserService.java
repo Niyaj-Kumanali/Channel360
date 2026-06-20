@@ -2,9 +2,9 @@ package com.channel360.user.service;
 
 import com.channel360.common.exception.BadRequestException;
 import com.channel360.common.exception.ResourceNotFoundException;
-import com.channel360.common.response.PageResponse;
+import com.channel360.common.dto.response.PageResponse;
 import com.channel360.role.repository.RoleRepository;
-import com.channel360.user.dto.UserDto;
+import com.channel360.user.dto.response.UserResponse;
 import com.channel360.user.dto.request.CreateUserRequest;
 import com.channel360.user.dto.request.UpdateUserRequest;
 import com.channel360.user.dto.request.UserFilterRequest;
@@ -38,7 +38,7 @@ public class UserService {
         return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
     }
 
-    public PageResponse<UserDto> getAllUsers(UserFilterRequest filter) {
+    public PageResponse<UserResponse> getAllUsers(UserFilterRequest filter) {
         String sortBy = toSnakeCase(filter.getSortBy());
 
         List<User> users = userRepository.spList(
@@ -50,18 +50,18 @@ public class UserService {
         );
 
         Page<User> page = new PageImpl<>(users, PageRequest.of(filter.getPage(), filter.getSize()), totalCount);
-        Page<UserDto> dtoPage = page.map(userMapper::toDto);
+        Page<UserResponse> dtoPage = page.map(userMapper::toDto);
         return PageResponse.from(dtoPage);
     }
 
-    public UserDto getUserById(Long id) {
+    public UserResponse getUserById(Long id) {
         return userRepository.findById(id)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
     }
 
     @Transactional
-    public UserDto createUser(CreateUserRequest request) {
+    public UserResponse createUser(CreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("Email already in use: " + request.getEmail());
         }
@@ -87,7 +87,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto updateUser(Long id, UpdateUserRequest request) {
+    public UserResponse updateUser(Long id, UpdateUserRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
@@ -115,7 +115,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto activateUser(Long id) {
+    public UserResponse activateUser(Long id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }
@@ -124,7 +124,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto deactivateUser(Long id) {
+    public UserResponse deactivateUser(Long id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }
@@ -133,7 +133,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto assignRoles(Long id, List<Long> roleIds) {
+    public UserResponse assignRoles(Long id, List<Long> roleIds) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }

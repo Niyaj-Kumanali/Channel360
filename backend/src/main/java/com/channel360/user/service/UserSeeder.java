@@ -1,6 +1,6 @@
 package com.channel360.user.service;
 
-import com.channel360.auth.dto.RegisterRequest;
+import com.channel360.auth.dto.request.RegisterRequest;
 import com.channel360.auth.service.AuthService;
 import com.channel360.common.config.AdminProperties;
 import com.channel360.common.exception.DuplicateResourceException;

@@ -1,4 +1,4 @@
-package com.channel360.common.response;
+package com.channel360.common.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -7,7 +7,6 @@ import { ArrowLeft } from 'lucide-react';
 import { createUserSchema, type CreateUserFormData } from '../schemas/user.schema';
 import { useCreateUser } from '../hooks/useUsers';
 import { Input } from '@/shared/components/ui/Input';
-import { Select } from '@/shared/components/ui/Select';
 import { Button } from '@/shared/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/shared/components/ui/Card';
 import { apiService } from '@/shared/services/api.service';
@@ -21,8 +20,9 @@ export const UserCreatePage: React.FC = () => {
     queryFn: () => apiService.get<any[]>('/roles'),
   });
 
-  const { register, handleSubmit, formState: { errors } } = useForm<CreateUserFormData>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<CreateUserFormData>({
     resolver: zodResolver(createUserSchema),
+    defaultValues: { roleIds: [] },
   });
 
   const onSubmit = (data: CreateUserFormData) => {
@@ -82,21 +82,38 @@ export const UserCreatePage: React.FC = () => {
               label="Mobile Number"
               {...register('mobileNumber')}
             />
-            <Input
-              id="password"
-              label="Password"
-              type="password"
-              error={errors.password?.message}
-              {...register('password')}
-            />
-            <Select
-              id="roleIds"
-              label="Roles"
-              placeholder="Select roles"
-              options={roles.map((r: any) => ({ value: String(r.id), label: r.name }))}
-              {...register('roleIds', { setValueAs: (v: string) => v ? [Number(v)] : [] })}
-              error={errors.roleIds?.message as string}
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Roles</label>
+              <Controller
+                name="roleIds"
+                control={control}
+                render={({ field }) => (
+                  <div className="space-y-2">
+                    {roles.map((r: any) => (
+                      <label key={r.id} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          value={r.id}
+                          checked={field.value.includes(r.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              field.onChange([...field.value, r.id]);
+                            } else {
+                              field.onChange(field.value.filter((id: number) => id !== r.id));
+                            }
+                          }}
+                          className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-gray-700">{r.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              />
+              {errors.roleIds?.message && (
+                <p className="mt-1 text-sm text-red-600">{errors.roleIds.message}</p>
+              )}
+            </div>
             <div className="flex justify-end gap-3 pt-4">
               <Button variant="outline" onClick={() => navigate('/users')}>Cancel</Button>
               <Button type="submit" isLoading={createMutation.isPending}>Create User</Button>

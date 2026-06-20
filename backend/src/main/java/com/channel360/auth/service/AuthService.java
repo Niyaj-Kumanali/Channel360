@@ -1,12 +1,12 @@
 package com.channel360.auth.service;
 
-import com.channel360.auth.dto.ChangePasswordRequest;
-import com.channel360.auth.dto.ForgotPasswordRequest;
-import com.channel360.auth.dto.LoginRequest;
-import com.channel360.auth.dto.LoginResponse;
-import com.channel360.auth.dto.RefreshTokenRequest;
-import com.channel360.auth.dto.RegisterRequest;
-import com.channel360.auth.dto.ResetPasswordRequest;
+import com.channel360.auth.dto.request.ChangePasswordRequest;
+import com.channel360.auth.dto.request.ForgotPasswordRequest;
+import com.channel360.auth.dto.request.LoginRequest;
+import com.channel360.auth.dto.request.RefreshTokenRequest;
+import com.channel360.auth.dto.request.RegisterRequest;
+import com.channel360.auth.dto.request.ResetPasswordRequest;
+import com.channel360.auth.dto.response.LoginResponse;
 import com.channel360.auth.entity.RefreshToken;
 import com.channel360.auth.mapper.AuthMapper;
 import com.channel360.auth.repository.RefreshTokenRepository;

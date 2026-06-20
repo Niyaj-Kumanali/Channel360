@@ -1,4 +1,4 @@
-package com.channel360.auth.dto;
+package com.channel360.auth.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

@@ -90,9 +90,9 @@ export const UserListPage: React.FC = () => {
     },
   ];
 
-  const users = data?.data?.content || [];
-  const totalPages = data?.data?.totalPages || 0;
-  const totalElements = data?.data?.totalElements || 0;
+  const users = data?.content || [];
+  const totalPages = data?.totalPages || 0;
+  const totalElements = data?.totalElements || 0;
 
   return (
     <div>

@@ -1,6 +1,6 @@
-package com.channel360.user.dto;
+package com.channel360.user.dto.response;
 
-import com.channel360.role.dto.RoleDto;
+import com.channel360.role.dto.response.RoleResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,7 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
+public class UserResponse {
     private Long id;
     private String employeeId;
     private String firstName;
@@ -22,7 +22,7 @@ public class UserDto {
     private String mobileNumber;
     private String status;
     private LocalDateTime lastLoginAt;
-    private Set<RoleDto> roles;
+    private Set<RoleResponse> roles;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

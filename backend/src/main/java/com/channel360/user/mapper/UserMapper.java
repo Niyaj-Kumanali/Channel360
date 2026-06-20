@@ -2,7 +2,7 @@ package com.channel360.user.mapper;
 
 import com.channel360.user.dto.request.CreateUserRequest;
 import com.channel360.user.dto.request.UpdateUserRequest;
-import com.channel360.user.dto.UserDto;
+import com.channel360.user.dto.response.UserResponse;
 import com.channel360.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,7 +12,7 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
         uses = {com.channel360.role.mapper.RoleMapper.class})
 public interface UserMapper {
-    UserDto toDto(User user);
+    UserResponse toDto(User user);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)

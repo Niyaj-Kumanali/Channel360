@@ -1,6 +1,6 @@
 package com.channel360.common.service;
 
-import com.channel360.common.dto.MenuItem;
+import com.channel360.common.dto.response.MenuItem;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;

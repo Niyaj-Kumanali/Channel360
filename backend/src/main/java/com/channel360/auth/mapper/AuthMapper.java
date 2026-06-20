@@ -1,6 +1,6 @@
 package com.channel360.auth.mapper;
 
-import com.channel360.auth.dto.RegisterRequest;
+import com.channel360.auth.dto.request.RegisterRequest;
 import com.channel360.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
