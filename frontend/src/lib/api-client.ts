@@ -1,7 +1,7 @@
 import { ApiError } from './api-error';
 import { authStorage } from './storage';
 
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 class ApiClient {
   private baseUrl: string;
