@@ -6,17 +6,25 @@ import { Logo } from '@/components/ui/Logo';
 import { useTheme } from '@/app/hooks/useTheme';
 import { homeApi } from '@/features/home/api/home.api';
 import { SectionRenderer } from '@/features/home/components/sections/SectionRenderer';
-import type { HomepageSection } from '@/features/cms/types/cms.types';
+import { PopupModal } from '@/features/home/components/PopupModal';
+import type { HomepageSection, HomepagePopup } from '@/features/cms/types/cms.types';
 
 export const HomePage: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const [sections, setSections] = useState<HomepageSection[]>([]);
+  const [popups, setPopups] = useState<HomepagePopup[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    homeApi.getPublishedSections().then((res) => {
-      if (res.success && res.data.length > 0) {
-        setSections(res.data.sort((a, b) => a.displayOrder - b.displayOrder));
+    Promise.all([
+      homeApi.getPublishedSections(),
+      homeApi.getActivePopups(),
+    ]).then(([sectionsRes, popupsRes]) => {
+      if (sectionsRes.success && sectionsRes.data.length > 0) {
+        setSections(sectionsRes.data.sort((a, b) => a.displayOrder - b.displayOrder));
+      }
+      if (popupsRes.success && popupsRes.data.length > 0) {
+        setPopups(popupsRes.data.sort((a, b) => b.priority - a.priority));
       }
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
@@ -57,6 +65,8 @@ export const HomePage: React.FC = () => {
           <SectionRenderer key={section.id} section={section} />
         ))
       )}
+
+      {popups.length > 0 && <PopupModal popups={popups} />}
 
       {/* Footer */}
       <footer className="border-t border-border bg-muted/50">

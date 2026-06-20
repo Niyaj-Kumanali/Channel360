@@ -74,8 +74,9 @@ export const PopupFormPage: React.FC = () => {
             <input
               {...register('title', { required: true })}
               className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="Popup heading"
+              placeholder="e.g. Real-Time Analytics Now Available"
             />
+            <p className="text-xs text-muted-foreground">Headline that appears at the top of the popup modal.</p>
           </div>
 
           <div className="space-y-1.5">
@@ -84,8 +85,9 @@ export const PopupFormPage: React.FC = () => {
               {...register('description')}
               rows={4}
               className="flex w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y"
-              placeholder="Popup body text"
+              placeholder="e.g. Track every product movement across your distribution network with our new interactive dashboards. Monitor channel performance and identify bottlenecks in real time."
             />
+            <p className="text-xs text-muted-foreground">Body text shown below the title. Supports plain text only.</p>
           </div>
 
           <div className="space-y-1.5">
@@ -93,8 +95,9 @@ export const PopupFormPage: React.FC = () => {
             <input
               {...register('imageUrl')}
               className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="https://..."
+              placeholder="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800"
             />
+            <p className="text-xs text-muted-foreground">Optional image shown at the top of the popup. Use a publicly accessible URL.</p>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -103,16 +106,18 @@ export const PopupFormPage: React.FC = () => {
               <input
                 {...register('ctaButtonText')}
                 className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                placeholder="e.g. Learn More"
+                placeholder="e.g. Explore Dashboard"
               />
+              <p className="text-xs text-muted-foreground">Text on the action button. Button shows only if text or a URL is provided.</p>
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">CTA URL</label>
               <input
                 {...register('ctaUrl')}
                 className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                placeholder="https://..."
+                placeholder="e.g. /dashboard or https://..."
               />
+              <p className="text-xs text-muted-foreground">Where the button links to. Leave empty to just close the popup on click.</p>
             </div>
           </div>
 
@@ -124,6 +129,7 @@ export const PopupFormPage: React.FC = () => {
                 {...register('priority', { valueAsNumber: true })}
                 className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
+              <p className="text-xs text-muted-foreground">Higher number = shows first. Ties broken by newest first. Use 0 for default.</p>
             </div>
           </div>
 
@@ -135,6 +141,7 @@ export const PopupFormPage: React.FC = () => {
                 {...register('startDate')}
                 className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
+              <p className="text-xs text-muted-foreground">Leave empty to show immediately. Popup hides until this time if set.</p>
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">End Date</label>
@@ -143,6 +150,7 @@ export const PopupFormPage: React.FC = () => {
                 {...register('endDate')}
                 className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
+              <p className="text-xs text-muted-foreground">Popup automatically hides after this time. Leave empty for no expiry.</p>
             </div>
           </div>
 

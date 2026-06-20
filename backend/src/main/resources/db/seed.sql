@@ -59,3 +59,5 @@ SELECT v.* FROM (VALUES
   ('Call to Action', 'cta', 'Ready to Unify Your Channel Operations?', NULL, 'Access the platform to manage your channel ecosystem, track product lifecycles, and gain complete operational visibility.', 'Access Platform', '/login', 6, TRUE, 'system', NOW(), NOW())
 ) AS v(section_name, section_type, title, subtitle, description, button_text, button_url, display_order, active, created_by, created_at, updated_at)
 WHERE NOT EXISTS (SELECT 1 FROM homepage_sections);
+
+

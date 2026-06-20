@@ -413,6 +413,7 @@ export const SectionManagerPage: React.FC = () => {
                       <option key={t.value} value={t.value}>{t.label}</option>
                     ))}
                   </select>
+                  <p className="text-xs text-muted-foreground mt-1">Determines how the section looks and what data it expects. Cannot be changed after creation.</p>
                 </div>
               )}
 
@@ -422,8 +423,9 @@ export const SectionManagerPage: React.FC = () => {
                   value={editingSection?.sectionName || ''}
                   onChange={(e) => setEditingSection(prev => prev ? { ...prev, sectionName: e.target.value } : null)}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Internal name"
+                  placeholder="e.g. Hero Banner"
                 />
+                <p className="text-xs text-muted-foreground mt-1">Internal label used to identify this section in the admin panel.</p>
               </div>
 
               <div>
@@ -432,8 +434,9 @@ export const SectionManagerPage: React.FC = () => {
                   value={editingSection?.title || ''}
                   onChange={(e) => setEditingSection(prev => prev ? { ...prev, title: e.target.value } : null)}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Section heading"
+                  placeholder="e.g. Complete Visibility Across Your Channel Ecosystem"
                 />
+                <p className="text-xs text-muted-foreground mt-1">Main heading displayed on the section. Usually the largest text.</p>
               </div>
 
               <div>
@@ -442,8 +445,9 @@ export const SectionManagerPage: React.FC = () => {
                   value={editingSection?.subtitle || ''}
                   onChange={(e) => setEditingSection(prev => prev ? { ...prev, subtitle: e.target.value } : null)}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Optional subtitle"
+                  placeholder="e.g. Enterprise Channel Management Platform"
                 />
+                <p className="text-xs text-muted-foreground mt-1">Smaller text below the title. Used as a tagline or badge label.</p>
               </div>
 
               <div>
@@ -453,8 +457,9 @@ export const SectionManagerPage: React.FC = () => {
                   onChange={(e) => setEditingSection(prev => prev ? { ...prev, description: e.target.value } : null)}
                   rows={3}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
-                  placeholder="Optional description (supports JSON for some types)"
+                  placeholder="e.g. Track the complete lifecycle of products across your distribution network..."
                 />
+                <p className="text-xs text-muted-foreground mt-1">For basic sections: paragraph text. For Stats/Journey/Areas/Benefits: JSON array of items.</p>
               </div>
 
               <div>
@@ -463,8 +468,9 @@ export const SectionManagerPage: React.FC = () => {
                   value={editingSection?.imageUrl || ''}
                   onChange={(e) => setEditingSection(prev => prev ? { ...prev, imageUrl: e.target.value } : null)}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="https://..."
+                  placeholder="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800"
                 />
+                <p className="text-xs text-muted-foreground mt-1">Background or featured image. Uses a publicly accessible URL.</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -474,8 +480,9 @@ export const SectionManagerPage: React.FC = () => {
                     value={editingSection?.buttonText || ''}
                     onChange={(e) => setEditingSection(prev => prev ? { ...prev, buttonText: e.target.value } : null)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="Learn More"
+                    placeholder="e.g. Access Platform"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Label on the call-to-action button.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Button URL</label>
@@ -483,8 +490,9 @@ export const SectionManagerPage: React.FC = () => {
                     value={editingSection?.buttonUrl || ''}
                     onChange={(e) => setEditingSection(prev => prev ? { ...prev, buttonUrl: e.target.value } : null)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="/page"
+                    placeholder="e.g. /login or https://..."
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Where the CTA button links to. Internal paths or full URLs.</p>
                 </div>
               </div>
 
@@ -497,6 +505,7 @@ export const SectionManagerPage: React.FC = () => {
                     onChange={(e) => setEditingSection(prev => prev ? { ...prev, startDate: e.target.value ? e.target.value + ':00' : null } : null)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Leave empty to show immediately. Section hides until this time if set.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">End Date</label>
@@ -506,6 +515,7 @@ export const SectionManagerPage: React.FC = () => {
                     onChange={(e) => setEditingSection(prev => prev ? { ...prev, endDate: e.target.value ? e.target.value + ':00' : null } : null)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Section automatically hides after this time. Leave empty for no expiry.</p>
                 </div>
               </div>
 
@@ -522,6 +532,7 @@ export const SectionManagerPage: React.FC = () => {
                 </label>
                 <span className="text-sm text-foreground">Active</span>
               </div>
+              <p className="text-xs text-muted-foreground -mt-3">When inactive, the section won't appear on the public homepage.</p>
             </div>
 
             <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border bg-background px-6 py-4">
