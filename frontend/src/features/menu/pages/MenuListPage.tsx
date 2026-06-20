@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, Save, X, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { menuApi } from '@/features/menu/api/menu.api';
 import { roleApi } from '@/features/role/api/role.api';
-import type { MenuItemResponse, Role } from '@/features/auth/types/auth.types';
+import type { MenuItemResponse, Role, Permission } from '@/features/auth/types/auth.types';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
 import { Input } from '@/components/ui/Input';
@@ -25,6 +25,7 @@ interface MenuFormData {
   parentId: number | '';
   displayOrder: number;
   active: boolean;
+  permissionName: string;
 }
 
 const emptyForm: MenuFormData = {
@@ -34,6 +35,7 @@ const emptyForm: MenuFormData = {
   parentId: '',
   displayOrder: 0,
   active: true,
+  permissionName: '',
 };
 
 export const MenuListPage: React.FC = () => {
@@ -45,12 +47,14 @@ export const MenuListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState<MenuFormData>(emptyForm);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
 
   const fetchAll = async () => {
     try {
-      const [roleRes, menuRes] = await Promise.all([
+      const [roleRes, menuRes, permRes] = await Promise.all([
         roleApi.getAll().catch(() => null),
         menuApi.getAll().catch(() => null),
+        roleApi.getAllPermissions().catch(() => null),
       ]);
       if (roleRes?.success) {
         setRoles(roleRes.data);
@@ -59,6 +63,7 @@ export const MenuListPage: React.FC = () => {
         }
       }
       if (menuRes?.success) setMenuItems(menuRes.data);
+      if (permRes?.success) setPermissions(permRes.data);
     } finally {
       setLoading(false);
     }
@@ -112,6 +117,7 @@ export const MenuListPage: React.FC = () => {
       parentId: item.parentId ?? '',
       displayOrder: item.displayOrder,
       active: item.active,
+      permissionName: item.permissionName || '',
     });
     setShowModal(true);
   };
@@ -128,6 +134,7 @@ export const MenuListPage: React.FC = () => {
       active: formData.active,
     };
     if (formData.icon.trim()) payload.icon = formData.icon.trim();
+    if (formData.permissionName.trim()) payload.permissionName = formData.permissionName.trim();
 
     try {
       if (formData.id) {
@@ -169,6 +176,8 @@ export const MenuListPage: React.FC = () => {
 
   const topLevelItems = menuItems.filter(m => m.parentId == null);
   const childItems = (parentId: number) => menuItems.filter(m => m.parentId === parentId);
+  const permissionOptions = permissions
+    .map(p => ({ value: p.name, label: `${p.name} (${p.module})` }));
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]"><Loader size="lg" /></div>;
@@ -371,6 +380,14 @@ export const MenuListPage: React.FC = () => {
                 options={menuItems
                   .filter(m => m.parentId == null && m.id !== formData.id)
                   .map(m => ({ value: String(m.id), label: m.label }))}
+              />
+              <SelectField
+                id="modal-permission"
+                label="Required Permission"
+                value={formData.permissionName}
+                onChange={v => setFormData(prev => ({ ...prev, permissionName: v }))}
+                placeholder="-- No permission --"
+                options={permissionOptions}
               />
               <label className="flex items-center gap-3 cursor-pointer">
                 <input

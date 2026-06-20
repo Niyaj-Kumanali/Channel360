@@ -20,4 +20,6 @@ public class MenuRequest {
     private Integer displayOrder;
 
     private Boolean active;
+
+    private String permissionName;
 }

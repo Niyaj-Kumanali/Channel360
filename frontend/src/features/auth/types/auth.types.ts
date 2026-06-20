@@ -56,6 +56,7 @@ export interface MenuItemResponse {
   roleIds: number[];
   displayOrder: number;
   active: boolean;
+  permissionName?: string | null;
   createdAt: string;
   updatedAt: string;
 }

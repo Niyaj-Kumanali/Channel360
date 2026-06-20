@@ -90,6 +90,7 @@ public class MenuService {
         com.channel360.menu.entity.MenuItem entity = new com.channel360.menu.entity.MenuItem();
         applyRequest(entity, request);
         entity.setActive(request.getActive() != null ? request.getActive() : true);
+        entity.setPermissionName(request.getPermissionName());
         com.channel360.menu.entity.MenuItem saved = menuItemRepository.save(entity);
         return toMenuResponse(saved);
     }
@@ -131,9 +132,38 @@ public class MenuService {
 
     @Transactional
     public void setRoleMenuItemIds(Long roleId, List<Long> menuItemIds) {
+        Set<Long> oldIds = new HashSet<>(menuItemRepository.findMenuItemIdsByRoleId(roleId));
+
         menuItemRepository.deleteRoleMenuItems(roleId);
         for (Long itemId : menuItemIds) {
             menuItemRepository.addRoleMenuItem(itemId, roleId);
+        }
+
+        syncRolePermissions(roleId, oldIds, new HashSet<>(menuItemIds));
+    }
+
+    private void syncRolePermissions(Long roleId, Set<Long> oldIds, Set<Long> newIds) {
+        // Permissions to ADD — from newly assigned menu items
+        Set<Long> added = new HashSet<>(newIds);
+        added.removeAll(oldIds);
+        if (!added.isEmpty()) {
+            for (String name : menuItemRepository.findPermissionNamesByMenuItemIds(new ArrayList<>(added))) {
+                if (name != null && !name.isBlank()) {
+                    menuItemRepository.addRolePermissionIfNotExists(roleId, name);
+                }
+            }
+        }
+
+        // Permissions to REMOVE — from unassigned items, but only if no remaining item still needs it
+        Set<Long> removed = new HashSet<>(oldIds);
+        removed.removeAll(newIds);
+        if (!removed.isEmpty()) {
+            for (String name : menuItemRepository.findPermissionNamesByMenuItemIds(new ArrayList<>(removed))) {
+                if (name != null && !name.isBlank()
+                        && menuItemRepository.countAssignedMenuItemsWithPermission(roleId, name) == 0) {
+                    menuItemRepository.deleteRolePermissionByName(roleId, name);
+                }
+            }
         }
     }
 
@@ -157,6 +187,7 @@ public class MenuService {
                 .path(entity.getPath())
                 .icon(entity.getIcon())
                 .roleIds(roleIds)
+                .permissionName(entity.getPermissionName())
                 .displayOrder(entity.getDisplayOrder())
                 .active(entity.getActive())
                 .createdAt(entity.getCreatedAt())
@@ -172,5 +203,6 @@ public class MenuService {
         else entity.setParentId(null);
         if (request.getDisplayOrder() != null) entity.setDisplayOrder(request.getDisplayOrder());
         if (request.getActive() != null) entity.setActive(request.getActive());
+        if (request.getPermissionName() != null) entity.setPermissionName(request.getPermissionName());
     }
 }

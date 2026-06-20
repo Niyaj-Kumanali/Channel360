@@ -23,6 +23,7 @@ public class MenuResponse {
     private List<Long> roleIds;
     private Integer displayOrder;
     private Boolean active;
+    private String permissionName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
