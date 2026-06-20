@@ -14,8 +14,8 @@ public record AdminProperties(
     public AdminProperties {
         if (email == null) email = "";
         if (password == null) password = "";
-        if (firstName == null) firstName = "Admin";
-        if (lastName == null) lastName = "User";
+        if (firstName == null) firstName = "Niyaz";
+        if (lastName == null) lastName = "Kumanali";
         if (mobileNumber == null) mobileNumber = "";
     }
 }

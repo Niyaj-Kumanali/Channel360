@@ -13,6 +13,7 @@ import com.channel360.common.dto.response.MenuItem;
 import com.channel360.common.service.MenuService;
 import com.channel360.user.entity.User;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,16 +27,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
 @Slf4j
 public class AuthController {
 
     private final AuthService authService;
     private final MenuService menuService;
-
-    public AuthController(AuthService authService, MenuService menuService) {
-        this.authService = authService;
-        this.menuService = menuService;
-    }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {

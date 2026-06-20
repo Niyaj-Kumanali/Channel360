@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RoleService {
+
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final RoleMapper roleMapper;

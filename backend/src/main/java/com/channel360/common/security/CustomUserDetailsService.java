@@ -1,5 +1,7 @@
 package com.channel360.common.security;
 
+import com.channel360.role.entity.Permission;
+import com.channel360.role.entity.Role;
 import com.channel360.user.entity.User;
 import com.channel360.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,12 +29,12 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + emailOrId));
 
         Set<String> roles = user.getRoles().stream()
-                .map(role -> role.getName())
+                .map(Role::getName)
                 .collect(Collectors.toSet());
 
         Set<String> permissions = user.getRoles().stream()
                 .flatMap(role -> role.getPermissions().stream())
-                .map(permission -> permission.getName())
+                .map(Permission::getName)
                 .collect(Collectors.toSet());
 
         return new CustomUserDetails(

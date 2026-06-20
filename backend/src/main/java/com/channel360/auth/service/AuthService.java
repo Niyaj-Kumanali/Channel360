@@ -17,11 +17,13 @@ import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.security.CustomUserDetails;
 import com.channel360.common.security.JwtTokenProvider;
 import com.channel360.common.service.EmailService;
+import com.channel360.role.entity.Permission;
 import com.channel360.role.entity.Role;
 import com.channel360.role.enums.RoleName;
 import com.channel360.role.repository.RoleRepository;
 import com.channel360.user.entity.User;
 import com.channel360.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,7 +43,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
@@ -61,27 +63,11 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthMapper authMapper;
     private final EmailService emailService;
+
+    @Value("${app.frontend-url}")
     private final String frontendUrl;
 
     private final Map<String, ResetTokenEntry> passwordResetTokens = new HashMap<>();
-
-    public AuthService(UserRepository userRepository,
-                       RoleRepository roleRepository,
-                       RefreshTokenRepository refreshTokenRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtTokenProvider jwtTokenProvider,
-                       AuthMapper authMapper,
-                       EmailService emailService,
-                       @Value("${app.frontend-url}") String frontendUrl) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.refreshTokenRepository = refreshTokenRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.authMapper = authMapper;
-        this.emailService = emailService;
-        this.frontendUrl = frontendUrl;
-    }
 
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
@@ -96,12 +82,12 @@ public class AuthService {
         }
 
         Set<String> roles = user.getRoles().stream()
-                .map(role -> role.getName())
+                .map(Role::getName)
                 .collect(Collectors.toSet());
 
         Set<String> permissionNames = user.getRoles().stream()
                 .flatMap(role -> role.getPermissions().stream())
-                .map(p -> p.getName())
+                .map(Permission::getName)
                 .collect(Collectors.toSet());
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), roles, permissionNames);
@@ -135,6 +121,7 @@ public class AuthService {
 
         User savedUser = userRepository.findByEmail(user.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", user.getEmail()));
+
         userRepository.spAssignRoles(savedUser.getId(), String.valueOf(defaultRole.getId()), null);
         return savedUser;
     }
@@ -230,13 +217,11 @@ public class AuthService {
 
         refreshTokenRepository.spRevoke(request.getRefreshToken());
 
-        Set<String> roles = user.getRoles().stream()
-                .map(role -> role.getName())
-                .collect(Collectors.toSet());
+        Set<String> roles = user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
 
         Set<String> permissionNames = user.getRoles().stream()
                 .flatMap(role -> role.getPermissions().stream())
-                .map(p -> p.getName())
+                .map(Permission::getName)
                 .collect(Collectors.toSet());
 
         String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), roles, permissionNames);
