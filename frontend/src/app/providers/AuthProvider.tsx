@@ -1,10 +1,10 @@
-import React, { createContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useState, useEffect, type ReactNode, useCallback } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { authApi } from '@/features/auth/api/auth.api';
 import type { User, AuthState } from '@/features/auth/types/auth.types';
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
+  setUser: (user: User) => void;
   logout: () => Promise<void>;
   hasRole: (role: string) => boolean;
   hasAnyRole: (...roles: string[]) => boolean;
@@ -34,19 +34,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const response = await authApi.login({ email, password });
-    if (!response.success) {
-      throw new Error(response.message || 'Login failed');
-    }
-    apiClient.setTokens(response.data.accessToken, response.data.refreshToken);
-    const userResponse = await authApi.getMe();
-    if (!userResponse.success) {
-      throw new Error(userResponse.message || 'Failed to get user info');
-    }
-    localStorage.setItem('user', JSON.stringify(userResponse.data));
-    setState({ user: userResponse.data, isAuthenticated: true, isLoading: false });
-  };
+  const setUser = useCallback((user: User) => {
+    localStorage.setItem('user', JSON.stringify(user));
+    setState({ user, isAuthenticated: true, isLoading: false });
+  }, []);
 
   const logout = async () => {
     try {
@@ -71,7 +62,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, hasRole, hasAnyRole }}>
+    <AuthContext.Provider value={{ ...state, setUser, logout, hasRole, hasAnyRole }}>
       {children}
     </AuthContext.Provider>
   );

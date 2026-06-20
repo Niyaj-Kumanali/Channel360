@@ -1,41 +1,27 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
+import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { resetPasswordSchema, type ResetPasswordFormData } from '@/features/auth/schemas/auth.schema';
-import { authApi } from '@/features/auth/api/auth.api';
+import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const token = searchParams.get('token') || '';
+  const mutation = useResetPassword();
 
   const { register, handleSubmit, formState: { errors } } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { token, newPassword: '' },
   });
 
-  const mutation = useMutation({
-    mutationFn: async (data: ResetPasswordFormData) => {
-      const response = await authApi.resetPassword(data);
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to reset password');
-      }
-    },
-    onSuccess: () => {
-      toast.success('Password reset successful');
-      navigate('/login');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to reset password');
-    },
-  });
+  const onSubmit = (data: ResetPasswordFormData) => {
+    mutation.mutate(data);
+  };
 
   return (
     <Card>
@@ -44,7 +30,7 @@ export const ResetPasswordPage: React.FC = () => {
         <p className="text-gray-500 text-sm mt-1">Enter your new password</p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <input type="hidden" {...register('token')} />
           <Input
             id="newPassword"

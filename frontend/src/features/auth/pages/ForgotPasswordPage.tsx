@@ -1,38 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
 import { ArrowLeft, Mail } from 'lucide-react';
 import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/features/auth/schemas/auth.schema';
-import { authApi } from '@/features/auth/api/auth.api';
+import { useForgotPassword } from '@/features/auth/hooks/useForgotPassword';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 
 export const ForgotPasswordPage: React.FC = () => {
-  const [sent, setSent] = React.useState(false);
+  const [sent, setSent] = useState(false);
+  const mutation = useForgotPassword();
 
   const { register, handleSubmit, formState: { errors } } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const mutation = useMutation({
-    mutationFn: async (data: ForgotPasswordFormData) => {
-      const response = await authApi.forgotPassword(data);
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to send reset link');
-      }
-    },
-    onSuccess: () => {
-      setSent(true);
-      toast.success('Reset link sent to your email');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to send reset link');
-    },
-  });
+  const onSubmit = (data: ForgotPasswordFormData) => {
+    mutation.mutate(data, {
+      onSuccess: () => setSent(true),
+    });
+  };
 
   if (sent) {
     return (
@@ -63,7 +52,7 @@ export const ForgotPasswordPage: React.FC = () => {
         </p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
             id="email"
             label="Email"
