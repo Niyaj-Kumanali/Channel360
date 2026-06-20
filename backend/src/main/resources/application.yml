@@ -56,8 +56,10 @@ spring:
             enable: true
 
 app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5174}
+
   admin:
-    email: ${ADMIN_EMAIL:iamniyazahmad777@gmail.com}
+    email: ${ADMIN_EMAIL:niyajkumanali@gmail.com}
     password: ${ADMIN_PASSWORD:1234567890}
     first-name: ${ADMIN_FIRST_NAME:Niyaz}
     last-name: ${ADMIN_LAST_NAME:Kumanali}

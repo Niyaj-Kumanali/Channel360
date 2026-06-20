@@ -16,12 +16,14 @@ import com.channel360.common.exception.DuplicateResourceException;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.security.CustomUserDetails;
 import com.channel360.common.security.JwtTokenProvider;
+import com.channel360.common.service.EmailService;
 import com.channel360.role.entity.Role;
 import com.channel360.role.repository.RoleRepository;
 import com.channel360.user.entity.User;
 import com.channel360.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -42,27 +45,41 @@ public class AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
+    private static final long RESET_TOKEN_EXPIRY_MINUTES = 30;
+
+    private record ResetTokenEntry(String token, LocalDateTime expiry) {
+        boolean isExpired() {
+            return LocalDateTime.now().isAfter(expiry);
+        }
+    }
+
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthMapper authMapper;
+    private final EmailService emailService;
+    private final String frontendUrl;
 
-    private final Map<String, String> passwordResetTokens = new HashMap<>();
+    private final Map<String, ResetTokenEntry> passwordResetTokens = new HashMap<>();
 
     public AuthService(UserRepository userRepository,
                        RoleRepository roleRepository,
                        RefreshTokenRepository refreshTokenRepository,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider jwtTokenProvider,
-                       AuthMapper authMapper) {
+                       AuthMapper authMapper,
+                       EmailService emailService,
+                       @Value("${app.frontend-url}") String frontendUrl) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authMapper = authMapper;
+        this.emailService = emailService;
+        this.frontendUrl = frontendUrl;
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -139,19 +156,34 @@ public class AuthService {
     }
 
     public void forgotPassword(ForgotPasswordRequest request) {
-        userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.getEmail()));
+        userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+            String resetToken = UUID.randomUUID().toString();
+            passwordResetTokens.put(request.getEmail(),
+                    new ResetTokenEntry(resetToken, LocalDateTime.now().plus(RESET_TOKEN_EXPIRY_MINUTES, ChronoUnit.MINUTES)));
 
-        String resetToken = UUID.randomUUID().toString();
-        passwordResetTokens.put(request.getEmail(), resetToken);
+            String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
 
-        log.info("Password reset token for {}: {}", request.getEmail(), resetToken);
+            emailService.sendResetPasswordEmail(request.getEmail(), resetLink);
+
+            log.info("Password reset email sent to: {}", request.getEmail());
+        });
     }
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
+        ResetTokenEntry entry = passwordResetTokens.entrySet().stream()
+                .filter(e -> e.getValue().token().equals(request.getToken()))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
+
+        if (entry.isExpired()) {
+            passwordResetTokens.values().remove(entry);
+            throw new BadRequestException("Invalid or expired reset token");
+        }
+
         String email = passwordResetTokens.entrySet().stream()
-                .filter(entry -> entry.getValue().equals(request.getToken()))
+                .filter(e -> e.getValue().token().equals(request.getToken()))
                 .map(Map.Entry::getKey)
                 .findFirst()
                 .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
