@@ -1,19 +1,34 @@
 package com.channel360.common.service;
 
 import com.channel360.common.dto.response.MenuItem;
-import com.channel360.role.enums.RoleName;
+import com.channel360.common.security.CustomUserDetails;
+import com.channel360.menu.dto.MenuRequest;
+import com.channel360.menu.dto.MenuResponse;
+import com.channel360.menu.repository.MenuItemRepository;
+import com.channel360.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class MenuService {
+
+    private static final Logger log = LoggerFactory.getLogger(MenuService.class);
+
+    private final MenuItemRepository menuItemRepository;
+    private final UserRepository userRepository;
+
+    // --- Public menu (permission-filtered for sidebar) ---
 
     public List<MenuItem> getCurrentUserMenu() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -21,67 +36,138 @@ public class MenuService {
             return List.of();
         }
 
-        Set<String> userRoles = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toSet());
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        Set<String> userPermissions = userDetails.getPermissions();
 
-        return buildMenu().stream()
-                .filter(item -> hasAccess(item, userRoles))
-                .map(item -> filterChildren(item, userRoles))
-                .toList();
-    }
-
-    private List<MenuItem> buildMenu() {
-        MenuItem dashboard = MenuItem.builder()
-                .path("/dashboard")
-                .label("Dashboard")
-                .icon("LayoutDashboard")
-                .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name(), RoleName.ROLE_ADMIN.name(), RoleName.ROLE_USER.name()))
-                .build();
-
-
-        MenuItem roles = MenuItem.builder()
-                .path("/admin/roles")
-                .label("Roles")
-                .icon("Shield")
-                .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name()))
-                .build();
-
-        MenuItem cms = MenuItem.builder()
-                .path("#")
-                .label("Content")
-                .icon("FileText")
-                .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name(), RoleName.ROLE_ADMIN.name()))
-                .children(new ArrayList<>(List.of(
-                    MenuItem.builder()
-                        .path("/admin/sections")
-                        .label("Homepage Sections")
-                        .icon("Layout")
-                        .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name(), RoleName.ROLE_ADMIN.name()))
-                        .build(),
-                    MenuItem.builder()
-                        .path("/admin/popups")
-                        .label("Popups")
-                        .icon("Square")
-                        .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name(), RoleName.ROLE_ADMIN.name()))
-                        .build()
-                )))
-                .build();
-
-        return List.of(dashboard, roles, cms);
-    }
-
-    private boolean hasAccess(MenuItem item, Set<String> userRoles) {
-        return item.getRoles().stream().anyMatch(userRoles::contains);
-    }
-
-    private MenuItem filterChildren(MenuItem item, Set<String> userRoles) {
-        if (item.getChildren() == null || item.getChildren().isEmpty()) {
-            return item;
+        if (userPermissions == null || userPermissions.isEmpty()) {
+            log.info("No permissions in JWT for user {}, loading from DB", userDetails.getId());
+            userPermissions = userRepository.findPermissionNamesByUserId(userDetails.getId());
         }
-        item.setChildren(item.getChildren().stream()
-                .filter(child -> hasAccess(child, userRoles))
-                .collect(Collectors.toList()));
-        return item;
+
+        final Set<String> effectivePermissions = userPermissions;
+
+        if (effectivePermissions == null || effectivePermissions.isEmpty()) {
+            return List.of();
+        }
+
+        List<com.channel360.menu.entity.MenuItem> parentItems =
+                menuItemRepository.findByParentIdIsNullAndActiveTrueOrderByDisplayOrder();
+
+        List<MenuItem> result = new ArrayList<>();
+        for (com.channel360.menu.entity.MenuItem parent : parentItems) {
+            if (!hasAccess(parent, effectivePermissions)) continue;
+
+            List<com.channel360.menu.entity.MenuItem> children =
+                    menuItemRepository.findByParentIdAndActiveTrueOrderByDisplayOrder(parent.getId());
+            List<MenuItem> childItems = children.stream()
+                    .filter(c -> hasAccess(c, effectivePermissions))
+                    .map(this::toMenuItemDto)
+                    .toList();
+
+            MenuItem dto = toMenuItemDto(parent);
+            if (!childItems.isEmpty()) {
+                dto.setChildren(new ArrayList<>(childItems));
+            }
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    // --- Admin CRUD ---
+
+    public List<MenuResponse> getAllMenuItems() {
+        List<com.channel360.menu.entity.MenuItem> all = menuItemRepository.findAllByOrderByDisplayOrder();
+        return all.stream().map(this::toMenuResponse).toList();
+    }
+
+    public MenuResponse getMenuItem(Long id) {
+        com.channel360.menu.entity.MenuItem entity = menuItemRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Menu item not found: " + id));
+        return toMenuResponse(entity);
+    }
+
+    @Transactional
+    public MenuResponse createMenuItem(MenuRequest request) {
+        com.channel360.menu.entity.MenuItem entity = new com.channel360.menu.entity.MenuItem();
+        applyRequest(entity, request);
+        entity.setActive(request.getActive() != null ? request.getActive() : true);
+        com.channel360.menu.entity.MenuItem saved = menuItemRepository.save(entity);
+        return toMenuResponse(saved);
+    }
+
+    @Transactional
+    public MenuResponse updateMenuItem(Long id, MenuRequest request) {
+        com.channel360.menu.entity.MenuItem entity = menuItemRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Menu item not found: " + id));
+        applyRequest(entity, request);
+        com.channel360.menu.entity.MenuItem saved = menuItemRepository.save(entity);
+        return toMenuResponse(saved);
+    }
+
+    @Transactional
+    public void deleteMenuItem(Long id) {
+        if (!menuItemRepository.existsById(id)) {
+            throw new EntityNotFoundException("Menu item not found: " + id);
+        }
+        menuItemRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void reorderMenuItems(List<MenuRequest> items) {
+        for (MenuRequest item : items) {
+            if (item.getId() == null) continue;
+            menuItemRepository.findById(item.getId()).ifPresent(entity -> {
+                entity.setDisplayOrder(item.getDisplayOrder());
+                entity.setParentId(item.getParentId());
+                menuItemRepository.save(entity);
+            });
+        }
+    }
+
+    // --- Helpers ---
+
+    private boolean hasAccess(com.channel360.menu.entity.MenuItem menuItem, Set<String> userPermissions) {
+        if (menuItem.getPermissionName() == null || menuItem.getPermissionName().isBlank()) {
+            return true;
+        }
+        return userPermissions.contains(menuItem.getPermissionName());
+    }
+
+    private MenuItem toMenuItemDto(com.channel360.menu.entity.MenuItem entity) {
+        return MenuItem.builder()
+                .path(entity.getPath())
+                .label(entity.getLabel())
+                .icon(entity.getIcon())
+                .roles(entity.getPermissionName() != null
+                        ? List.of(entity.getPermissionName())
+                        : List.of())
+                .build();
+    }
+
+    private MenuResponse toMenuResponse(com.channel360.menu.entity.MenuItem entity) {
+        return MenuResponse.builder()
+                .id(entity.getId())
+                .parentId(entity.getParentId())
+                .label(entity.getLabel())
+                .path(entity.getPath())
+                .icon(entity.getIcon())
+                .permissionName(entity.getPermissionName())
+                .displayOrder(entity.getDisplayOrder())
+                .active(entity.getActive())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .build();
+    }
+
+    private void applyRequest(com.channel360.menu.entity.MenuItem entity, MenuRequest request) {
+        if (request.getLabel() != null) entity.setLabel(request.getLabel());
+        if (request.getPath() != null) entity.setPath(request.getPath());
+        if (request.getIcon() != null) entity.setIcon(request.getIcon());
+        if (request.getPermissionName() != null) entity.setPermissionName(request.getPermissionName());
+        if (request.getParentId() != null) entity.setParentId(request.getParentId());
+        else entity.setParentId(null);
+        if (request.getDisplayOrder() != null) entity.setDisplayOrder(request.getDisplayOrder());
+        if (request.getActive() != null) entity.setActive(request.getActive());
     }
 }

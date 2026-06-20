@@ -47,6 +47,19 @@ export interface MenuItem {
   children?: MenuItem[];
 }
 
+export interface MenuItemResponse {
+  id: number;
+  parentId: number | null;
+  label: string;
+  path: string;
+  icon: string;
+  permissionName: string | null;
+  displayOrder: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;

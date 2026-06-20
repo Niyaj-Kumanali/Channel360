@@ -101,3 +101,20 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 
 ALTER TABLE homepage_sections ADD COLUMN IF NOT EXISTS updated_by VARCHAR(255);
 ALTER TABLE homepage_popups ADD COLUMN IF NOT EXISTS updated_by VARCHAR(255);
+
+CREATE TABLE IF NOT EXISTS menu_items (
+    id BIGSERIAL PRIMARY KEY,
+    parent_id BIGINT REFERENCES menu_items(id) ON DELETE CASCADE,
+    label VARCHAR(100) NOT NULL,
+    path VARCHAR(255) NOT NULL DEFAULT '#',
+    icon VARCHAR(50),
+    permission_name VARCHAR(100) REFERENCES permissions(name) ON DELETE SET NULL,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_menu_items_parent_id ON menu_items(parent_id);
+CREATE INDEX IF NOT EXISTS idx_menu_items_permission ON menu_items(permission_name);
+CREATE INDEX IF NOT EXISTS idx_menu_items_display_order ON menu_items(display_order);

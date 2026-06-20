@@ -1,6 +1,7 @@
 package com.channel360.role.controller;
 
 import com.channel360.common.dto.response.ApiResponse;
+import com.channel360.common.security.RequirePermission;
 import com.channel360.role.entity.Permission;
 import com.channel360.role.service.RoleService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class PermissionController {
     private final RoleService roleService;
 
     @GetMapping
+    @RequirePermission("roles.view")
     public ResponseEntity<ApiResponse<List<Permission>>> getAllPermissions() {
         return ResponseEntity.ok(ApiResponse.success(roleService.getAllPermissions()));
     }

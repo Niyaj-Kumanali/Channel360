@@ -40,14 +40,14 @@ public class HomepageController {
     // --- Admin: Sections ---
 
     @GetMapping("/sections/admin")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.view")
     public ResponseEntity<ApiResponse<List<HomepageSectionResponse>>> getAllSections() {
         List<HomepageSectionResponse> sections = homepageService.getAllSections();
         return ResponseEntity.ok(ApiResponse.success(sections));
     }
 
     @GetMapping("/sections/{id}")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.view")
     public ResponseEntity<ApiResponse<HomepageSectionResponse>> getSection(@PathVariable Long id, Authentication auth) {
         HomepageSectionResponse section = homepageService.getSection(id, auth.getName());
         if (section == null) {
@@ -57,7 +57,7 @@ public class HomepageController {
     }
 
     @PostMapping("/sections")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.create")
     public ResponseEntity<ApiResponse<HomepageSectionResponse>> createSection(
             @Valid @RequestBody HomepageSectionRequest request,
             Authentication auth) {
@@ -67,7 +67,7 @@ public class HomepageController {
     }
 
     @PutMapping("/sections/{id}")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.edit")
     public ResponseEntity<ApiResponse<HomepageSectionResponse>> updateSection(
             @PathVariable Long id,
             @Valid @RequestBody HomepageSectionRequest request,
@@ -78,14 +78,14 @@ public class HomepageController {
     }
 
     @DeleteMapping("/sections/{id}")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.delete")
     public ResponseEntity<ApiResponse<Void>> deleteSection(@PathVariable Long id) {
         homepageService.deleteSection(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Section deleted"));
     }
 
     @PutMapping("/sections/reorder")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.edit")
     public ResponseEntity<ApiResponse<Void>> reorderSections(@Valid @RequestBody SectionReorderRequest request) {
         homepageService.reorderSections(request.getItems());
         return ResponseEntity.ok(ApiResponse.success(null, "Sections reordered"));
@@ -94,14 +94,14 @@ public class HomepageController {
     // --- Admin: Popups ---
 
     @GetMapping("/popups/admin")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.view")
     public ResponseEntity<ApiResponse<List<HomepagePopupResponse>>> getAllPopups() {
         List<HomepagePopupResponse> popups = homepageService.getAllPopups();
         return ResponseEntity.ok(ApiResponse.success(popups));
     }
 
     @GetMapping("/popups/{id}")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.view")
     public ResponseEntity<ApiResponse<HomepagePopupResponse>> getPopup(@PathVariable Long id) {
         HomepagePopupResponse popup = homepageService.getPopup(id);
         if (popup == null) {
@@ -111,7 +111,7 @@ public class HomepageController {
     }
 
     @PostMapping("/popups")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.create")
     public ResponseEntity<ApiResponse<HomepagePopupResponse>> createPopup(
             @Valid @RequestBody HomepagePopupRequest request,
             Authentication auth) {
@@ -121,7 +121,7 @@ public class HomepageController {
     }
 
     @PutMapping("/popups/{id}")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.edit")
     public ResponseEntity<ApiResponse<HomepagePopupResponse>> updatePopup(
             @PathVariable Long id,
             @Valid @RequestBody HomepagePopupRequest request,
@@ -132,7 +132,7 @@ public class HomepageController {
     }
 
     @DeleteMapping("/popups/{id}")
-    @RequirePermission("homepage.manage")
+    @RequirePermission("homepage.delete")
     public ResponseEntity<ApiResponse<Void>> deletePopup(@PathVariable Long id) {
         homepageService.deletePopup(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Popup deleted"));

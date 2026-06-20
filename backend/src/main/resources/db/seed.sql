@@ -10,21 +10,55 @@ INSERT INTO roles (name, description)
 VALUES ('ROLE_SUPER_ADMIN', 'Super administrator with full system access')
 ON CONFLICT (name) DO NOTHING;
 
--- Permissions
+-- Remove old coarse permissions (replaced by granular ones below)
+DELETE FROM permissions WHERE name IN ('users.manage', 'roles.manage', 'homepage.manage');
+
+-- Permissions (granular: view/create/edit/delete per module)
 INSERT INTO permissions (name, description, module)
 VALUES ('dashboard.view', 'View dashboard', 'dashboard')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO permissions (name, description, module)
-VALUES ('users.manage', 'Manage users (CRUD)', 'users')
+VALUES ('users.view', 'View users', 'users')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('users.create', 'Create users', 'users')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('users.edit', 'Edit users', 'users')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('users.delete', 'Delete users', 'users')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO permissions (name, description, module)
-VALUES ('roles.manage', 'Manage roles and permissions', 'roles')
+VALUES ('roles.view', 'View roles', 'roles')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('roles.create', 'Create roles', 'roles')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('roles.edit', 'Edit roles', 'roles')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('roles.delete', 'Delete roles', 'roles')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO permissions (name, description, module)
-VALUES ('homepage.manage', 'Manage homepage sections and popups', 'cms')
+VALUES ('homepage.view', 'View homepage sections and popups', 'cms')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('homepage.create', 'Create homepage sections and popups', 'cms')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('homepage.edit', 'Edit homepage sections and popups', 'cms')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('homepage.delete', 'Delete homepage sections and popups', 'cms')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO permissions (name, description, module)
+VALUES ('menu.manage', 'Manage sidebar menu items', 'menu')
 ON CONFLICT (name) DO NOTHING;
 
 -- ROLE_SUPER_ADMIN gets all permissions
@@ -33,11 +67,12 @@ SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'ROLE_SUPER_ADMIN'
 ON CONFLICT DO NOTHING;
 
--- ROLE_ADMIN gets all except roles.manage
+-- ROLE_ADMIN gets dashboard.view, all users.*, all homepage.*
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'ROLE_ADMIN'
-  AND p.name IN ('dashboard.view', 'users.manage')
+  AND p.name IN ('dashboard.view',
+                 'users.view', 'users.create', 'users.edit')
 ON CONFLICT DO NOTHING;
 
 -- ROLE_USER gets dashboard.view only
@@ -46,6 +81,33 @@ SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'ROLE_USER'
   AND p.name = 'dashboard.view'
 ON CONFLICT DO NOTHING;
+
+-- Menu items (permission-driven, idempotent per-item inserts)
+INSERT INTO menu_items (label, path, icon, permission_name, display_order)
+SELECT 'Dashboard', '/dashboard', 'LayoutDashboard', 'dashboard.view', 1
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Dashboard' AND parent_id IS NULL);
+
+INSERT INTO menu_items (label, path, icon, permission_name, display_order)
+SELECT 'Content', '#', 'FileText', 'homepage.view', 2
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Content' AND parent_id IS NULL);
+
+INSERT INTO menu_items (label, path, icon, permission_name, display_order)
+SELECT 'Roles', '/admin/roles', 'Shield', 'roles.view', 3
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Roles' AND parent_id IS NULL);
+
+INSERT INTO menu_items (label, path, icon, permission_name, display_order)
+SELECT 'Menu', '/admin/menu', 'Menu', 'menu.manage', 4
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Menu' AND parent_id IS NULL);
+
+INSERT INTO menu_items (parent_id, label, path, icon, permission_name, display_order)
+SELECT p.id, 'Homepage Sections', '/admin/sections', 'Layout', 'homepage.view', 1
+FROM menu_items p WHERE p.label = 'Content' AND p.parent_id IS NULL
+  AND NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Homepage Sections' AND parent_id IS NOT NULL);
+
+INSERT INTO menu_items (parent_id, label, path, icon, permission_name, display_order)
+SELECT p.id, 'Popups', '/admin/popups', 'Square', 'homepage.view', 2
+FROM menu_items p WHERE p.label = 'Content' AND p.parent_id IS NULL
+  AND NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Popups' AND parent_id IS NOT NULL);
 
 -- Homepage sections (seed data for CMS-managed homepage)
 -- Only inserts when table is empty to prevent duplicates across restarts
