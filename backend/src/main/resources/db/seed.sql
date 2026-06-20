@@ -37,7 +37,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'ROLE_ADMIN'
-  AND p.name IN ('dashboard.view', 'users.manage', 'homepage.manage')
+  AND p.name IN ('dashboard.view', 'users.manage')
 ON CONFLICT DO NOTHING;
 
 -- ROLE_USER gets dashboard.view only

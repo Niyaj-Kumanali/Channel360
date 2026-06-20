@@ -59,6 +59,16 @@ export const RoleFormPage: React.FC = () => {
     );
   };
 
+  const toggleGroup = (perms: Permission[]) => {
+    const groupIds = perms.map(p => p.id);
+    const allSelected = groupIds.every(id => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds((prev) => prev.filter(id => !groupIds.includes(id)));
+    } else {
+      setSelectedIds((prev) => [...new Set([...prev, ...groupIds])]);
+    }
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -146,32 +156,46 @@ export const RoleFormPage: React.FC = () => {
           {allPermissions.length === 0 ? (
             <p className="text-sm text-muted-foreground">No permissions available.</p>
           ) : (
-            Object.entries(grouped).map(([group, perms]) => (
-              <div key={group}>
-                <h3 className="text-sm font-medium text-foreground capitalize mb-2">{group}</h3>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {perms.map((perm) => (
-                    <label
-                      key={perm.id}
-                      className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+            Object.entries(grouped).map(([group, perms]) => {
+              const groupIds = perms.map(p => p.id);
+              const selectedCount = groupIds.filter(id => selectedIds.includes(id)).length;
+              const allSelected = selectedCount === perms.length;
+              return (
+                <div key={group}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium text-foreground capitalize">{group}</h3>
+                    <button
+                      type="button"
+                      onClick={() => toggleGroup(perms)}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(perm.id)}
-                        onChange={() => togglePermission(perm.id)}
-                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                      />
-                      <div className="min-w-0">
-                        <span className="text-sm font-medium text-foreground">{perm.name}</span>
-                        {perm.description && (
-                          <p className="text-xs text-muted-foreground truncate">{perm.description}</p>
-                        )}
-                      </div>
-                    </label>
-                  ))}
+                      {allSelected ? 'Deselect all' : `Select all (${selectedCount}/${perms.length})`}
+                    </button>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {perms.map((perm) => (
+                      <label
+                        key={perm.id}
+                        className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(perm.id)}
+                          onChange={() => togglePermission(perm.id)}
+                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                        />
+                        <div className="min-w-0">
+                          <span className="text-sm font-medium text-foreground">{perm.name}</span>
+                          {perm.description && (
+                            <p className="text-xs text-muted-foreground truncate">{perm.description}</p>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
