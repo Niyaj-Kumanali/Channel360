@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Eye, EyeOff } from 'lucide-react';
+import { PasswordStrength } from '@/components/ui/PasswordStrength';
 
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: string;
   error?: string;
   hint?: string;
+  showStrength?: boolean;
+  required?: boolean;
 }
 
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, label, error, hint, id, placeholder, ...props }, ref) => {
+  ({ className, label, error, hint, showStrength, required, id, placeholder, ...props }, ref) => {
     const [show, setShow] = useState(false);
+    const showError = error && !/required/i.test(error);
 
     return (
       <div className="space-y-1">
@@ -44,6 +48,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             )}
           >
             {label}
+            {required && <span className="text-red-500 ml-0.5">*</span>}
           </label>
           <button
             type="button"
@@ -54,7 +59,10 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
-        {error ? (
+        {showStrength && props.value ? (
+          <PasswordStrength value={props.value as string} />
+        ) : null}
+        {showError ? (
           <p className="text-xs text-red-500">{error}</p>
         ) : hint ? (
           <p className="text-xs text-gray-400">{hint}</p>

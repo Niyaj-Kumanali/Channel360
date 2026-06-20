@@ -16,7 +16,7 @@ export const ResetPasswordPage: React.FC = () => {
   const token = searchParams.get('token') || '';
   const mutation = useResetPassword();
 
-  const { register, handleSubmit, setError, formState: { errors } } = useForm<ResetPasswordFormData>({
+  const { register, handleSubmit, setError, watch, formState: { errors } } = useForm<ResetPasswordFormData>({
     resolver: yupResolver(resetPasswordSchema),
     mode: 'onBlur',
     reValidateMode: 'onBlur',
@@ -55,8 +55,10 @@ export const ResetPasswordPage: React.FC = () => {
           id="newPassword"
           label="New Password"
           placeholder="e.g. MyN3wP@ss"
-          hint="At least 6 characters"
           error={errors.newPassword?.message}
+          showStrength
+          value={watch('newPassword')}
+          required
           {...register('newPassword')}
         />
         <Button type="submit" className="w-full h-11" isLoading={mutation.isPending}>

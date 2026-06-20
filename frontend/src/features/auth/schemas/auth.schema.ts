@@ -2,7 +2,7 @@ import * as yup from 'yup';
 
 export const loginSchema = yup.object({
   email: yup.string().email('Please enter a valid email').required('Email is required'),
-  password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  password: yup.string().required('Password is required'),
 });
 
 export const forgotPasswordSchema = yup.object({
@@ -11,12 +11,12 @@ export const forgotPasswordSchema = yup.object({
 
 export const resetPasswordSchema = yup.object({
   token: yup.string().required('Token is required'),
-  newPassword: yup.string().min(6, 'Password must be at least 6 characters').required('New password is required'),
+  newPassword: yup.string().required('New password is required'),
 });
 
 export const changePasswordSchema = yup.object({
   oldPassword: yup.string().required('Current password is required'),
-  newPassword: yup.string().min(6, 'Password must be at least 6 characters').required('New password is required'),
+  newPassword: yup.string().required('New password is required'),
   confirmPassword: yup.string().required('Please confirm your password').oneOf([yup.ref('newPassword')], 'Passwords do not match'),
 });
 

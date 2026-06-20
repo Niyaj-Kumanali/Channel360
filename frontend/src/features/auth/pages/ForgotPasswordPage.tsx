@@ -76,6 +76,7 @@ export const ForgotPasswordPage: React.FC = () => {
           placeholder="name@example.com"
           hint="e.g. name@example.com"
           error={errors.email?.message}
+          required
           {...register('email')}
         />
 

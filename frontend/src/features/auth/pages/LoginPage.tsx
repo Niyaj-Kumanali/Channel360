@@ -18,6 +18,7 @@ export const LoginPage: React.FC = () => {
     register,
     handleSubmit,
     setError,
+    watch,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
@@ -54,6 +55,7 @@ export const LoginPage: React.FC = () => {
           placeholder="name@example.com"
           hint="e.g. name@example.com"
           error={errors.email?.message}
+          required
           {...register('email')}
         />
 
@@ -71,8 +73,10 @@ export const LoginPage: React.FC = () => {
             id="password"
             label="Password"
             placeholder="e.g. MyP@ss123"
-            hint="At least 6 characters"
             error={errors.password?.message}
+            showStrength
+            value={watch('password')}
+            required
             {...register('password')}
           />
         </div>
