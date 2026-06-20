@@ -1,29 +1,26 @@
-import { z } from 'zod';
+import * as yup from 'yup';
 
-export const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+export const loginSchema = yup.object({
+  email: yup.string().email('Please enter a valid email').required('Email is required'),
+  password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
 });
 
-export const forgotPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
+export const forgotPasswordSchema = yup.object({
+  email: yup.string().email('Please enter a valid email').required('Email is required'),
 });
 
-export const resetPasswordSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
-  newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+export const resetPasswordSchema = yup.object({
+  token: yup.string().required('Token is required'),
+  newPassword: yup.string().min(6, 'Password must be at least 6 characters').required('New password is required'),
 });
 
-export const changePasswordSchema = z.object({
-  oldPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
+export const changePasswordSchema = yup.object({
+  oldPassword: yup.string().required('Current password is required'),
+  newPassword: yup.string().min(6, 'Password must be at least 6 characters').required('New password is required'),
+  confirmPassword: yup.string().required('Please confirm your password').oneOf([yup.ref('newPassword')], 'Passwords do not match'),
 });
 
-export type LoginFormData = z.infer<typeof loginSchema>;
-export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
-export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
-export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+export type LoginFormData = yup.InferType<typeof loginSchema>;
+export type ForgotPasswordFormData = yup.InferType<typeof forgotPasswordSchema>;
+export type ResetPasswordFormData = yup.InferType<typeof resetPasswordSchema>;
+export type ChangePasswordFormData = yup.InferType<typeof changePasswordSchema>;

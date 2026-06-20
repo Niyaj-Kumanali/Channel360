@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { ArrowLeft, Mail } from 'lucide-react';
+import { ApiError } from '@/lib/api-error';
+import { mapErrorToField } from '@/lib/error-utils';
 import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/features/auth/schemas/auth.schema';
 import { useForgotPassword } from '@/features/auth/hooks/useForgotPassword';
 import { FloatingLabelInput } from '@/components/ui/FloatingLabelInput';
@@ -12,13 +15,24 @@ export const ForgotPasswordPage: React.FC = () => {
   const [sent, setSent] = useState(false);
   const mutation = useForgotPassword();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ForgotPasswordFormData>({
-    resolver: zodResolver(forgotPasswordSchema),
+  const { register, handleSubmit, setError, formState: { errors } } = useForm<ForgotPasswordFormData>({
+    resolver: yupResolver(forgotPasswordSchema),
+    mode: 'onBlur',
+    reValidateMode: 'onBlur',
   });
 
   const onSubmit = (data: ForgotPasswordFormData) => {
     mutation.mutate(data, {
       onSuccess: () => setSent(true),
+      onError: (error) => {
+        if (error instanceof ApiError) {
+          for (const msg of error.errors ?? []) {
+            const field = mapErrorToField(msg);
+            if (field) setError(field as keyof ForgotPasswordFormData, { message: msg });
+          }
+          toast.error(error.message);
+        }
+      },
     });
   };
 
@@ -54,12 +68,13 @@ export const ForgotPasswordPage: React.FC = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         <FloatingLabelInput
           id="email"
           label="Email"
           type="email"
           placeholder="name@example.com"
+          hint="e.g. name@example.com"
           error={errors.email?.message}
           {...register('email')}
         />

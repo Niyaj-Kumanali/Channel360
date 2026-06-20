@@ -4,10 +4,11 @@ import { cn } from '@/lib/utils';
 interface FloatingLabelInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
+  hint?: string;
 }
 
 export const FloatingLabelInput = React.forwardRef<HTMLInputElement, FloatingLabelInputProps>(
-  ({ className, label, error, id, placeholder, ...props }, ref) => {
+  ({ className, label, error, hint, id, placeholder, ...props }, ref) => {
     return (
       <div className="space-y-1">
         <div className="relative">
@@ -41,7 +42,11 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement, FloatingLab
             {label}
           </label>
         </div>
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error ? (
+          <p className="text-xs text-red-500">{error}</p>
+        ) : hint ? (
+          <p className="text-xs text-gray-400">{hint}</p>
+        ) : null}
       </div>
     );
   }

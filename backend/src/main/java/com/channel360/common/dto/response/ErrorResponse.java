@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
-    private boolean success;
+    private boolean success = false;
     private String message;
     private List<String> errors;
     private LocalDateTime timestamp;

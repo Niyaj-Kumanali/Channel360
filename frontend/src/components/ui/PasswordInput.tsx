@@ -5,10 +5,11 @@ import { Eye, EyeOff } from 'lucide-react';
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: string;
   error?: string;
+  hint?: string;
 }
 
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, label, error, id, placeholder, ...props }, ref) => {
+  ({ className, label, error, hint, id, placeholder, ...props }, ref) => {
     const [show, setShow] = useState(false);
 
     return (
@@ -53,7 +54,11 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error ? (
+          <p className="text-xs text-red-500">{error}</p>
+        ) : hint ? (
+          <p className="text-xs text-gray-400">{hint}</p>
+        ) : null}
       </div>
     );
   }

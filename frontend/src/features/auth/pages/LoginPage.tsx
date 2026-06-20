@@ -1,7 +1,10 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { ApiError } from '@/lib/api-error';
+import { mapErrorToField } from '@/lib/error-utils';
 import { loginSchema, type LoginFormData } from '@/features/auth/schemas/auth.schema';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { FloatingLabelInput } from '@/components/ui/FloatingLabelInput';
@@ -14,13 +17,26 @@ export const LoginPage: React.FC = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: yupResolver(loginSchema),
+    mode: 'onBlur',
+    reValidateMode: 'onBlur',
   });
 
   const onSubmit = (data: LoginFormData) => {
-    loginMutation.mutate(data);
+    loginMutation.mutate(data, {
+      onError: (error) => {
+        if (error instanceof ApiError) {
+          for (const msg of error.errors ?? []) {
+            const field = mapErrorToField(msg);
+            if (field) setError(field as keyof LoginFormData, { message: msg });
+          }
+          toast.error(error.message);
+        }
+      },
+    });
   };
 
   return (
@@ -30,12 +46,13 @@ export const LoginPage: React.FC = () => {
         <p className="text-gray-500 mt-1.5">Enter your credentials to access your account</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         <FloatingLabelInput
           id="email"
           label="Email"
           type="email"
           placeholder="name@example.com"
+          hint="e.g. name@example.com"
           error={errors.email?.message}
           {...register('email')}
         />
@@ -53,7 +70,8 @@ export const LoginPage: React.FC = () => {
           <PasswordInput
             id="password"
             label="Password"
-            placeholder="Enter your password"
+            placeholder="e.g. MyP@ss123"
+            hint="At least 6 characters"
             error={errors.password?.message}
             {...register('password')}
           />

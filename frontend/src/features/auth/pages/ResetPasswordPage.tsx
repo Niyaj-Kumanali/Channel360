@@ -1,8 +1,11 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useSearchParams, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { ArrowLeft, Lock } from 'lucide-react';
+import { ApiError } from '@/lib/api-error';
+import { mapErrorToField } from '@/lib/error-utils';
 import { resetPasswordSchema, type ResetPasswordFormData } from '@/features/auth/schemas/auth.schema';
 import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
 import { PasswordInput } from '@/components/ui/PasswordInput';
@@ -13,13 +16,25 @@ export const ResetPasswordPage: React.FC = () => {
   const token = searchParams.get('token') || '';
   const mutation = useResetPassword();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
+  const { register, handleSubmit, setError, formState: { errors } } = useForm<ResetPasswordFormData>({
+    resolver: yupResolver(resetPasswordSchema),
+    mode: 'onBlur',
+    reValidateMode: 'onBlur',
     defaultValues: { token, newPassword: '' },
   });
 
   const onSubmit = (data: ResetPasswordFormData) => {
-    mutation.mutate(data);
+    mutation.mutate(data, {
+      onError: (error) => {
+        if (error instanceof ApiError) {
+          for (const msg of error.errors ?? []) {
+            const field = mapErrorToField(msg);
+            if (field) setError(field as keyof ResetPasswordFormData, { message: msg });
+          }
+          toast.error(error.message);
+        }
+      },
+    });
   };
 
   return (
@@ -34,12 +49,13 @@ export const ResetPasswordPage: React.FC = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         <input type="hidden" {...register('token')} />
         <PasswordInput
           id="newPassword"
           label="New Password"
-          placeholder="Enter new password"
+          placeholder="e.g. MyN3wP@ss"
+          hint="At least 6 characters"
           error={errors.newPassword?.message}
           {...register('newPassword')}
         />

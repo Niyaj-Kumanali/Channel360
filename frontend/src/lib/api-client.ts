@@ -1,3 +1,5 @@
+import { ApiError } from './api-error';
+
 const API_BASE_URL = 'http://localhost:5000/api/v1';
 
 class ApiClient {
@@ -45,7 +47,7 @@ class ApiClient {
       headers,
     });
 
-    if (response.status === 401) {
+    if (response.status === 401 && token) {
       const refreshed = await this.tryRefreshToken();
       if (refreshed) {
         const newToken = this.getToken();
@@ -56,7 +58,7 @@ class ApiClient {
         });
         const data = await retryResponse.json();
         if (!retryResponse.ok) {
-          throw new Error(data.message || `Request failed (${retryResponse.status})`);
+          throw new ApiError(data.message || `Request failed (${retryResponse.status})`, { errors: data.errors, statusCode: retryResponse.status });
         }
         return data as T;
       }
@@ -68,7 +70,7 @@ class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || `Request failed (${response.status})`);
+      throw new ApiError(data.message || `Request failed (${response.status})`, { errors: data.errors, statusCode: response.status });
     }
 
     return data as T;
