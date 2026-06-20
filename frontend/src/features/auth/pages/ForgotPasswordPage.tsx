@@ -7,7 +7,6 @@ import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/features/au
 import { useForgotPassword } from '@/features/auth/hooks/useForgotPassword';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 
 export const ForgotPasswordPage: React.FC = () => {
   const [sent, setSent] = useState(false);
@@ -25,51 +24,58 @@ export const ForgotPasswordPage: React.FC = () => {
 
   if (sent) {
     return (
-      <Card>
-        <CardContent className="text-center py-8">
-          <Mail className="h-12 w-12 text-primary mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Check your email</h3>
-          <p className="text-gray-500 mb-6">
-            If an account exists with that email, we've sent a password reset link.
-          </p>
-          <Link to="/login">
-            <Button variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Login
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-scale-in text-center">
+        <div className="h-14 w-14 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-4">
+          <Mail className="h-7 w-7 text-primary" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email</h2>
+        <p className="text-gray-500 text-sm mb-6">
+          If an account exists with that email, we've sent a password reset link.
+        </p>
+        <Link to="/login">
+          <Button variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Login
+          </Button>
+        </Link>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <h2 className="text-xl font-bold text-gray-900">Forgot Password</h2>
-        <p className="text-gray-500 text-sm mt-1">
-          Enter your email and we'll send you a reset link
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-fade-in">
+      <div className="text-center mb-8">
+        <div className="h-12 w-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-4">
+          <Mail className="h-6 w-6 text-primary" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900">Forgot password?</h1>
+        <p className="text-gray-500 mt-1">
+          No worries. Enter your email and we'll send you a reset link.
         </p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Input
-            id="email"
-            label="Email"
-            type="email"
-            placeholder="Enter your email"
-            error={errors.email?.message}
-            {...register('email')}
-          />
-          <Button type="submit" className="w-full" isLoading={mutation.isPending}>
-            Send Reset Link
-          </Button>
-          <Link to="/login" className="block text-center text-sm text-primary-600 hover:text-primary-700">
-            <ArrowLeft className="h-4 w-4 inline mr-1" />
-            Back to Login
-          </Link>
-        </form>
-      </CardContent>
-    </Card>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <Input
+          id="email"
+          label="Email"
+          type="email"
+          placeholder="name@example.com"
+          error={errors.email?.message}
+          {...register('email')}
+        />
+
+        <Button type="submit" className="w-full h-11" isLoading={mutation.isPending}>
+          Send Reset Link
+        </Button>
+
+        <Link
+          to="/login"
+          className="flex items-center justify-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Login
+        </Link>
+      </form>
+    </div>
   );
 };

@@ -20,18 +20,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   useEffect(() => {
-    const userJson = localStorage.getItem('user');
-    const token = localStorage.getItem('access_token');
-    if (userJson && token) {
+    const init = async () => {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        setState({ user: null, isAuthenticated: false, isLoading: false });
+        return;
+      }
       try {
-        const user = JSON.parse(userJson) as User;
-        setState({ user, isAuthenticated: true, isLoading: false });
+        const response = await authApi.getMe();
+        if (response.success) {
+          localStorage.setItem('user', JSON.stringify(response.data));
+          setState({ user: response.data, isAuthenticated: true, isLoading: false });
+        } else {
+          apiClient.clearTokens();
+          setState({ user: null, isAuthenticated: false, isLoading: false });
+        }
       } catch {
+        apiClient.clearTokens();
         setState({ user: null, isAuthenticated: false, isLoading: false });
       }
-    } else {
-      setState({ user: null, isAuthenticated: false, isLoading: false });
-    }
+    };
+    init();
   }, []);
 
   const setUser = useCallback((user: User) => {
