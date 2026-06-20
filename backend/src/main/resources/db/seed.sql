@@ -5,3 +5,7 @@ ON CONFLICT (name) DO NOTHING;
 INSERT INTO roles (name, description)
 VALUES ('ROLE_USER', 'Regular user with basic access')
 ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO roles (name, description)
+VALUES ('ROLE_SUPER_ADMIN', 'Super administrator with full system access')
+ON CONFLICT (name) DO NOTHING;

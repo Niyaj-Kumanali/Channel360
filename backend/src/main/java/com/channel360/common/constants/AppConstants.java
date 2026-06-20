@@ -1,12 +1,14 @@
 package com.channel360.common.constants;
 
+import com.channel360.role.enums.RoleName;
+
 public final class AppConstants {
 
     private AppConstants() {}
 
-    public static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
-    public static final String ROLE_ADMIN = "ROLE_ADMIN";
-    public static final String ROLE_USER = "ROLE_USER";
+    public static final String ROLE_SUPER_ADMIN = RoleName.ROLE_SUPER_ADMIN.name();
+    public static final String ROLE_ADMIN = RoleName.ROLE_ADMIN.name();
+    public static final String ROLE_USER = RoleName.ROLE_USER.name();
 
     public static final String STATUS_ACTIVE = "ACTIVE";
     public static final String STATUS_INACTIVE = "INACTIVE";

@@ -1,6 +1,7 @@
 package com.channel360.common.service;
 
 import com.channel360.common.dto.response.MenuItem;
+import com.channel360.role.enums.RoleName;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,33 +36,33 @@ public class MenuService {
                 .path("/dashboard")
                 .label("Dashboard")
                 .icon("LayoutDashboard")
-                .roles(List.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "ROLE_USER"))
+                .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name(), RoleName.ROLE_ADMIN.name(), RoleName.ROLE_USER.name()))
                 .build();
 
         MenuItem users = MenuItem.builder()
                 .path("/users")
                 .label("Users")
                 .icon("Users")
-                .roles(List.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN"))
+                .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name(), RoleName.ROLE_ADMIN.name()))
                 .build();
 
         MenuItem cms = MenuItem.builder()
                 .path("#")
                 .label("Content")
                 .icon("FileText")
-                .roles(List.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN"))
+                .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name(), RoleName.ROLE_ADMIN.name()))
                 .children(new ArrayList<>(List.of(
                     MenuItem.builder()
                         .path("/admin/sections")
                         .label("Homepage Sections")
                         .icon("Layout")
-                        .roles(List.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN"))
+                        .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name(), RoleName.ROLE_ADMIN.name()))
                         .build(),
                     MenuItem.builder()
                         .path("/admin/popups")
                         .label("Popups")
                         .icon("Square")
-                        .roles(List.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN"))
+                        .roles(List.of(RoleName.ROLE_SUPER_ADMIN.name(), RoleName.ROLE_ADMIN.name()))
                         .build()
                 )))
                 .build();

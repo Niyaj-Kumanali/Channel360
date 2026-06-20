@@ -3,9 +3,11 @@ package com.channel360.user.service;
 import com.channel360.auth.dto.request.RegisterRequest;
 import com.channel360.auth.service.AuthService;
 import com.channel360.common.config.AdminProperties;
+import com.channel360.common.config.SuperAdminProperties;
 import com.channel360.common.exception.DuplicateResourceException;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.role.entity.Role;
+import com.channel360.role.enums.RoleName;
 import com.channel360.role.repository.RoleRepository;
 import com.channel360.user.entity.User;
 import com.channel360.user.repository.UserRepository;
@@ -26,37 +28,57 @@ public class UserSeeder implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final AdminProperties adminProperties;
+    private final SuperAdminProperties superAdminProperties;
 
     @Override
     public void run(String... args) {
-        if (adminProperties.skip()) {
-            log.info("Admin seeder skipped via config");
+        seedAdmin(
+                adminProperties.email(), adminProperties.password(),
+                adminProperties.firstName(), adminProperties.lastName(),
+                adminProperties.mobileNumber(), adminProperties.skip(),
+                RoleName.ROLE_ADMIN, "Admin"
+        );
+        seedAdmin(
+                superAdminProperties.email(), superAdminProperties.password(),
+                superAdminProperties.firstName(), superAdminProperties.lastName(),
+                superAdminProperties.mobileNumber(), superAdminProperties.skip(),
+                RoleName.ROLE_SUPER_ADMIN, "Super Admin"
+        );
+    }
+
+    private void seedAdmin(
+            String email, String password, String firstName, String lastName,
+            String mobileNumber, boolean skip,
+            RoleName roleName, String label
+    ) {
+        if (skip) {
+            log.info("{} seeder skipped via config", label);
             return;
         }
 
-        log.info("Seeding admin user: {}", adminProperties.email());
+        log.info("Seeding {} user: {}", label, email);
 
-        User adminUser;
+        User user;
         try {
             RegisterRequest request = new RegisterRequest();
-            request.setEmail(adminProperties.email());
-            request.setFirstName(adminProperties.firstName());
-            request.setLastName(adminProperties.lastName());
-            request.setPassword(adminProperties.password());
-            request.setMobileNumber(adminProperties.mobileNumber());
+            request.setEmail(email);
+            request.setFirstName(firstName);
+            request.setLastName(lastName);
+            request.setPassword(password);
+            request.setMobileNumber(mobileNumber);
 
-            adminUser = authService.register(request);
-            log.info("Created admin user: {}", adminUser.getEmail());
+            user = authService.register(request);
+            log.info("Created {} user: {}", label, user.getEmail());
         } catch (DuplicateResourceException e) {
-            adminUser = userRepository.findByEmail(adminProperties.email())
-                    .orElseThrow(() -> new ResourceNotFoundException("User", "email", adminProperties.email()));
-            log.info("Admin user already exists: {}", adminUser.getEmail());
+            user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+            log.info("{} user already exists: {}", label, user.getEmail());
         }
 
-        Role adminRole = roleRepository.findByName("ROLE_ADMIN")
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "ROLE_ADMIN"));
+        Role role = roleRepository.findByName(roleName.name())
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleName.name()));
 
-        userService.assignRoles(adminUser.getId(), java.util.List.of(adminRole.getId()));
-        log.info("Assigned ROLE_ADMIN to user {}", adminUser.getEmail());
+        userService.assignRoles(user.getId(), java.util.List.of(role.getId()));
+        log.info("Assigned {} to user {}", roleName.name(), user.getEmail());
     }
 }

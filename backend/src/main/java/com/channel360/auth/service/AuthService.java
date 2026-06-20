@@ -18,6 +18,7 @@ import com.channel360.common.security.CustomUserDetails;
 import com.channel360.common.security.JwtTokenProvider;
 import com.channel360.common.service.EmailService;
 import com.channel360.role.entity.Role;
+import com.channel360.role.enums.RoleName;
 import com.channel360.role.repository.RoleRepository;
 import com.channel360.user.entity.User;
 import com.channel360.user.repository.UserRepository;
@@ -95,7 +96,7 @@ public class AuthService {
         }
 
         Set<String> roles = user.getRoles().stream()
-                .map(Role::getName)
+                .map(role -> role.getName())
                 .collect(Collectors.toSet());
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), roles);
@@ -120,8 +121,8 @@ public class AuthService {
         User user = authMapper.registerRequestToUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        Role defaultRole = roleRepository.findByName(AppConstants.ROLE_USER)
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", AppConstants.ROLE_USER));
+        Role defaultRole = roleRepository.findByName(RoleName.ROLE_USER.name())
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", RoleName.ROLE_USER.name()));
 
         userRepository.spSave(null, user.getFirstName(), user.getLastName(),
                 user.getEmail(), user.getPassword(), user.getMobileNumber(),
@@ -225,7 +226,7 @@ public class AuthService {
         refreshTokenRepository.spRevoke(request.getRefreshToken());
 
         Set<String> roles = user.getRoles().stream()
-                .map(Role::getName)
+                .map(role -> role.getName())
                 .collect(Collectors.toSet());
 
         String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), roles);

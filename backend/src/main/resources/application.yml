@@ -66,6 +66,14 @@ app:
     mobile-number: ${ADMIN_MOBILE:8217097121}
     skip: false
 
+  super-admin:
+    email: ${SUPER_ADMIN_EMAIL:iamniyazahmad777@gmail.com}
+    password: ${SUPER_ADMIN_PASSWORD:1234567890}
+    first-name: ${SUPER_ADMIN_FIRST_NAME:Niyaz}
+    last-name: ${SUPER_ADMIN_LAST_NAME:Kumanali}
+    mobile-number: ${SUPER_ADMIN_MOBILE:}
+    skip: false
+
   jwt:
     secret: ${JWT_SECRET}
     access-token-expiration: ${JWT_EXPIRATION:86400000}
