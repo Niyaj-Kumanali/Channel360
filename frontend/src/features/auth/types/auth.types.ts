@@ -30,6 +30,14 @@ export interface LoginResponse {
   expiresIn: number;
 }
 
+export interface MenuItem {
+  path: string;
+  label: string;
+  icon: string;
+  roles: string[];
+  children?: MenuItem[];
+}
+
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;

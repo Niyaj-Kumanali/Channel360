@@ -41,10 +41,10 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-t-4 border-primary p-8 animate-fade-in">
+    <div className="bg-card rounded-2xl shadow-sm border border-border border-t-4 border-primary p-8 animate-fade-in">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Sign in</h1>
-        <p className="text-gray-500 mt-1.5">Enter your credentials to access your account</p>
+        <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
+        <p className="text-muted-foreground mt-1.5">Enter your credentials to access your account</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
@@ -64,7 +64,7 @@ export const LoginPage: React.FC = () => {
             <span />
             <Link
               to="/forgot-password"
-              className="text-xs text-gray-400 hover:text-primary-600 transition-colors"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
             >
               Forgot password?
             </Link>
@@ -86,7 +86,7 @@ export const LoginPage: React.FC = () => {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-xs text-gray-400">
+      <p className="mt-6 text-center text-xs text-muted-foreground">
         Need an account? Contact your system administrator.
       </p>
     </div>

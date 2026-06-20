@@ -55,28 +55,55 @@
 
 ---
 
-## Phase 1 — 🔲 Pending (Known Gaps)
+## Phase 2 — Platform
 
-### Backend
-- [ ] Audit fields (`created_by`, `updated_by`) populated automatically
-- [ ] Input sanitization / validation hardening
+### Step 1: Feature Reorganization (✅ Done)
+- [x] Move `DashboardPage` → `features/dashboard/pages/DashboardPage.tsx`
+- [x] Move `HomePage` → `features/home/pages/HomePage.tsx`
+- [x] Update `AppRouter.tsx` imports
+- [x] Delete old files from `features/auth/pages/`
+- [x] Auth storage switched from `localStorage` to `sessionStorage` (via `lib/storage.ts`)
+- [x] `appStorage` wrapper for `localStorage` ready for theme/settings
 
-### Frontend — User Management Pages
-- [ ] UserListPage (DataTable with search, filter, pagination, status toggle, delete)
-- [ ] UserCreatePage (form with role checkbox multi-select)
-- [ ] UserEditPage (pre-populated form with role checkboxes)
-- [ ] RoleListPage (DataTable + create/edit/delete)
-
-### Frontend — Dashboard / Layout
-- [ ] DashboardPage (stats cards, recent activity, welcome)
+### Step 2: DashboardLayout
 - [ ] Navbar component
 - [ ] Sidebar component
-- [ ] DashboardLayout (sidebar, header, responsive)
+- [ ] DashboardLayout (Navbar + Sidebar + `<Outlet />`, responsive)
+- [ ] Wire into authenticated routes in AppRouter
 
-### Frontend — Shared Components
-- [ ] DataTable component (reusable, sortable, paginated)
-- [ ] Modal component (confirmation dialogs)
-- [ ] Badge component (status, role tags)
-- [ ] Select component (dropdowns)
-- [ ] Loading skeleton components
-- [ ] Empty state component
+### Step 3: CMS Backend
+- [ ] `homepage_sections` table + stored procedures
+- [ ] CRUD endpoints (admin)
+- [ ] Public GET endpoint (published sections only)
+- [ ] Menu entries for CMS admin pages
+
+### Step 4: CMS Frontend Admin
+- [ ] Section list page (behind DashboardLayout)
+- [ ] Section create/edit forms
+
+### Step 4b: Dark/Light Theme (✅ Done)
+- [x] `.dark` CSS variables added to `index.css` (additive, `:root` untouched)
+- [x] `ThemeProvider` with `appStorage` (localStorage) persistence + system preference detection
+- [x] `useTheme` hook: `{ theme, toggleTheme, setTheme }`
+- [x] Theme toggle button in HomePage navbar (Sun/Moon icons)
+- [x] Toaster, autofill CSS adapt to active theme
+- [x] HomePage uses theme-aware classes (`bg-background`, `text-foreground`, `border-border`, `bg-card`, etc.)
+- [x] Uses existing Phase 1 `Logo` component with theme-based variant switching
+
+### Step 5: Public Homepage (✅ Hardcoded — CMS pending)
+- [x] Navbar: Logo component + theme toggle + Sign In
+- [x] Hero: "Complete Visibility Across Your Channel Ecosystem" — positioned as enterprise channel platform
+- [x] Stats bar: End-to-End Lifecycle, Multi-Tier Support, Role-Based Access, CMS-Driven Content
+- [x] Product Journey: 5-step flow (Manufacturer → Distributor → Channel Partner → End Customer → Activation)
+- [x] Business Areas: 6 core cards (Channel Entry, Partner Transfer, Customer Purchase, Product Activation, Claims Management, External Data Integration)
+- [x] Benefits section: 5 key value propositions with bullet styling
+- [x] CTA section + Footer with Logo component
+- [x] All content reflects actual Channel360 platform purpose (not generic marketing SaaS)
+- [ ] Replace with CMS-driven dynamic sections (when CMS backend is built)
+
+### Pending (Known Gaps)
+- [ ] Audit fields (`created_by`, `updated_by`) populated automatically
+- [ ] Input sanitization / validation hardening
+- [ ] User management CRUD pages
+- [ ] Role management CRUD pages
+- [ ] Shared components: DataTable, Modal, Badge, Select, Skeleton, EmptyState

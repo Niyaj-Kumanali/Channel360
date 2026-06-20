@@ -1,4 +1,5 @@
 import { ApiError } from './api-error';
+import { authStorage } from './storage';
 
 const API_BASE_URL = 'http://localhost:5000/api/v1';
 
@@ -10,22 +11,22 @@ class ApiClient {
   }
 
   private getToken(): string | null {
-    return localStorage.getItem('access_token');
+    return authStorage.get('access_token');
   }
 
   private getRefreshToken(): string | null {
-    return localStorage.getItem('refresh_token');
+    return authStorage.get('refresh_token');
   }
 
   setTokens(accessToken: string, refreshToken: string): void {
-    localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
+    authStorage.set('access_token', accessToken);
+    authStorage.set('refresh_token', refreshToken);
   }
 
   clearTokens(): void {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    authStorage.remove('access_token');
+    authStorage.remove('refresh_token');
+    authStorage.remove('user');
   }
 
   private async request<T>(

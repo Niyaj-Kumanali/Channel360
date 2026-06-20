@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/api-client';
 import type { ApiResponse } from '@/features/auth/types/api.types';
-import type { LoginRequest, LoginResponse, User } from '@/features/auth/types/auth.types';
+import type { LoginRequest, LoginResponse, User, MenuItem } from '@/features/auth/types/auth.types';
 
 export const authApi = {
   login: (data: LoginRequest) =>
@@ -23,4 +23,7 @@ export const authApi = {
 
   refresh: (refreshToken: string) =>
     apiClient.post<ApiResponse<LoginResponse>>('/auth/refresh', { refreshToken }),
+
+  getMenu: () =>
+    apiClient.get<ApiResponse<MenuItem[]>>('/auth/menu'),
 };

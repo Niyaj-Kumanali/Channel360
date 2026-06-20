@@ -38,12 +38,12 @@ export const ForgotPasswordPage: React.FC = () => {
 
   if (sent) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-scale-in text-center">
-        <div className="h-14 w-14 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-4">
+      <div className="bg-card rounded-2xl shadow-sm border border-border p-8 animate-scale-in text-center">
+        <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <Mail className="h-7 w-7 text-primary" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email</h2>
-        <p className="text-gray-500 text-sm mb-6">
+        <h2 className="text-xl font-bold text-foreground mb-2">Check your email</h2>
+        <p className="text-muted-foreground text-sm mb-6">
           If an account exists with that email, we've sent a password reset link.
         </p>
         <Link to="/login">
@@ -57,13 +57,13 @@ export const ForgotPasswordPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-fade-in">
+    <div className="bg-card rounded-2xl shadow-sm border border-border p-8 animate-fade-in">
       <div className="text-center mb-8">
-        <div className="h-12 w-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-4">
+        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <Mail className="h-6 w-6 text-primary" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Forgot password?</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Forgot password?</h1>
+        <p className="text-muted-foreground mt-1">
           No worries. Enter your email and we'll send you a reset link.
         </p>
       </div>
@@ -86,7 +86,7 @@ export const ForgotPasswordPage: React.FC = () => {
 
         <Link
           to="/login"
-          className="flex items-center justify-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Login

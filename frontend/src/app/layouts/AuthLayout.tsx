@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { Logo } from '@/components/ui/Logo';
+import { useTheme } from '@/app/hooks/useTheme';
 
 const NetworkBg: React.FC = () => (
   <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
@@ -106,6 +107,8 @@ const NetworkBg: React.FC = () => (
 );
 
 export const AuthLayout: React.FC = () => {
+  const { theme } = useTheme();
+
   return (
     <div className="min-h-screen flex">
       {/* Brand Panel */}
@@ -146,13 +149,13 @@ export const AuthLayout: React.FC = () => {
       </div>
 
       {/* Form Panel */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 bg-gray-50">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 bg-background">
         <div className="w-full max-w-md animate-slide-up">
           <Link
             to="/"
             className="lg:hidden flex justify-center mb-8 hover:opacity-80 transition-opacity"
           >
-            <Logo variant="dark" />
+            <Logo variant={theme === 'dark' ? 'light' : 'dark'} />
           </Link>
           <Outlet />
         </div>

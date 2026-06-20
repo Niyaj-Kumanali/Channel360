@@ -25,7 +25,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement, FloatingLab
               'disabled:cursor-not-allowed disabled:opacity-50',
               error
                 ? 'border-red-500 focus-visible:ring-red-500'
-                : 'border-input hover:border-gray-300 focus-visible:border-ring focus-visible:ring-ring'
+                : 'border-input hover:border-ring/50 focus-visible:border-ring focus-visible:ring-ring'
             )}
             ref={ref}
             {...props}
@@ -33,7 +33,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement, FloatingLab
           <label
             htmlFor={id}
             className={cn(
-              'absolute left-3 px-1 transition-all duration-200 pointer-events-none bg-white',
+              'absolute left-3 px-1 transition-all duration-200 pointer-events-none bg-background',
               'top-1/2 -translate-y-1/2 text-sm',
               'peer-focus:-top-2.5 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-medium',
               'peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:font-medium',
@@ -49,7 +49,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement, FloatingLab
         {showError ? (
           <p className="text-xs text-red-500">{error}</p>
         ) : hint ? (
-          <p className="text-xs text-gray-400">{hint}</p>
+          <p className="text-xs text-muted-foreground">{hint}</p>
         ) : null}
       </div>
     );

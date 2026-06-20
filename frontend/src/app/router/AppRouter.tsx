@@ -2,11 +2,12 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { AuthLayout } from '@/app/layouts/AuthLayout';
-import { HomePage } from '@/features/auth/pages/HomePage';
+import { HomePage } from '@/features/home/pages/HomePage';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
-import { DashboardPage } from '@/features/auth/pages/DashboardPage';
+import { DashboardLayout } from '@/features/dashboard/components/DashboardLayout';
+import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 
 export const AppRouter: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -22,14 +23,14 @@ export const AppRouter: React.FC = () => {
   return (
     <Routes>
       {isAuthenticated ? (
-        <>
+        <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<Navigate to="/dashboard" replace />} />
           <Route path="/forgot-password" element={<Navigate to="/dashboard" replace />} />
           <Route path="/reset-password" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </>
+        </Route>
       ) : (
         <>
           <Route path="/" element={<HomePage />} />

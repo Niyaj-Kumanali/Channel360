@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, type ReactNode, useCallback } from 'react';
 import { apiClient } from '@/lib/api-client';
+import { authStorage } from '@/lib/storage';
 import { authApi } from '@/features/auth/api/auth.api';
 import type { User, AuthState } from '@/features/auth/types/auth.types';
 
@@ -21,7 +22,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     const init = async () => {
-      const token = localStorage.getItem('access_token');
+      const token = authStorage.get('access_token');
       if (!token) {
         setState({ user: null, isAuthenticated: false, isLoading: false });
         return;
@@ -29,7 +30,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const response = await authApi.getMe();
         if (response.success) {
-          localStorage.setItem('user', JSON.stringify(response.data));
+          authStorage.set('user', JSON.stringify(response.data));
           setState({ user: response.data, isAuthenticated: true, isLoading: false });
         } else {
           apiClient.clearTokens();
@@ -44,13 +45,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const setUser = useCallback((user: User) => {
-    localStorage.setItem('user', JSON.stringify(user));
+    authStorage.set('user', JSON.stringify(user));
     setState({ user, isAuthenticated: true, isLoading: false });
   }, []);
 
   const logout = async () => {
     try {
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = authStorage.get('refresh_token');
       if (refreshToken) {
         await authApi.logout(refreshToken);
       }

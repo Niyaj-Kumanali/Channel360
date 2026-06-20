@@ -22,7 +22,7 @@ export const PasswordStrength: React.FC<PasswordStrengthProps> = ({ value }) => 
               'h-1 flex-1 rounded-full transition-colors duration-300',
               i < metCount ? (
                 metCount <= 2 ? 'bg-red-500' : metCount <= 4 ? 'bg-amber-400' : 'bg-green-500'
-              ) : 'bg-gray-200'
+              ) : 'bg-muted'
             )}
           />
         ))}
@@ -30,10 +30,10 @@ export const PasswordStrength: React.FC<PasswordStrengthProps> = ({ value }) => 
       <ul className="space-y-1">
         {rules.map((rule) => (
           <li key={rule.key} className="flex items-center gap-1.5 text-xs">
-            <span className={rule.met ? 'text-green-500' : 'text-gray-300'}>
+            <span className={rule.met ? 'text-green-500' : 'text-muted-foreground'}>
               {rule.met ? '✓' : '○'}
             </span>
-            <span className={rule.met ? 'text-gray-700' : 'text-gray-400'}>
+            <span className={rule.met ? 'text-foreground' : 'text-muted-foreground'}>
               {rule.label}
             </span>
           </li>
