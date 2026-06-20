@@ -60,12 +60,14 @@ export const Logo: React.FC<LogoProps> = ({
       {showText && (
         <span
           className={cn(
-            'font-semibold tracking-tight',
+            'tracking-tight',
             text,
             variant === 'light' ? 'text-white' : 'text-gray-900'
           )}
         >
-          Channel360
+          <span className="font-extrabold">C</span>
+          <span className="font-light">hannel</span>
+          <span className="font-bold text-amber-400">360°</span>
         </span>
       )}
     </div>

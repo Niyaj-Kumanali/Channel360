@@ -5,7 +5,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, Lock } from 'lucide-react';
 import { resetPasswordSchema, type ResetPasswordFormData } from '@/features/auth/schemas/auth.schema';
 import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
-import { Input } from '@/components/ui/Input';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
 
 export const ResetPasswordPage: React.FC = () => {
@@ -36,10 +36,9 @@ export const ResetPasswordPage: React.FC = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <input type="hidden" {...register('token')} />
-        <Input
+        <PasswordInput
           id="newPassword"
           label="New Password"
-          type="password"
           placeholder="Enter new password"
           error={errors.newPassword?.message}
           {...register('newPassword')}

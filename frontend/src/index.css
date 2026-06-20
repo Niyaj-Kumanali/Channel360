@@ -84,3 +84,84 @@
     transform: scale(1);
   }
 }
+
+/* Loader animations */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+@keyframes pulse-dot {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
+}
+@keyframes wave-bar {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.3; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes ring-dash {
+  0% { stroke-dashoffset: 150; }
+  50% { stroke-dashoffset: 50; }
+  100% { stroke-dashoffset: 150; }
+}
+@keyframes c-draw {
+  0% { stroke-dashoffset: 60; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes logo-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes fade-stagger {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+.animate-spin-slow { animation: spin-slow 2s linear infinite; }
+.animate-spin-reverse { animation: spin-reverse 1.5s linear infinite; }
+.animate-pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite both; }
+.animate-wave-bar { animation: wave-bar 1.2s ease-in-out infinite; }
+.animate-shimmer { background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; }
+.animate-ring-dash { animation: ring-dash 2s ease-in-out infinite; }
+.animate-c-draw { stroke-dasharray: 60; animation: c-draw 1.5s ease-in-out infinite alternate; }
+.animate-logo-pulse { animation: logo-pulse 2s ease-in-out infinite; }
+.animate-fade-stagger { animation: fade-stagger 1.5s ease-in-out infinite both; }
+.animate-slide-right { animation: slideRight 1.5s ease-in-out infinite; }
+@keyframes slideRight {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes orbit-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+@keyframes dash-flow {
+  to { stroke-dashoffset: -24; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-orbit { animation: orbit 12s linear infinite; }
+.animate-orbit-reverse { animation: orbit-reverse 15s linear infinite; }
+.animate-dash-flow { animation: dash-flow 1s linear infinite; }
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-float-delayed { animation: float 4s ease-in-out 1s infinite; }

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail } from 'lucide-react';
 import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/features/auth/schemas/auth.schema';
 import { useForgotPassword } from '@/features/auth/hooks/useForgotPassword';
-import { Input } from '@/components/ui/Input';
+import { FloatingLabelInput } from '@/components/ui/FloatingLabelInput';
 import { Button } from '@/components/ui/Button';
 
 export const ForgotPasswordPage: React.FC = () => {
@@ -55,7 +55,7 @@ export const ForgotPasswordPage: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <Input
+        <FloatingLabelInput
           id="email"
           label="Email"
           type="email"
