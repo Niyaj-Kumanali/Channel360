@@ -1,7 +1,6 @@
 import React from 'react';
 import type { HomepageSection } from '@/features/cms/types/cms.types';
 import { HeroBannerSection } from './HeroBannerSection';
-import { StatsBarSection } from './StatsBarSection';
 import { ProductJourneySection } from './ProductJourneySection';
 import { BusinessAreasSection } from './BusinessAreasSection';
 import { BenefitsSection } from './BenefitsSection';
@@ -18,7 +17,6 @@ interface Props {
 
 const renderers: Record<string, React.FC<{ section: HomepageSection }>> = {
   hero_banner: HeroBannerSection,
-  stats_bar: StatsBarSection,
   product_journey: ProductJourneySection,
   business_areas: BusinessAreasSection,
   benefits: BenefitsSection,

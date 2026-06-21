@@ -164,7 +164,7 @@ function AnimatedDot({ from, to, speed }: { from: City; to: City; speed: number 
   );
 }
 
-function GlobeContent() {
+function GlobeContent({ positionX = 0 }: { positionX?: number }) {
   const groupRef = useRef<THREE.Group>(null);
 
   useFrame(() => {
@@ -175,15 +175,13 @@ function GlobeContent() {
   });
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} position={[positionX, 0, 0]}>
       <Continents />
 
       <mesh>
         <sphereGeometry args={[R, 24, 16]} />
         <meshBasicMaterial color={PRIMARY} wireframe transparent opacity={0.15} />
       </mesh>
-
-
 
       {hubConnections.map(([i, j], idx) => (
         <ArcLine key={`hub-arc-${idx}`} from={cities[i]} to={cities[j]} />
@@ -203,7 +201,11 @@ function GlobeContent() {
   );
 }
 
-export const RotatingEarth: React.FC = () => (
+interface RotatingEarthProps {
+  positionX?: number;
+}
+
+export const RotatingEarth: React.FC<RotatingEarthProps> = ({ positionX = 0 }) => (
   <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
     <Canvas
       camera={{ position: [0, 0, 3.5], fov: 40 }}
@@ -211,7 +213,7 @@ export const RotatingEarth: React.FC = () => (
       gl={{ alpha: true }}
       className="opacity-80"
     >
-      <GlobeContent />
+      <GlobeContent positionX={positionX} />
     </Canvas>
   </div>
 );

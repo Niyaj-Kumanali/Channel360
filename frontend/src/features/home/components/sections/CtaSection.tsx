@@ -9,8 +9,8 @@ interface Props {
 }
 
 export const CtaSection: React.FC<Props> = ({ section }) => (
-  <section className="py-20">
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <section className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center">
+    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="relative overflow-hidden rounded-2xl border border-border bg-card px-8 py-16 text-center sm:px-16">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" />
         <div className="relative">

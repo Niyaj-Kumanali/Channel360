@@ -98,6 +98,7 @@
 - [x] Business Areas: 6 core cards (Channel Entry, Partner Transfer, Customer Purchase, Product Activation, Claims Management, External Data Integration)
 - [x] Benefits section: 5 key value propositions with bullet styling
 - [x] CTA section + Footer with Logo component
+- [x] Hero background: stylized 3D amber wireframe globe centered with accurate continent shapes (Natural Earth GeoJSON), 7 city markers, curved connection arcs, animated jumping dots radiating from India (Mumbai)
 - [x] All content reflects actual Channel360 platform purpose (not generic marketing SaaS)
 - [ ] Replace with CMS-driven dynamic sections (when CMS backend is built)
 

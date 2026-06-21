@@ -22,8 +22,8 @@ export const BenefitsSection: React.FC<Props> = ({ section }) => {
       ];
 
   return (
-    <section className="border-b border-border bg-muted/30 py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center bg-muted/30">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl">{section.title}</h2>
         </div>

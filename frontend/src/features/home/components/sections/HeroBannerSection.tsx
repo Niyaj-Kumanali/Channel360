@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, BarChart3, Database } from 'lucide-react';
+import { ArrowRight, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { RotatingEarth } from '@/features/home/components/RotatingEarth';
 import type { HomepageSection } from '@/features/cms/types/cms.types';
@@ -9,52 +9,58 @@ interface Props {
   section: HomepageSection;
 }
 
+function highlightTitle(title: string) {
+  const parts = title.split('Your Channel Ecosystem');
+  if (parts.length < 2) return title;
+  return (
+    <>
+      {parts[0]}Your{' '}
+      <span className="text-primary">Channel Ecosystem</span>
+    </>
+  );
+}
+
 export const HeroBannerSection: React.FC<Props> = ({ section }) => (
-  <section className="relative overflow-hidden border-b border-border">
-    <RotatingEarth />
-    <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
-    <div className="mx-auto max-w-7xl px-4 pb-24 pt-16 sm:px-6 lg:px-8">
-      <div className="relative mx-auto max-w-4xl text-center">
-        {section.subtitle && (
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
-            <Shield className="h-3.5 w-3.5" />
-            {section.subtitle}
-          </div>
-        )}
-        <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-          {section.title}
+  <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
+    <RotatingEarth positionX={0.7} />
+    <div className="absolute inset-y-0 left-0 w-[55%] bg-gradient-to-r from-background via-background/95 via-65% to-transparent z-10" />
+
+    <div className="relative z-20 mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-xl">
+
+
+        <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.1]">
+          {highlightTitle(section.title)}
         </h1>
+
         {section.description && (
-          <p className="mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl">
+          <p className="mt-6 text-base leading-relaxed text-muted-foreground sm:text-lg">
             {section.description}
           </p>
         )}
-        <div className="mt-10 flex items-center justify-center gap-4">
+
+        <div className="mt-10 flex items-center gap-4">
           {(section.buttonText || section.buttonUrl) && (
             section.buttonUrl ? (
               <Link to={section.buttonUrl}>
-                <Button size="lg" className="gap-2">
+                <Button size="lg" className="gap-2 px-8">
                   {section.buttonText || 'Get Started'} <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             ) : (
-              <Button size="lg" className="gap-2">
+              <Button size="lg" className="gap-2 px-8">
                 {section.buttonText} <ArrowRight className="h-4 w-4" />
               </Button>
             )
           )}
+          <Link to="/dashboard">
+            <Button variant="outline" size="lg" className="gap-2 px-8">
+              <Globe className="h-4 w-4" /> View Dashboard
+            </Button>
+          </Link>
         </div>
-        <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <Shield className="h-4 w-4 text-primary" /> Role-Based Access
-          </span>
-          <span className="flex items-center gap-1.5">
-            <BarChart3 className="h-4 w-4 text-primary" /> Real-Time Analytics
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Database className="h-4 w-4 text-primary" /> CMS-Driven Content
-          </span>
-        </div>
+
+
       </div>
     </div>
   </section>
