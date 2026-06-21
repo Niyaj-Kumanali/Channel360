@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Shield, BarChart3, Database } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { RotatingEarth } from '@/features/home/components/RotatingEarth';
 import type { HomepageSection } from '@/features/cms/types/cms.types';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 
 export const HeroBannerSection: React.FC<Props> = ({ section }) => (
   <section className="relative overflow-hidden border-b border-border">
+    <RotatingEarth />
     <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-16 sm:px-6 lg:px-8">
       <div className="relative mx-auto max-w-4xl text-center">
