@@ -39,19 +39,25 @@ function useInView(threshold = 0.15): [React.RefObject<HTMLDivElement | null>, b
 export const ProductJourneySection: React.FC<Props> = ({ section }) => {
   const [sectionRef, inView] = useInView(0.1);
   const [phase, setPhase] = useState<'ball' | 'repair'>('ball');
+  const [repairStatus, setRepairStatus] = useState<'progress' | 'complete'>('progress');
+  const [activeNode, setActiveNode] = useState<number | null>(0);
+  const [pulsingNode, setPulsingNode] = useState<number | null>(null);
   const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const repairTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cycleRef = useRef(0);
   const gearTypeRef = useRef(true);
 
   useEffect(() => {
     return () => {
       if (iconTimerRef.current) clearTimeout(iconTimerRef.current);
+      if (repairTimerRef.current) clearTimeout(repairTimerRef.current);
     };
   }, []);
 
   useEffect(() => {
     if (!inView) {
       if (iconTimerRef.current) clearTimeout(iconTimerRef.current);
+      if (repairTimerRef.current) clearTimeout(repairTimerRef.current);
       setPhase('ball');
       cycleRef.current = 0;
     }
@@ -59,9 +65,13 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
 
   // Triggered when ball reaches Manufacturer (70% of 7s = 4.9s)
   const handleBallReturn = useCallback(() => {
+    setRepairStatus('progress');
     gearTypeRef.current = cycleRef.current % 2 === 0;
     cycleRef.current += 1;
     setPhase('repair');
+    repairTimerRef.current = setTimeout(() => {
+      setRepairStatus('complete');
+    }, 5500);
     iconTimerRef.current = setTimeout(() => {
       setPhase('ball');
     }, 7000);
@@ -74,6 +84,48 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
       return () => clearTimeout(timer);
     }
   }, [inView, phase, handleBallReturn]);
+
+  // Track which step card the ball is currently at (polling, synced with CSS animation)
+  useEffect(() => {
+    if (phase === 'repair') {
+      setActiveNode(0);
+      return;
+    }
+    if (!inView) {
+      setActiveNode(0);
+      return;
+    }
+    const startTime = Date.now();
+    setActiveNode(0);
+    const interval = setInterval(() => {
+      const t = Date.now() - startTime;
+      let next: number;
+      if (t < 700) next = 0;
+      else if (t < 1400) next = 1;
+      else if (t < 2100) next = 2;
+      else if (t < 2800) next = 3;
+      else if (t < 3325) next = 4;
+      else if (t < 3850) next = 3;
+      else if (t < 4375) next = 2;
+      else next = 1;
+
+      setActiveNode(next);
+    }, 50);
+
+    const pulseTimes = [0, 700, 1400, 2100, 2800, 3325, 3850, 4375];
+    const pulseNodes = [0, 1, 2, 3, 4, 3, 2, 1];
+    const pulseTimeouts = pulseTimes.map((time, i) =>
+      setTimeout(() => {
+        setPulsingNode(pulseNodes[i]);
+        setTimeout(() => setPulsingNode(null), 400);
+      }, time)
+    );
+
+    return () => {
+      clearInterval(interval);
+      pulseTimeouts.forEach(clearTimeout);
+    };
+  }, [phase, inView]);
 
   const isBallRunning = phase === 'ball' && inView;
 
@@ -144,6 +196,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                       style={{
                         transitionDelay: `${delay + 100}ms`,
                         transitionDuration: '400ms',
+                        animation: pulsingNode === index ? 'node-pulse 0.4s ease-out' : 'none',
                       }}>
                       <Icon className="h-5 w-5 text-primary" />
                     </div>
@@ -196,7 +249,9 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                   </div>
 
                   {/* Card */}
-                  <div className={`mt-4 flex w-full flex-1 flex-col rounded-xl border border-border bg-card p-4 text-center transition-all duration-500 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+                  <div className={`mt-4 flex w-full flex-1 flex-col rounded-xl border p-4 text-center transition-[opacity,transform] duration-500 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} ${
+                    activeNode === index ? 'border-primary/40 bg-primary/[0.02] shadow-[0_0_10px_-3px] shadow-primary/20' : 'border-border bg-card'
+                  }`}
                     style={{
                       transitionDelay: `${delay + 200}ms`,
                     }}>
@@ -204,6 +259,15 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                       <span className="text-[10px] font-bold text-primary/40">0{index + 1}</span>
                       <h3 className="text-sm font-semibold text-foreground">{step.title}</h3>
                     </div>
+                    <span
+                      className={`mt-1 text-[10px] font-semibold transition-all duration-300 ${
+                        index === 0 && phase === 'repair' ? 'visible' : 'invisible'
+                      } ${repairStatus === 'progress' ? 'text-primary' : 'text-emerald-500'}`}
+                    >
+                      {repairStatus === 'progress'
+                        ? (gearTypeRef.current ? 'Repairing…' : 'Replacing…')
+                        : (gearTypeRef.current ? 'Repaired ✓' : 'Replaced ✓')}
+                    </span>
                     <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{step.description}</p>
                   </div>
                 </div>
@@ -266,14 +330,21 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
           87% { opacity: 0.5; transform: scale(0.6) translateY(-12px) rotate(1080deg); }
           90% { opacity: 0; transform: scale(0.2) translateY(0) rotate(1080deg); }
          }
-           @keyframes ball-repair {
-          0% { transform: translateY(0); }
-          10% { transform: translateY(0); }
-          15% { transform: translateY(-51px); }
-          77% { transform: translateY(-51px); }
-          84% { transform: translateY(0); }
-          100% { transform: translateY(0); }
-         }
+          @keyframes ball-repair {
+           0% { transform: translateY(0); }
+           10% { transform: translateY(0); }
+           15% { transform: translateY(-51px); }
+           77% { transform: translateY(-51px); }
+           84% { transform: translateY(0); }
+           100% { transform: translateY(0); }
+          }
+          @keyframes node-pulse {
+           0% { transform: scale(1); }
+           20% { transform: scale(1.35); }
+           40% { transform: scale(0.9); }
+           60% { transform: scale(1.05); }
+           100% { transform: scale(1); }
+          }
           @keyframes ping-slow {
           0% { transform: scale(1); opacity: 0.5; }
           100% { transform: scale(1.8); opacity: 0; }

@@ -45,11 +45,12 @@ import { Loader } from '@/components/ui/Loader';
 import type { HomepageSection } from '@/features/cms/types/cms.types';
 import { SECTION_TYPES } from '@/features/cms/types/cms.types';
 
-const typeIcon: Record<string, React.ElementType> = {
+const typeIcon: Record<string, React.ComponentType<{ className?: string }>> = {
   hero_banner: Layout,
   stats_bar: BarChart3,
   product_journey: Route,
   business_areas: Building2,
+  platform_capabilities: Layout,
   benefits: Star,
   cta: Megaphone,
   announcement: Sparkles,
@@ -83,7 +84,7 @@ const SortableSectionCard: React.FC<{
     transition,
   };
 
-  const Icon = typeIcon[section.sectionType] || FileText;
+  const Icon = typeIcon[section.sectionType] ?? FileText;
 
   return (
     <div

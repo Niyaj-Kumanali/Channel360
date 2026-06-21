@@ -4,6 +4,7 @@ import { HeroBannerSection } from './HeroBannerSection';
 import { ProductJourneySection } from './ProductJourneySection';
 import { BusinessAreasSection } from './BusinessAreasSection';
 import { BenefitsSection } from './BenefitsSection';
+import { PlatformCapabilitiesSection } from './PlatformCapabilitiesSection';
 import { CtaSection } from './CtaSection';
 import { AnnouncementSection } from './AnnouncementSection';
 import { InfoBlockSection } from './InfoBlockSection';
@@ -20,6 +21,7 @@ const renderers: Record<string, React.FC<{ section: HomepageSection }>> = {
   product_journey: ProductJourneySection,
   business_areas: BusinessAreasSection,
   benefits: BenefitsSection,
+  platform_capabilities: PlatformCapabilitiesSection,
   cta: CtaSection,
   announcement: AnnouncementSection,
   info_block: InfoBlockSection,
