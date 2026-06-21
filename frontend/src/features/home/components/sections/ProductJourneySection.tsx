@@ -56,8 +56,8 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
     }
   }, [inView]);
 
-  const handleBallEnd = useCallback((e: React.AnimationEvent) => {
-    if (e.animationName !== 'bounce-h') return;
+  // Triggered when ball reaches Manufacturer (70% of 7s = 4.9s)
+  const handleBallReturn = useCallback(() => {
     const isGear = cycleRef.current % 2 === 0;
     setPhase(isGear ? 'gear' : 'recycle');
     cycleRef.current += 1;
@@ -65,6 +65,14 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
       setPhase('ball');
     }, 7000);
   }, []);
+
+  // Start 4900ms timer when ball begins its journey
+  useEffect(() => {
+    if (inView && phase === 'ball') {
+      const timer = setTimeout(handleBallReturn, 4900);
+      return () => clearTimeout(timer);
+    }
+  }, [inView, phase, handleBallReturn]);
 
   const isBallRunning = phase === 'ball' && inView;
 
@@ -104,7 +112,6 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                 animation: isBallRunning ? 'bounce-h 7s linear forwards' : 'none',
                 left: '2%',
               }}
-              onAnimationEnd={isBallRunning ? handleBallEnd : undefined}
             >
               <div
                 className="h-2 w-2 rounded-full bg-primary shadow-[0_0_10px_4px_#f59e0b50]"
@@ -206,7 +213,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
       </div>
 
       <style>{`
-        @keyframes bounce-h {
+         @keyframes bounce-h {
           0% { left: 2%; }
           10% { left: 24%; }
           20% { left: 48%; }
@@ -217,8 +224,8 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
           62.5% { left: 24%; }
           70% { left: 2%; }
           100% { left: 2%; }
-        }
-        @keyframes bounce-v {
+         }
+         @keyframes bounce-v {
           0% { transform: translateY(0); animation-timing-function: ease-out; }
           5% { transform: translateY(-18px); animation-timing-function: ease-in; }
           10% { transform: translateY(0); animation-timing-function: ease-out; }
@@ -237,7 +244,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
           66.25% { transform: translateY(-18px); animation-timing-function: ease-in; }
           70% { transform: translateY(0); }
           100% { transform: translateY(0); }
-        }
+         }
          @keyframes gear-combo {
           0%, 5% { opacity: 0; transform: scale(0.2) translateY(0) rotate(0deg); }
           7% { opacity: 0.6; transform: scale(0.5) translateY(-8px) rotate(0deg); }
