@@ -57,9 +57,15 @@ Allow organizations to upload and manage business data received from external so
 | 1 | Auth (Login, Forgot/Reset Password) | ✅ Completed |
 | 1 | User & Role Management (CRUD, RBAC) | ✅ Completed |
 | 1 | Password strength UI, email notifications | ✅ Completed |
-| 2 | Homepage CMS (Hero Banners, Announcements, Info Blocks, Promotions, Image Cards, Rich Content) | 🔜 Next |
+| 2 | Homepage CMS (Hero, Product Journey, Business Areas, Benefits, CTA — hardcoded, CMS-ready) | ✅ Completed |
+| 2 | Light/Dark Theme (persistent toggle, navbar integration) | ✅ Completed |
+| 2 | Product Journey animation (bouncing ball + gear/recycle repair sequence) | ✅ Completed |
+| 2 | Business Areas radial network diagram (single-amber, 2D orbit rings) | ✅ Completed |
+| 2 | Rotating Earth globe (GeoJSON continents, city markers, arcs, animated dots) | ✅ Completed |
+| 2 | Homepage CMS Backend (tables, endpoints) | 🔜 Next |
+| 2 | CMS Admin Pages (section CRUD behind DashboardLayout) | 🔜 Next |
 | 2 | Popup Management | 🔜 Next |
-| 2 | Light/Dark Theme | 🔜 Next |
+| 2 | Replace hardcoded sections with CMS-driven content | 🔜 Next |
 | TBD | Channel Entry Management | 📋 Planned |
 | TBD | Partner Transfer Management | 📋 Planned |
 | TBD | Customer Purchase Tracking | 📋 Planned |

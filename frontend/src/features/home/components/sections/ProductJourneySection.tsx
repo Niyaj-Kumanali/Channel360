@@ -38,9 +38,10 @@ function useInView(threshold = 0.15): [React.RefObject<HTMLDivElement | null>, b
 
 export const ProductJourneySection: React.FC<Props> = ({ section }) => {
   const [sectionRef, inView] = useInView(0.1);
-  const [phase, setPhase] = useState<'ball' | 'gear' | 'recycle'>('ball');
+  const [phase, setPhase] = useState<'ball' | 'repair'>('ball');
   const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cycleRef = useRef(0);
+  const gearTypeRef = useRef(true);
 
   useEffect(() => {
     return () => {
@@ -58,9 +59,9 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
 
   // Triggered when ball reaches Manufacturer (70% of 7s = 4.9s)
   const handleBallReturn = useCallback(() => {
-    const isGear = cycleRef.current % 2 === 0;
-    setPhase(isGear ? 'gear' : 'recycle');
+    gearTypeRef.current = cycleRef.current % 2 === 0;
     cycleRef.current += 1;
+    setPhase('repair');
     iconTimerRef.current = setTimeout(() => {
       setPhase('ball');
     }, 7000);
@@ -110,13 +111,13 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
               className={`relative ${inView ? 'opacity-100' : 'opacity-0'}`}
               style={{
                 animation: isBallRunning ? 'bounce-h 7s linear forwards' : 'none',
-                left: '2%',
+                left: '0.75%',
               }}
             >
               <div
                 className="h-2 w-2 rounded-full bg-primary shadow-[0_0_10px_4px_#f59e0b50]"
                 style={{
-                  animation: isBallRunning ? 'bounce-v 7s linear forwards' : 'none',
+                  animation: phase === 'repair' ? 'ball-repair 7s linear forwards' : (isBallRunning ? 'bounce-v 7s linear forwards' : 'none'),
                   transform: 'translateY(0)',
                 }}
               />
@@ -152,7 +153,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                         <div
                           className="absolute inset-0 flex items-center justify-center pointer-events-none"
                           style={{
-                            animation: phase === 'gear' ? 'gear-combo 7s linear forwards' : 'none',
+                            animation: phase === 'repair' && gearTypeRef.current ? 'gear-combo 7s linear forwards' : 'none',
                             opacity: 0,
                             transform: 'scale(0.2) translateY(0) rotate(1080deg)',
                           }}
@@ -170,7 +171,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                         <div
                           className="absolute inset-0 flex items-center justify-center pointer-events-none"
                           style={{
-                            animation: phase === 'recycle' ? 'recycle-combo 7s linear forwards' : 'none',
+                            animation: phase === 'repair' && !gearTypeRef.current ? 'recycle-combo 7s linear forwards' : 'none',
                             opacity: 0,
                             transform: 'scale(0.2) translateY(0) rotate(1080deg)',
                           }}
@@ -214,7 +215,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
 
       <style>{`
          @keyframes bounce-h {
-          0% { left: 2%; }
+          0% { left: 0.75%; }
           10% { left: 24%; }
           20% { left: 48%; }
           30% { left: 72%; }
@@ -222,26 +223,26 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
           47.5% { left: 72%; }
           55% { left: 48%; }
           62.5% { left: 24%; }
-          70% { left: 2%; }
-          100% { left: 2%; }
+          70% { left: 0.75%; }
+          100% { left: 0.75%; }
          }
          @keyframes bounce-v {
           0% { transform: translateY(0); animation-timing-function: ease-out; }
-          5% { transform: translateY(-18px); animation-timing-function: ease-in; }
+          5% { transform: translateY(-20px); animation-timing-function: ease-in; }
           10% { transform: translateY(0); animation-timing-function: ease-out; }
-          15% { transform: translateY(-18px); animation-timing-function: ease-in; }
+          15% { transform: translateY(-20px); animation-timing-function: ease-in; }
           20% { transform: translateY(0); animation-timing-function: ease-out; }
-          25% { transform: translateY(-18px); animation-timing-function: ease-in; }
+          25% { transform: translateY(-20px); animation-timing-function: ease-in; }
           30% { transform: translateY(0); animation-timing-function: ease-out; }
-          35% { transform: translateY(-18px); animation-timing-function: ease-in; }
+          35% { transform: translateY(-20px); animation-timing-function: ease-in; }
           40% { transform: translateY(0); animation-timing-function: ease-out; }
-          43.75% { transform: translateY(-18px); animation-timing-function: ease-in; }
+          43.75% { transform: translateY(-20px); animation-timing-function: ease-in; }
           47.5% { transform: translateY(0); animation-timing-function: ease-out; }
-          51.25% { transform: translateY(-18px); animation-timing-function: ease-in; }
+          51.25% { transform: translateY(-20px); animation-timing-function: ease-in; }
           55% { transform: translateY(0); animation-timing-function: ease-out; }
-          58.75% { transform: translateY(-18px); animation-timing-function: ease-in; }
+          58.75% { transform: translateY(-20px); animation-timing-function: ease-in; }
           62.5% { transform: translateY(0); animation-timing-function: ease-out; }
-          66.25% { transform: translateY(-18px); animation-timing-function: ease-in; }
+          66.25% { transform: translateY(-20px); animation-timing-function: ease-in; }
           70% { transform: translateY(0); }
           100% { transform: translateY(0); }
          }
@@ -265,7 +266,15 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
           87% { opacity: 0.5; transform: scale(0.6) translateY(-12px) rotate(1080deg); }
           90% { opacity: 0; transform: scale(0.2) translateY(0) rotate(1080deg); }
          }
-         @keyframes ping-slow {
+           @keyframes ball-repair {
+          0% { transform: translateY(0); }
+          10% { transform: translateY(0); }
+          15% { transform: translateY(-51px); }
+          77% { transform: translateY(-51px); }
+          84% { transform: translateY(0); }
+          100% { transform: translateY(0); }
+         }
+          @keyframes ping-slow {
           0% { transform: scale(1); opacity: 0.5; }
           100% { transform: scale(1.8); opacity: 0; }
         }

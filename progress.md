@@ -95,7 +95,12 @@
 - [x] Hero: "Complete Visibility Across Your Channel Ecosystem" — positioned as enterprise channel platform
 - [x] Stats bar: End-to-End Lifecycle, Multi-Tier Support, Role-Based Access, CMS-Driven Content
 - [x] Product Journey: 5-step flow (Manufacturer → Distributor → Channel Partner → End Customer → Activation)
-- [x] Business Areas: 6 core cards (Channel Entry, Partner Transfer, Customer Purchase, Product Activation, Claims Management, External Data Integration)
+- [x] — Bouncing ball travels between 5 nodes (bounce-h + bounce-v, 7s, 20px parabolic bounces)
+- [x] — On return to Manufacturer, ball jumps into gear/recycle icon (ball-repair keyframe, -51px)
+- [x] — Gear/recycle rises first, ball follows; gear spins 1080°; ball drops first, gear descends
+- [x] — Alternating gear/recycle icons per cycle (gearTypeRef + 4900ms/7000ms timeouts)
+- [x] — JS-controlled timing (no onAnimationEnd) for precise sync across all animations
+- [x] Business Areas: 2D radial network diagram with concentric orbit rings, spokes, curved arcs, cross-connections, single amber color
 - [x] Benefits section: 5 key value propositions with bullet styling
 - [x] CTA section + Footer with Logo component
 - [x] Hero background: stylized 3D amber wireframe globe centered with accurate continent shapes (Natural Earth GeoJSON), 7 city markers, curved connection arcs, animated jumping dots radiating from India (Mumbai)
