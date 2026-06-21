@@ -38,7 +38,7 @@ export const ResetPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-card rounded-2xl shadow-sm border border-border p-8 animate-fade-in">
+    <div className="bg-card rounded-2xl shadow-sm border-2 border-primary border-t-4 p-8 animate-fade-in">
       <div className="text-center mb-8">
         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <Lock className="h-6 w-6 text-primary" />

@@ -41,7 +41,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-card rounded-2xl shadow-sm border border-border border-t-4 border-primary p-8 animate-fade-in">
+    <div className="bg-card rounded-2xl shadow-sm border-2 border-primary border-t-4 p-8 animate-fade-in">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
         <p className="text-muted-foreground mt-1.5">Enter your credentials to access your account</p>
