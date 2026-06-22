@@ -109,7 +109,7 @@ function ProgressViz({ className }: { className?: string }) {
 
 function DataFlowViz({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 300 160" className={className} fill="none">
+    <svg viewBox="0 0 100 150" className={className} fill="none">
       {/* Microcontroller chip — centered right, bold */}
       <rect x="195" y="30" width="90" height="100" rx="8" className="fill-primary/55" stroke="none" />
       <rect x="195" y="30" width="90" height="100" rx="8" className="stroke-primary/70" strokeWidth="1.5" fill="none" />
@@ -314,7 +314,7 @@ export const PlatformCapabilitiesSection: React.FC<Props> = ({ section }) => {
                 }}
               >
                 {Viz && (
-                  <div className={`absolute pointer-events-none select-none ${index === 0 || index === 4 ? 'inset-0 w-full h-full opacity-40' : index === 5 ? 'right-0 bottom-0 w-62 h-40 opacity-40' : index === 3 ? 'hidden' : 'right-0 bottom-0 w-40 h-32 opacity-40'}`}>
+                  <div className={`absolute pointer-events-none select-none ${index === 0 ? 'inset-0 w-full h-full opacity-40' : index === 4 ? 'right-0 inset-y-0 w-3/4 opacity-40' : index === 5 ? 'right-0 bottom-0 w-62 h-40 opacity-40' : index === 3 ? 'hidden' : 'right-0 bottom-0 w-40 h-32 opacity-40'}`}>
                     <Viz className="h-full w-full" />
                   </div>
                 )}
