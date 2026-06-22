@@ -288,7 +288,7 @@ export const PlatformCapabilitiesSection: React.FC<Props> = ({ section }) => {
     : [];
 
   return (
-    <section ref={sectionRef} className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center">
+    <section ref={sectionRef} className="flex py-16 lg:min-h-[calc(100vh-4rem)] flex-col items-center justify-center">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className={`mx-auto max-w-2xl text-center transition-all duration-700 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl">{section.title}</h2>

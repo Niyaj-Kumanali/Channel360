@@ -21,11 +21,11 @@ function highlightTitle(title: string) {
 }
 
 export const HeroBannerSection: React.FC<Props> = ({ section }) => (
-  <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
+  <section className="relative py-16 lg:min-h-[calc(100vh-4rem)] overflow-hidden">
     <RotatingEarth positionX={0.7} />
     <div className="absolute inset-y-0 left-0 w-[55%] bg-gradient-to-r from-background via-background/95 via-65% to-transparent z-10" />
 
-    <div className="relative z-20 mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+    <div className="relative z-20 mx-auto flex lg:min-h-[calc(100vh-4rem)] max-w-7xl items-center px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-xl">
 
 

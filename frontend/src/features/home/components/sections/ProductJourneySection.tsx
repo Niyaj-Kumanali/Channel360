@@ -42,10 +42,32 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
   const [repairStatus, setRepairStatus] = useState<'progress' | 'complete'>('progress');
   const [activeNode, setActiveNode] = useState<number | null>(0);
   const [pulsingNode, setPulsingNode] = useState<number | null>(null);
+  const [isDesktop, setIsDesktop] = useState(true);
+  const [mobileActiveNode, setMobileActiveNode] = useState(-1);
+  const [ballPosition, setBallPosition] = useState(0);
   const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const repairTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cycleRef = useRef(0);
   const gearTypeRef = useRef(true);
+  const cardElementsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const pipelineRef = useRef<HTMLDivElement>(null);
+
+  const steps: JourneyStep[] = section.description
+    ? JSON.parse(section.description)
+    : [
+        { title: 'Manufacturer', description: 'Products enter the channel network from manufacturers and suppliers.' },
+        { title: 'Distributor', description: 'Distributors receive and forward products to channel partners.' },
+        { title: 'Channel Partner', description: 'Partners sell products to end customers and manage local inventory.' },
+        { title: 'End Customer', description: 'Customers purchase products through the partner network.' },
+        { title: 'Activation', description: 'Products are activated and linked back to their channel journey.' },
+      ];
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -77,16 +99,17 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
     }, 7000);
   }, []);
 
-  // Start 4900ms timer when ball begins its journey
+  // Start 4900ms timer when ball begins its journey (desktop only)
   useEffect(() => {
-    if (inView && phase === 'ball') {
+    if (inView && phase === 'ball' && isDesktop) {
       const timer = setTimeout(handleBallReturn, 4900);
       return () => clearTimeout(timer);
     }
-  }, [inView, phase, handleBallReturn]);
+  }, [inView, phase, handleBallReturn, isDesktop]);
 
-  // Track which step card the ball is currently at (polling, synced with CSS animation)
+  // Track which step card the ball is currently at (desktop only)
   useEffect(() => {
+    if (!isDesktop) return;
     if (phase === 'repair') {
       setActiveNode(0);
       return;
@@ -125,22 +148,51 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
       clearInterval(interval);
       pulseTimeouts.forEach(clearTimeout);
     };
-  }, [phase, inView]);
+  }, [phase, inView, isDesktop]);
 
+  // Mobile scroll-driven card detection
+  useEffect(() => {
+    if (isDesktop || !inView) return;
+    const visibility = new Array(steps.length).fill(0);
+    const observers: IntersectionObserver[] = [];
+    cardElementsRef.current.forEach((el, i) => {
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          visibility[i] = entry.intersectionRatio;
+          let maxIdx = -1;
+          let maxRatio = 0;
+          visibility.forEach((r, idx) => {
+            if (r > maxRatio) {
+              maxRatio = r;
+              maxIdx = idx;
+            }
+          });
+          setMobileActiveNode(maxIdx);
+        },
+        { threshold: [0, 0.2, 0.4, 0.6, 0.8, 1] }
+      );
+      observer.observe(el);
+      observers.push(observer);
+    });
+    return () => observers.forEach((o) => o.disconnect());
+  }, [isDesktop, inView, steps.length]);
+
+  // Measure ball position relative to pipeline container
+  useEffect(() => {
+    const activeEl = cardElementsRef.current[mobileActiveNode];
+    const pipelineEl = pipelineRef.current;
+    if (!activeEl || !pipelineEl || mobileActiveNode < 0) return;
+    const cardRect = activeEl.getBoundingClientRect();
+    const pipelineRect = pipelineEl.getBoundingClientRect();
+    setBallPosition(cardRect.top - pipelineRect.top + 24);
+  }, [mobileActiveNode]);
+
+  const displayActiveNode = isDesktop ? activeNode : mobileActiveNode;
   const isBallRunning = phase === 'ball' && inView;
 
-  const steps: JourneyStep[] = section.description
-    ? JSON.parse(section.description)
-    : [
-        { title: 'Manufacturer', description: 'Products enter the channel network from manufacturers and suppliers.' },
-        { title: 'Distributor', description: 'Distributors receive and forward products to channel partners.' },
-        { title: 'Channel Partner', description: 'Partners sell products to end customers and manage local inventory.' },
-        { title: 'End Customer', description: 'Customers purchase products through the partner network.' },
-        { title: 'Activation', description: 'Products are activated and linked back to their channel journey.' },
-      ];
-
   return (
-    <section ref={sectionRef} className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden">
+    <section ref={sectionRef} className="flex py-16 lg:min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className={`mx-auto max-w-2xl text-center transition-all duration-700 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl">{section.title}</h2>
@@ -150,7 +202,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
         </div>
 
         <div className="mt-16 relative">
-          {/* Pipeline connector line */}
+          {/* Pipeline connector line (desktop) */}
           <div className="absolute top-6 left-[8%] right-[8%] h-0.5 rounded-full bg-gradient-to-r from-primary/10 via-primary/30 to-primary/10 hidden lg:block overflow-hidden">
             <div
               className={`h-full w-full bg-gradient-to-r from-primary/10 via-primary/40 to-primary/10 transition-all duration-1000 ease-out ${inView ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
@@ -176,7 +228,16 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
             </div>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
+          {/* Mobile vertical pipeline */}
+          <div ref={pipelineRef} className="block lg:hidden absolute left-5 top-0 bottom-0 w-6 z-10 pointer-events-none">
+            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 -translate-x-1/2 bg-gradient-to-b from-primary/10 via-primary/30 to-primary/10" />
+            <div
+              className="absolute left-1/2 -translate-x-1/2 h-3 w-3 rounded-full bg-primary shadow-[0_0_10px_4px_#f59e0b50] transition-all duration-500 ease-out"
+              style={{ top: mobileActiveNode >= 0 ? ballPosition : 12 }}
+            />
+          </div>
+
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5 pl-12 lg:pl-0">
             {steps.map((step, index) => {
               const Icon = defaultIcons[index] || Package;
               const delay = index * 120;
@@ -184,6 +245,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
               return (
                 <div
                   key={step.title}
+                  ref={el => { cardElementsRef.current[index] = el; }}
                   className={`flex h-full flex-col items-center transition-all duration-600 ease-out ${inView ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
                   style={{
                     transitionDuration: '600ms',
@@ -250,7 +312,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
 
                   {/* Card */}
                   <div className={`mt-4 flex w-full flex-1 flex-col rounded-xl border p-4 text-center transition-[opacity,transform] duration-500 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} ${
-                    activeNode === index ? 'border-primary/40 bg-primary/[0.02] shadow-[0_0_10px_-3px] shadow-primary/20' : 'border-border bg-card'
+                    displayActiveNode === index ? 'border-primary/40 bg-primary/[0.02] shadow-[0_0_10px_-3px] shadow-primary/20' : 'border-border bg-card'
                   }`}
                     style={{
                       transitionDelay: `${delay + 200}ms`,

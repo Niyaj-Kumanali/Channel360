@@ -27,7 +27,7 @@ export const BusinessAreasSection: React.FC<Props> = ({ section }) => {
   const r = 30;
 
   return (
-    <section className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center bg-background px-4">
+    <section className="flex py-16 lg:min-h-[calc(100vh-4rem)] flex-col items-center justify-center bg-background px-4 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-5xl">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl">{section.title}</h2>

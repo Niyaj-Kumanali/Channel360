@@ -7,7 +7,6 @@ import { useTheme } from '@/app/hooks/useTheme';
 import { homeApi } from '@/features/home/api/home.api';
 import { SectionRenderer } from '@/features/home/components/sections/SectionRenderer';
 import { PopupModal } from '@/features/home/components/PopupModal';
-import { Loader } from '@/components/ui/Loader';
 import type { HomepageSection, HomepagePopup } from '@/features/cms/types/cms.types';
 
 const staticSections: HomepageSection[] = [
@@ -58,9 +57,8 @@ const staticSections: HomepageSection[] = [
 
 export const HomePage: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const [sections, setSections] = useState<HomepageSection[]>([]);
+  const [sections, setSections] = useState<HomepageSection[]>(staticSections);
   const [popups, setPopups] = useState<HomepagePopup[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -73,10 +71,8 @@ export const HomePage: React.FC = () => {
       if (popupsRes.success && popupsRes.data.length > 0) {
         setPopups(popupsRes.data.sort((a, b) => b.priority - a.priority));
       }
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).catch(() => {});
   }, []);
-
-  const displaySections = sections.length > 0 ? sections : staticSections;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -105,16 +101,9 @@ export const HomePage: React.FC = () => {
         </div>
       </header>
 
-      {loading ? (
-        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-          <Loader size="lg" />
-        </div>
-      ) : (
-        displaySections.map((section) => (
+        {sections.map((section) => (
           <SectionRenderer key={`${section.sectionType}-${section.displayOrder}`} section={section} />
-        ))
-      )}
-
+        ))}
       {popups.length > 0 && <PopupModal popups={popups} />}
 
       {/* Footer */}
