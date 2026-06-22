@@ -453,9 +453,6 @@ export const PlatformCapabilitiesSection: React.FC<Props> = ({ section }) => {
             inView ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
           }`}
         >
-          <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20 backdrop-blur-md">
-            Capabilities
-          </span>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight bg-gradient-to-b from-foreground to-foreground/80 bg-clip-text text-transparent sm:text-5xl">
             {section.title}
           </h2>
