@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import type { HomepageSection } from '@/features/cms/types/cms.types';
 
-// ─── Interfaces ──────────────────────────────────────────────────────────────
-
 interface ContactMethod {
   type: string;
   label: string;
@@ -14,8 +12,6 @@ interface ContactMethod {
 interface Props {
   section: HomepageSection;
 }
-
-// ─── Configuration Defaults & Icons ──────────────────────────────────────────
 
 const defaults: ContactMethod[] = [
   { type: 'email', label: 'Email Address', value: 'niyajkumanali@gmail.com' },
@@ -59,8 +55,6 @@ const icons: Record<string, React.ReactNode> = {
   ),
 };
 
-// ─── Intersection Observer hook ──────────────────────────────────────────────
-
 function useInView(threshold = 0.05): [React.RefObject<HTMLDivElement | null>, boolean] {
   const ref = useRef<HTMLDivElement | null>(null);
   const [inView, setInView] = useState(false);
@@ -84,8 +78,6 @@ function useInView(threshold = 0.05): [React.RefObject<HTMLDivElement | null>, b
   return [ref, inView];
 }
 
-// ─── Contact Card Component with Clipboard Feedback ──────────────────────────
-
 const ContactUtilityCard: React.FC<{ method: ContactMethod }> = ({ method }) => {
   const [copied, setCopied] = useState(false);
 
@@ -96,28 +88,28 @@ const ContactUtilityCard: React.FC<{ method: ContactMethod }> = ({ method }) => 
       await navigator.clipboard.writeText(method.value);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.warn('Failed to copy contact element:', err);
+    } catch {
+      void 0;
     }
   };
 
-  const baseHref = 
-    method.type === 'email' ? `mailto:${method.value}` : 
-    method.type === 'phone' ? `tel:${method.value.replace(/\s/g, '')}` : 
+  const baseHref =
+    method.type === 'email' ? `mailto:${method.value}` :
+    method.type === 'phone' ? `tel:${method.value.replace(/\s/g, '')}` :
     `https://google.com/maps/search/?api=1&query=${encodeURIComponent(method.value)}`;
 
   return (
-    <div className="group relative flex items-center justify-between rounded-2xl border border-primary/10 bg-card/40 p-5 backdrop-blur-md transition-all duration-300 hover:border-primary/30 hover:bg-card/80">
+    <div className="group relative flex items-center justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5">
       <div className="flex items-center gap-4 min-w-0">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/10 bg-primary/5 text-primary group-hover:scale-105 transition-all duration-300">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/5 text-primary group-hover:bg-primary/10 group-hover:scale-105 transition-all duration-300">
           {icons[method.type] || icons.website}
         </div>
         <div className="flex flex-col min-w-0">
           <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{method.label}</span>
-          <a 
-            href={baseHref} 
-            target={method.type === 'address' ? "_blank" : undefined} 
-            rel="noopener noreferrer" 
+          <a
+            href={baseHref}
+            target={method.type === 'address' ? '_blank' : undefined}
+            rel="noopener noreferrer"
             className="text-base font-semibold text-foreground mt-0.5 hover:text-primary transition-colors truncate break-all"
           >
             {method.value}
@@ -129,7 +121,7 @@ const ContactUtilityCard: React.FC<{ method: ContactMethod }> = ({ method }) => 
         <button
           onClick={handleCopy}
           type="button"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted/40 border border-primary/5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-primary hover:bg-background hover:border-primary/20 transition-all duration-200"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-primary hover:border-primary/30 transition-all duration-200"
           title={`Copy ${method.label}`}
         >
           {copied ? (
@@ -147,11 +139,9 @@ const ContactUtilityCard: React.FC<{ method: ContactMethod }> = ({ method }) => 
   );
 };
 
-// ─── Main Component ──────────────────────────────────────────────────────────
-
 export const ContactSection: React.FC<Props> = ({ section }) => {
   const [sectionRef, inView] = useInView(0.05);
-  
+
   let methods: ContactMethod[];
   try {
     const parsed = JSON.parse(section.description || '');
@@ -160,7 +150,6 @@ export const ContactSection: React.FC<Props> = ({ section }) => {
     methods = defaults;
   }
 
-  // Split baseline options from social handles
   const baselineChannels = methods.filter(m => ['email', 'phone', 'address'].includes(m.type));
   const networkProfiles = methods.filter(m => !['email', 'phone', 'address'].includes(m.type));
 
@@ -169,15 +158,13 @@ export const ContactSection: React.FC<Props> = ({ section }) => {
       ref={sectionRef}
       className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden bg-background py-20 lg:py-32"
     >
-      {/* Dynamic Glow Accents */}
-      <div className="absolute top-1/4 right-1/4 -z-10 h-[550px] w-[550px] rounded-full bg-primary/[0.03] blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/4 -z-10 h-[450px] w-[450px] rounded-full bg-primary/[0.02] blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/4 right-1/4 -z-10 h-[550px] w-[550px] rounded-full bg-primary/10 blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/4 -z-10 h-[450px] w-[450px] rounded-full bg-primary/5 blur-[140px] pointer-events-none" />
 
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
-          
-          {/* LEFT SIDE: Hero/Context Presentation */}
-          <div 
+
+          <div
             className={`flex flex-col justify-center lg:col-span-5 transition-all duration-1000 ease-out ${
               inView ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
             }`}
@@ -190,14 +177,13 @@ export const ContactSection: React.FC<Props> = ({ section }) => {
             <h2 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
               {section.title}
             </h2>
-            
+
             {section.subtitle && (
               <p className="mt-4 text-base leading-relaxed text-muted-foreground max-w-md">
                 {section.subtitle}
               </p>
             )}
 
-            {/* Direct Link Action Callout */}
             {(section.buttonText || section.buttonUrl) && (
               <div className="mt-8">
                 {section.buttonUrl ? (
@@ -221,37 +207,34 @@ export const ContactSection: React.FC<Props> = ({ section }) => {
             )}
           </div>
 
-          {/* RIGHT SIDE: Unified Direct Connect Node Deck */}
-          <div 
+          <div
             className={`space-y-4 lg:col-span-7 transition-all duration-1000 ease-out delay-100 ${
               inView ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
             }`}
           >
-            {/* Functional Content Stack (Email, Phone, Location) */}
             <div className="flex flex-col gap-3.5">
               {baselineChannels.map((method) => (
                 <ContactUtilityCard key={method.type} method={method} />
               ))}
             </div>
 
-            {/* Icon-Only Social Grid Bar */}
             {networkProfiles.length > 0 && (
-              <div className="mt-4 pt-4 flex items-center justify-between gap-4 border-t border-primary/5 flex-wrap">
-                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+              <div className="mt-6 flex items-center justify-between gap-4 border-t border-border pt-5">
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   Network Nodes
                 </span>
-                
+
                 <div className="flex items-center gap-2">
                   {networkProfiles.map((method) => {
-                    const dynamicHref = method.value.startsWith('http') ? method.value : `https://${method.value}`;
+                    const href = method.value.startsWith('http') ? method.value : `https://${method.value}`;
                     return (
                       <a
                         key={method.type}
-                        href={dynamicHref}
+                        href={href}
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Open external link to ${method.label}`}
-                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-primary/5 bg-card/40 text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-card transition-all duration-300"
+                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
                         title={method.label}
                       >
                         {icons[method.type] || icons.website}
