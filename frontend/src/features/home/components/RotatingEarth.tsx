@@ -206,7 +206,7 @@ interface RotatingEarthProps {
 }
 
 export const RotatingEarth: React.FC<RotatingEarthProps> = ({ positionX = 0 }) => (
-  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+  <div className="absolute z-0 pointer-events-none overflow-hidden max-h-[calc((100vh-4rem))] top-1/2 -translate-y-1/2 left-0 right-0">
     <Canvas
       camera={{ position: [0, 0, 3.5], fov: 40 }}
       dpr={[1, 1.5]}

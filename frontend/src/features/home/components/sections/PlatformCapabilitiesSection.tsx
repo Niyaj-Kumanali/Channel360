@@ -275,7 +275,7 @@ const cardConfigs = [
   { span: 'lg:col-span-2 lg:row-span-2 sm:col-span-2', align: 'text-left items-start', pad: 'p-10', titleSize: 'text-xl', gradient: true },
   { span: 'lg:col-span-1', align: 'text-center items-center', pad: 'p-10', titleSize: 'text-base', gradient: false },
   { span: 'lg:col-span-1', align: 'text-center items-center', pad: 'p-10', titleSize: 'text-base', gradient: false },
-  { span: 'lg:col-span-1', align: 'text-center items-center', pad: 'p-8', titleSize: 'text-sm', gradient: false },
+  { span: 'lg:col-span-1', align: 'text-center items-center', pad: 'p-10', titleSize: 'text-base', gradient: false },
   { span: 'lg:col-span-2', align: 'text-left items-start', pad: 'p-10', titleSize: 'text-base', gradient: false },
   { span: 'lg:col-span-3', align: 'text-left items-start', pad: 'p-10', titleSize: 'text-lg', gradient: false },
 ];
@@ -288,7 +288,7 @@ export const PlatformCapabilitiesSection: React.FC<Props> = ({ section }) => {
     : [];
 
   return (
-    <section ref={sectionRef} className="flex py-16 lg:min-h-[calc(100vh-4rem)] flex-col items-center justify-center">
+    <section ref={sectionRef} className="flex py-16 min-h-[calc(100vh-4rem)] flex-col items-center justify-center">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className={`mx-auto max-w-2xl text-center transition-all duration-700 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl">{section.title}</h2>
@@ -314,7 +314,7 @@ export const PlatformCapabilitiesSection: React.FC<Props> = ({ section }) => {
                 }}
               >
                 {Viz && (
-                  <div className={`absolute pointer-events-none select-none ${index === 0 || index === 4 ? 'inset-0 w-full h-full opacity-40' : index === 5 ? 'right-0 bottom-0 w-72 h-40 opacity-40' : index === 3 ? 'hidden' : 'right-0 bottom-0 w-40 h-32 opacity-40'}`}>
+                  <div className={`absolute pointer-events-none select-none ${index === 0 || index === 4 ? 'inset-0 w-full h-full opacity-40' : index === 5 ? 'right-0 bottom-0 w-62 h-40 opacity-40' : index === 3 ? 'hidden' : 'right-0 bottom-0 w-40 h-32 opacity-40'}`}>
                     <Viz className="h-full w-full" />
                   </div>
                 )}
