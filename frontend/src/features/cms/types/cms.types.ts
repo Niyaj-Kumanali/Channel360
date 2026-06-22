@@ -64,9 +64,8 @@ export interface HomepagePopupRequest {
 
 export const SECTION_TYPES = [
   { value: 'hero_banner', label: 'Hero Banner' },
-  { value: 'stats_bar', label: 'Stats Bar' },
   { value: 'product_journey', label: 'Product Journey' },
-  { value: 'business_areas', label: 'Business Areas' },
+  { value: 'platform_capabilities', label: 'Platform Capabilities' },
   { value: 'benefits', label: 'Benefits' },
   { value: 'cta', label: 'Call to Action' },
   { value: 'announcement', label: 'Announcement' },

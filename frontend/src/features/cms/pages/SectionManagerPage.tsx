@@ -9,9 +9,7 @@ import {
   X,
   Save,
   Layout,
-  BarChart3,
   Route,
-  Building2,
   Star,
   Megaphone,
   Info,
@@ -47,9 +45,7 @@ import { SECTION_TYPES } from '@/features/cms/types/cms.types';
 
 const typeIcon: Record<string, React.ComponentType<{ className?: string }>> = {
   hero_banner: Layout,
-  stats_bar: BarChart3,
   product_journey: Route,
-  business_areas: Building2,
   platform_capabilities: Layout,
   benefits: Star,
   cta: Megaphone,
