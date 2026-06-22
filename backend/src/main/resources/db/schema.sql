@@ -121,3 +121,20 @@ CREATE INDEX IF NOT EXISTS idx_menu_items_display_order ON menu_items(display_or
 ALTER TABLE permissions ADD COLUMN IF NOT EXISTS menu_id BIGINT REFERENCES menu_items(id) ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_permissions_menu_id ON permissions(menu_id);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT,
+    action VARCHAR(50) NOT NULL,
+    module_name VARCHAR(50) NOT NULL,
+    entity_name VARCHAR(50) NOT NULL,
+    entity_id BIGINT,
+    old_data JSONB,
+    new_data JSONB,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_module ON audit_logs(module_name);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs(entity_name, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
