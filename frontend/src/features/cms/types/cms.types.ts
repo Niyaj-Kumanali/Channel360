@@ -68,6 +68,7 @@ export const SECTION_TYPES = [
   { value: 'platform_capabilities', label: 'Platform Capabilities' },
   { value: 'benefits', label: 'Benefits' },
   { value: 'contact', label: 'Contact' },
+  { value: 'footer', label: 'Footer' },
   { value: 'announcement', label: 'Announcement' },
   { value: 'info_block', label: 'Information Block' },
   { value: 'promotion', label: 'Promotion' },

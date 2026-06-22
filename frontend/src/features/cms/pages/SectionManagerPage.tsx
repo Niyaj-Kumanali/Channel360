@@ -54,6 +54,7 @@ const typeIcon: Record<string, React.ComponentType<{ className?: string }>> = {
   promotion: Tag,
   image_card: Image,
   rich_content: FileText,
+  footer: PanelRightOpen,
 };
 
 const typeLabel = (type: string) =>

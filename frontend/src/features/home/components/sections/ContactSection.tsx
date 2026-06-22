@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import type { HomepageSection } from '@/features/cms/types/cms.types';
@@ -18,23 +18,23 @@ const defaults: ContactMethod[] = [
   { type: 'phone', label: 'Phone Number', value: '+91 8217097121' },
   { type: 'address', label: 'HQ Location', value: 'Nipani, Belagavi, Karnataka, India, 591237' },
   { type: 'linkedin', label: 'LinkedIn', value: 'linkedin.com/in/niyaj-kumanali' },
-  { type: 'github', label: 'GitHub Profile', value: 'github.com/Niyaj-Kumanali' },
-  { type: 'website', label: 'Digital Portfolio', value: 'niyazdev.vercel.app' },
+  { type: 'github', label: 'GitHub', value: 'github.com/Niyaj-Kumanali' },
+  { type: 'website', label: 'Portfolio', value: 'niyazdev.vercel.app' },
 ];
 
 const icons: Record<string, React.ReactNode> = {
   email: (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
     </svg>
   ),
   phone: (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
     </svg>
   ),
   address: (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
     </svg>
   ),
@@ -55,35 +55,26 @@ const icons: Record<string, React.ReactNode> = {
   ),
 };
 
-function useInView(threshold = 0.05): [React.RefObject<HTMLDivElement | null>, boolean] {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.unobserve(el);
-        }
-      },
-      { threshold }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-
-  return [ref, inView];
-}
-
-const ContactUtilityCard: React.FC<{ method: ContactMethod }> = ({ method }) => {
+const ContactCard: React.FC<{ method: ContactMethod }> = ({ method }) => {
   const [copied, setCopied] = useState(false);
 
+  const handleClick = () => {
+    if (method.type === 'address') {
+      window.open(`https://google.com/maps/search/?api=1&query=${encodeURIComponent(method.value)}`, '_blank');
+      return;
+    }
+    if (method.type === 'email') {
+      window.location.href = `mailto:${method.value}`;
+      return;
+    }
+    if (method.type === 'phone') {
+      window.location.href = `tel:${method.value.replace(/\s/g, '')}`;
+      return;
+    }
+  };
+
   const handleCopy = async (e: React.MouseEvent) => {
-    if (method.type === 'address') return;
-    e.preventDefault();
+    e.stopPropagation();
     try {
       await navigator.clipboard.writeText(method.value);
       setCopied(true);
@@ -93,55 +84,51 @@ const ContactUtilityCard: React.FC<{ method: ContactMethod }> = ({ method }) => 
     }
   };
 
-  const baseHref =
-    method.type === 'email' ? `mailto:${method.value}` :
-    method.type === 'phone' ? `tel:${method.value.replace(/\s/g, '')}` :
-    `https://google.com/maps/search/?api=1&query=${encodeURIComponent(method.value)}`;
-
   return (
-    <div className="group relative flex items-center justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5">
+    <div
+      className="group relative flex cursor-pointer items-center justify-between rounded-xl border border-border bg-card p-4 border-l-4 border-l-primary/40"
+      onClick={handleClick}
+    >
       <div className="flex items-center gap-4 min-w-0">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/5 text-primary group-hover:bg-primary/10 group-hover:scale-105 transition-all duration-300">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 text-primary">
           {icons[method.type] || icons.website}
         </div>
         <div className="flex flex-col min-w-0">
           <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">{method.label}</span>
-          <a
-            href={baseHref}
-            target={method.type === 'address' ? '_blank' : undefined}
-            rel="noopener noreferrer"
-            className="text-base font-semibold text-foreground mt-0.5 hover:text-primary transition-colors truncate break-all"
-          >
-            {method.value}
-          </a>
+          <span className="text-sm font-semibold text-foreground mt-0.5 truncate">{method.value}</span>
         </div>
       </div>
-
-      {method.type !== 'address' && (
-        <button
-          onClick={handleCopy}
-          type="button"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-primary hover:border-primary/30 transition-all duration-200"
-          title={`Copy ${method.label}`}
-        >
-          {copied ? (
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-emerald-500">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
-          )}
-        </button>
-      )}
+      <button
+        onClick={handleCopy}
+        type="button"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground"
+        title={`Copy ${method.label}`}
+      >
+        {copied ? (
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-emerald-500">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+        )}
+      </button>
     </div>
   );
 };
 
-export const ContactSection: React.FC<Props> = ({ section }) => {
-  const [sectionRef, inView] = useInView(0.05);
+function highlightTitle(title: string) {
+  const parts = title.split('Channel360');
+  if (parts.length < 2) return title;
+  return (
+    <>
+      {parts[0]}<span className="text-primary">Channel360</span>{parts[1]}
+    </>
+  );
+}
 
+export const ContactSection: React.FC<Props> = ({ section }) => {
   let methods: ContactMethod[];
   try {
     const parsed = JSON.parse(section.description || '');
@@ -154,51 +141,44 @@ export const ContactSection: React.FC<Props> = ({ section }) => {
   const networkProfiles = methods.filter(m => !['email', 'phone', 'address'].includes(m.type));
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden bg-background py-20 lg:py-32"
-    >
-      <div className="absolute top-1/4 right-1/4 -z-10 h-[550px] w-[550px] rounded-full bg-primary/10 blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/4 -z-10 h-[450px] w-[450px] rounded-full bg-primary/5 blur-[140px] pointer-events-none" />
+    <section className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden bg-background py-20 lg:py-32">
+      <div className="absolute top-1/4 right-1/4 -z-10 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/4 -z-10 h-[400px] w-[400px] rounded-full bg-primary/5 blur-[140px] pointer-events-none" />
 
-      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute left-[8%] top-[20%] h-36 w-36 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 blur-2xl animate-blob-1" />
+        <div className="absolute right-[15%] top-[30%] h-20 w-20 rounded-full bg-gradient-to-br from-primary/25 to-primary/5 blur-xl animate-blob-2" style={{ animationDelay: '-6s' }} />
+        <div className="absolute left-[40%] top-[55%] h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 blur-lg animate-blob-3" style={{ animationDelay: '-12s' }} />
+        <div className="absolute right-[25%] bottom-[25%] h-32 w-32 rounded-full bg-gradient-to-br from-primary/15 to-transparent blur-2xl animate-blob-4" style={{ animationDelay: '-4s' }} />
+      </div>
+
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
 
-          <div
-            className={`flex flex-col justify-center lg:col-span-5 transition-all duration-1000 ease-out ${
-              inView ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
-            }`}
-          >
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary mb-3">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Active Connections
-            </div>
-
-            <h2 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-              {section.title}
+          <div className="lg:col-span-5 flex flex-col">
+            <h2 className="text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl">
+              {highlightTitle(section.title)}
             </h2>
-
             {section.subtitle && (
               <p className="mt-4 text-base leading-relaxed text-muted-foreground max-w-md">
                 {section.subtitle}
               </p>
             )}
-
             {(section.buttonText || section.buttonUrl) && (
               <div className="mt-8">
                 {section.buttonUrl ? (
-                  <Link to={section.buttonUrl} className="inline-block sm:w-auto w-full">
-                    <Button size="lg" className="w-full gap-2 font-semibold shadow-lg shadow-primary/10 group px-8">
+                  <Link to={section.buttonUrl}>
+                    <Button size="lg" className="gap-2 font-semibold shadow-lg shadow-primary/10 px-8">
                       {section.buttonText || 'Initiate Discussion'}
-                      <svg className="transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
                       </svg>
                     </Button>
                   </Link>
                 ) : (
-                  <Button size="lg" className="sm:w-auto w-full gap-2 font-semibold group px-8">
+                  <Button size="lg" className="gap-2 font-semibold px-8">
                     {section.buttonText}
-                    <svg className="transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
                     </svg>
                   </Button>
@@ -207,23 +187,16 @@ export const ContactSection: React.FC<Props> = ({ section }) => {
             )}
           </div>
 
-          <div
-            className={`space-y-4 lg:col-span-7 transition-all duration-1000 ease-out delay-100 ${
-              inView ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
-            }`}
-          >
-            <div className="flex flex-col gap-3.5">
-              {baselineChannels.map((method) => (
-                <ContactUtilityCard key={method.type} method={method} />
-              ))}
-            </div>
+          <div className="lg:col-span-6 lg:col-start-7 flex flex-col gap-4">
+            {baselineChannels.map((method) => (
+              <ContactCard key={method.type} method={method} />
+            ))}
 
             {networkProfiles.length > 0 && (
-              <div className="mt-6 flex items-center justify-between gap-4 border-t border-border pt-5">
+              <div className="mt-2 flex items-center justify-between pt-4">
                 <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  Network Nodes
+                  Network Profiles
                 </span>
-
                 <div className="flex items-center gap-2">
                   {networkProfiles.map((method) => {
                     const href = method.value.startsWith('http') ? method.value : `https://${method.value}`;
@@ -234,7 +207,7 @@ export const ContactSection: React.FC<Props> = ({ section }) => {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Open external link to ${method.label}`}
-                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
+                        className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground"
                         title={method.label}
                       >
                         {icons[method.type] || icons.website}
@@ -248,6 +221,33 @@ export const ContactSection: React.FC<Props> = ({ section }) => {
 
         </div>
       </div>
+      <style>{`
+        @keyframes blob-1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(15px, -25px) scale(1.08); }
+          50% { transform: translate(-10px, 10px) scale(0.92); }
+          75% { transform: translate(20px, 15px) scale(1.04); }
+        }
+        @keyframes blob-2 {
+          0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+          33% { transform: translate(-20px, -15px) scale(1.1) rotate(5deg); }
+          66% { transform: translate(15px, 20px) scale(0.9) rotate(-3deg); }
+        }
+        @keyframes blob-3 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(12px, -18px) scale(1.12); }
+        }
+        @keyframes blob-4 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(-18px, 10px) scale(0.95); }
+          50% { transform: translate(10px, -15px) scale(1.05); }
+          75% { transform: translate(-8px, 20px) scale(0.98); }
+        }
+        .animate-blob-1 { animation: blob-1 18s ease-in-out infinite; }
+        .animate-blob-2 { animation: blob-2 14s ease-in-out infinite; }
+        .animate-blob-3 { animation: blob-3 10s ease-in-out infinite; }
+        .animate-blob-4 { animation: blob-4 16s ease-in-out infinite; }
+      `}</style>
     </section>
   );
 };

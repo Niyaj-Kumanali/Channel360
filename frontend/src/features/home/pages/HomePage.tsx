@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { useTheme } from '@/app/hooks/useTheme';
@@ -39,7 +38,7 @@ const staticSections: HomepageSection[] = [
   },
   {
     id: 0, sectionName: 'Benefits', sectionType: 'benefits',
-    title: 'Why Channel360', subtitle: null,
+    title: 'Why Channel360?', subtitle: null,
     description: '[{"title":"Complete Lifecycle Visibility","description":"Track every product from manufacturer to end customer with full activation visibility."},{"title":"Centralized Operations","description":"Manage users, content, announcements, and partner communications in one place."},{"title":"Dynamic Content Control","description":"Update homepage, promotions, and announcements without code deployments."},{"title":"Secure by Design","description":"Role-based access control ensures users see only what they need."},{"title":"Scalable Foundation","description":"Built for enterprise growth with a modular architecture ready for analytics and reporting."}]',
     imageUrl: null, buttonText: null, buttonUrl: null,
     displayOrder: 4, active: true, startDate: null, endDate: null,
@@ -48,10 +47,18 @@ const staticSections: HomepageSection[] = [
   {
     id: 0, sectionName: 'Contact', sectionType: 'contact',
     title: 'Partner with Channel360',
-    subtitle: 'Ready to join our channel ecosystem? Reach out through any of the channels below.',
+    subtitle: "Let's build the next big thing together. Tell us about your channel goals and we'll map out a path forward.",
     description: '[{"type":"email","label":"Email","value":"niyajkumanali@gmail.com"},{"type":"phone","label":"Phone","value":"+91 8217097121"},{"type":"address","label":"Office","value":"Nipani, Belagavi, Karnataka, India, 591237"},{"type":"linkedin","label":"LinkedIn","value":"linkedin.com/in/niyaj-kumanali"},{"type":"github","label":"GitHub","value":"github.com/Niyaj-Kumanali"},{"type":"website","label":"Portfolio","value":"niyazdev.vercel.app"}]',
     imageUrl: null, buttonText: 'Access Platform', buttonUrl: '/login',
     displayOrder: 5, active: true, startDate: null, endDate: null,
+    createdBy: null, createdAt: '', updatedBy: null, updatedAt: '',
+  },
+  {
+    id: 0, sectionName: 'Footer', sectionType: 'footer',
+    title: 'Footer', subtitle: null,
+    description: '{"tagline":"End-to-end visibility across your entire channel ecosystem — from manufacturer to end-customer activation.","groups":[{"title":"Platform","links":[{"label":"Home","url":"/"},{"label":"Features","url":"#"},{"label":"Pricing","url":"#"},{"label":"FAQ","url":"#"}]},{"title":"Resources","links":[{"label":"Documentation","url":"#"},{"label":"API Reference","url":"#"},{"label":"Changelog","url":"#"},{"label":"Status","url":"#"}]},{"title":"Company","links":[{"label":"About","url":"#"},{"label":"Blog","url":"#"},{"label":"Careers","url":"#"},{"label":"Contact","url":"#"}]}],"socialLinks":[{"label":"Email","url":"mailto:niyajkumanali@gmail.com","icon":"email"},{"label":"LinkedIn","url":"https://linkedin.com/in/niyaj-kumanali","icon":"linkedin"},{"label":"GitHub","url":"https://github.com/Niyaj-Kumanali","icon":"github"},{"label":"Portfolio","url":"https://niyazdev.vercel.app","icon":"website"}]}',
+    imageUrl: null, buttonText: null, buttonUrl: null,
+    displayOrder: 6, active: true, startDate: null, endDate: null,
     createdBy: null, createdAt: '', updatedBy: null, updatedAt: '',
   },
 ];
@@ -106,23 +113,6 @@ export const HomePage: React.FC = () => {
           <SectionRenderer key={`${section.sectionType}-${section.displayOrder}`} section={section} />
         ))}
       {popups.length > 0 && <PopupModal popups={popups} />}
-
-      {/* Footer */}
-      <footer className="border-t border-border bg-muted/50">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-            <Logo variant={theme === 'dark' ? 'light' : 'dark'} size="sm" />
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-foreground transition-colors">Contact</a>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              &copy; {new Date().getFullYear()} Channel360. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

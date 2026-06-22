@@ -10,6 +10,7 @@ import { PromotionSection } from './PromotionSection';
 import { ImageCardSection } from './ImageCardSection';
 import { RichContentSection } from './RichContentSection';
 import ContactSection from './ContactSection';
+import { Footer } from '@/features/home/components/Footer';
 
 interface Props {
   section: HomepageSection;
@@ -21,6 +22,7 @@ const renderers: Record<string, React.FC<{ section: HomepageSection }>> = {
   benefits: BenefitsSection,
   platform_capabilities: PlatformCapabilitiesSection,
   contact: ContactSection,
+  footer: ({ section }) => <Footer section={section} />,
   announcement: AnnouncementSection,
   info_block: InfoBlockSection,
   promotion: PromotionSection,
