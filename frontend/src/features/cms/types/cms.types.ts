@@ -67,7 +67,7 @@ export const SECTION_TYPES = [
   { value: 'product_journey', label: 'Product Journey' },
   { value: 'platform_capabilities', label: 'Platform Capabilities' },
   { value: 'benefits', label: 'Benefits' },
-  { value: 'cta', label: 'Call to Action' },
+  { value: 'contact', label: 'Contact' },
   { value: 'announcement', label: 'Announcement' },
   { value: 'info_block', label: 'Information Block' },
   { value: 'promotion', label: 'Promotion' },

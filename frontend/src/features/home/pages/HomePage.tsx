@@ -46,9 +46,10 @@ const staticSections: HomepageSection[] = [
     createdBy: null, createdAt: '', updatedBy: null, updatedAt: '',
   },
   {
-    id: 0, sectionName: 'Call to Action', sectionType: 'cta',
-    title: 'Ready to Unify Your Channel Operations?', subtitle: null,
-    description: 'Access the platform to manage your channel ecosystem, track product lifecycles, and gain complete operational visibility.',
+    id: 0, sectionName: 'Contact', sectionType: 'contact',
+    title: 'Partner with Channel360',
+    subtitle: 'Ready to join our channel ecosystem? Reach out through any of the channels below.',
+    description: '[{"type":"email","label":"Email","value":"niyajkumanali@gmail.com"},{"type":"phone","label":"Phone","value":"+91 8217097121"},{"type":"address","label":"Office","value":"Nipani, Belagavi, Karnataka, India, 591237"},{"type":"linkedin","label":"LinkedIn","value":"linkedin.com/in/niyaj-kumanali"},{"type":"github","label":"GitHub","value":"github.com/Niyaj-Kumanali"},{"type":"website","label":"Portfolio","value":"niyazdev.vercel.app"}]',
     imageUrl: null, buttonText: 'Access Platform', buttonUrl: '/login',
     displayOrder: 5, active: true, startDate: null, endDate: null,
     createdBy: null, createdAt: '', updatedBy: null, updatedAt: '',
