@@ -17,4 +17,25 @@ public final class AppConstants {
     public static final String DEFAULT_PAGE_SIZE = "10";
 
     public static final String TOKEN_TYPE = "Bearer";
+
+    public static final String SECTION_TYPE_HERO_BANNER = "hero_banner";
+    public static final String SECTION_TYPE_PRODUCT_JOURNEY = "product_journey";
+    public static final String SECTION_TYPE_PLATFORM_CAPABILITIES = "platform_capabilities";
+    public static final String SECTION_TYPE_BENEFITS = "benefits";
+    public static final String SECTION_TYPE_CONTACT = "contact";
+    public static final String SECTION_TYPE_FOOTER = "footer";
+    public static final String SECTION_TYPE_ANNOUNCEMENT = "announcement";
+    public static final String SECTION_TYPE_INFO_BLOCK = "info_block";
+    public static final String SECTION_TYPE_PROMOTION = "promotion";
+    public static final String SECTION_TYPE_IMAGE_CARD = "image_card";
+    public static final String SECTION_TYPE_FAQ = "faq";
+
+    public static final String[] VALID_SECTION_TYPES = {
+        SECTION_TYPE_HERO_BANNER, SECTION_TYPE_PRODUCT_JOURNEY,
+        SECTION_TYPE_PLATFORM_CAPABILITIES, SECTION_TYPE_BENEFITS,
+        SECTION_TYPE_CONTACT, SECTION_TYPE_FOOTER,
+        SECTION_TYPE_ANNOUNCEMENT, SECTION_TYPE_INFO_BLOCK,
+        SECTION_TYPE_PROMOTION, SECTION_TYPE_IMAGE_CARD,
+        SECTION_TYPE_FAQ
+    };
 }

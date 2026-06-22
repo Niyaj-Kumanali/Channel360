@@ -477,7 +477,7 @@ export const PlatformCapabilitiesSection: React.FC<Props> = ({ section }) => {
                 }}
                 className={[
                   'group relative flex overflow-hidden rounded-2xl border border-primary/15 bg-card/70 p-8 backdrop-blur-md',
-                  'transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]',
+                  'transition-all duration-500 ease-out-quad',
                   ' hover:border-primary/40 hover:bg-card/95',
                   'hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.6),0_0_25px_-2px_rgba(var(--primary),0.12)]',
                   inView ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0',

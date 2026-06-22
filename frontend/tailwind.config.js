@@ -52,6 +52,10 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      transitionTimingFunction: {
+        'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'out-quad': 'cubic-bezier(0.25, 1, 0.5, 1)',
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

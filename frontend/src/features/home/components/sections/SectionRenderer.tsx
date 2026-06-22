@@ -8,7 +8,7 @@ import { AnnouncementSection } from './AnnouncementSection';
 import { InfoBlockSection } from './InfoBlockSection';
 import { PromotionSection } from './PromotionSection';
 import { ImageCardSection } from './ImageCardSection';
-import { RichContentSection } from './RichContentSection';
+import { FaqSection } from './FaqSection';
 import ContactSection from './ContactSection';
 import { Footer } from '@/features/home/components/Footer';
 
@@ -27,7 +27,7 @@ const renderers: Record<string, React.FC<{ section: HomepageSection }>> = {
   info_block: InfoBlockSection,
   promotion: PromotionSection,
   image_card: ImageCardSection,
-  rich_content: RichContentSection,
+  faq: FaqSection,
 };
 
 export const SectionRenderer: React.FC<Props> = ({ section }) => {

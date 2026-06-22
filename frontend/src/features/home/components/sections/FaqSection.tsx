@@ -29,7 +29,7 @@ function parseQAPairs(html: string): string[] {
   return html.split(/(?=<h3)/).filter(Boolean);
 }
 
-export const RichContentSection: React.FC<Props> = ({ section, isFullPage }) => {
+export const FaqSection: React.FC<Props> = ({ section, isFullPage }) => {
   const qaPairs = section.description ? parseQAPairs(section.description) : [];
   const maxItems = 2;
   const visiblePairs = isFullPage ? qaPairs : qaPairs.slice(0, maxItems);

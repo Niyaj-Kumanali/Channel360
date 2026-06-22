@@ -162,7 +162,7 @@ export const BenefitsSection: React.FC<Props> = ({ section }) => {
 
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div
-          className={`mx-auto max-w-3xl text-center transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`mx-auto max-w-3xl text-center transition-all duration-1000 ease-out-expo ${
             inView ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
           }`}
         >

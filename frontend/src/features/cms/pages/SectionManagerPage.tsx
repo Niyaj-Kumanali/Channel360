@@ -53,7 +53,7 @@ const typeIcon: Record<string, React.ComponentType<{ className?: string }>> = {
   info_block: Info,
   promotion: Tag,
   image_card: Image,
-  rich_content: FileText,
+  faq: FileText,
   footer: PanelRightOpen,
 };
 

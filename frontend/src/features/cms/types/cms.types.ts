@@ -73,5 +73,5 @@ export const SECTION_TYPES = [
   { value: 'info_block', label: 'Information Block' },
   { value: 'promotion', label: 'Promotion' },
   { value: 'image_card', label: 'Image Card' },
-  { value: 'rich_content', label: 'Rich Content' },
+  { value: 'faq', label: 'FAQ' },
 ] as const;

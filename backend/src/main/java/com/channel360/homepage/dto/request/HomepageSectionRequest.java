@@ -2,6 +2,7 @@ package com.channel360.homepage.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -14,6 +15,8 @@ public class HomepageSectionRequest {
     private String sectionName;
 
     @NotBlank
+    @Pattern(regexp = "^(hero_banner|product_journey|platform_capabilities|benefits|contact|footer|announcement|info_block|promotion|image_card|faq)$",
+             message = "Invalid section type. Must be one of: hero_banner, product_journey, platform_capabilities, benefits, contact, footer, announcement, info_block, promotion, image_card, faq")
     private String sectionType;
 
     @NotBlank
