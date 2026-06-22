@@ -42,13 +42,16 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
   const [repairStatus, setRepairStatus] = useState<'progress' | 'complete'>('progress');
   const [activeNode, setActiveNode] = useState<number | null>(0);
   const [pulsingNode, setPulsingNode] = useState<number | null>(null);
-  const [isDesktop, setIsDesktop] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
   const [mobileActiveNode, setMobileActiveNode] = useState(-1);
+  const [iconPositions, setIconPositions] = useState<number[]>([]);
+  const [cardBodyTops, setCardBodyTops] = useState<number[]>([]);
   const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const repairTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cycleRef = useRef(0);
   const gearTypeRef = useRef(true);
   const cardElementsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const cardBodyRefs = useRef<(HTMLDivElement | null)[]>([]);
   const pipelineRef = useRef<HTMLDivElement>(null);
 
   const steps: JourneyStep[] = section.description
@@ -177,12 +180,37 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
     return () => observers.forEach((o) => o.disconnect());
   }, [isDesktop, inView, steps.length]);
 
-  // Measure ball position relative to pipeline container
+  // Measure icon center positions for mobile arrows
   useEffect(() => {
-    const activeEl = cardElementsRef.current[mobileActiveNode];
-    const pipelineEl = pipelineRef.current;
-    if (!activeEl || !pipelineEl || mobileActiveNode < 0) return;
-  }, [mobileActiveNode]);
+    if (isDesktop) return;
+    const measure = () => {
+      const pipelineEl = pipelineRef.current;
+      if (!pipelineEl) return;
+      const pipelineRect = pipelineEl.getBoundingClientRect();
+      const positions: number[] = [];
+      const bodyTops: number[] = [];
+      for (let i = 0; i < steps.length; i++) {
+        const el = cardElementsRef.current[i];
+        if (!el) { positions.push(0); bodyTops.push(0); continue; }
+        const cardRect = el.getBoundingClientRect();
+        positions.push(cardRect.top - pipelineRect.top + 24);
+        const bodyEl = cardBodyRefs.current[i];
+        bodyTops.push(bodyEl ? bodyEl.getBoundingClientRect().top - pipelineRect.top : 0);
+      }
+      setIconPositions(positions);
+      setCardBodyTops(bodyTops);
+    };
+    requestAnimationFrame(measure);
+    window.addEventListener('resize', measure);
+    const onScroll = () => requestAnimationFrame(measure);
+    window.addEventListener('scroll', onScroll);
+    const timer = setInterval(measure, 300);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', onScroll);
+      clearInterval(timer);
+    };
+  }, [isDesktop, steps.length]);
 
   const displayActiveNode = isDesktop ? activeNode : mobileActiveNode;
   const isBallRunning = phase === 'ball' && inView;
@@ -222,6 +250,22 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                 }}
               />
             </div>
+          </div>
+
+          {/* Mobile down arrows from icon to card body */}
+          <div ref={pipelineRef} className="block lg:hidden absolute left-1/2 top-0 bottom-0 w-8 -translate-x-1/2 z-30 pointer-events-none">
+            {iconPositions.length > 0 && cardBodyTops.length > 0 && Array.from({ length: steps.length }, (_, i) => {
+              const arrowTop = Math.max(0, (iconPositions[i] ?? 0) + 24);
+              const arrowH = Math.max(16, (cardBodyTops[i] ?? 0) - arrowTop);
+              return (
+                <div key={i} className="absolute left-0 flex justify-center w-8" style={{ top: arrowTop, height: arrowH }}>
+                  <svg width="12" height={arrowH} viewBox={`0 0 12 ${arrowH}`} fill="none" className="text-primary/60">
+                    <line x1="6" y1="0" x2="6" y2={arrowH - 6} stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <polyline points={`2,${arrowH - 10} 6,${arrowH - 4} 10,${arrowH - 10}`} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              );
+            })}
           </div>
 
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
@@ -298,7 +342,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                   </div>
 
                   {/* Card */}
-                  <div className={`flex w-full flex-1 flex-col rounded-xl border p-4 text-center transition-[opacity,transform] duration-500 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} ${
+                  <div ref={el => { cardBodyRefs.current[index] = el; }} className={`flex w-full flex-1 flex-col rounded-xl border p-4 text-center transition-[opacity,transform] duration-500 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} ${
                     displayActiveNode === index ? 'border-primary/40 bg-primary/[0.02] shadow-[0_0_10px_-3px] shadow-primary/20' : 'border-border bg-card'
                   }`}
                     style={{
