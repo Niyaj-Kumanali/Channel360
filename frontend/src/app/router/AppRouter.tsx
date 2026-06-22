@@ -9,6 +9,7 @@ import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 import { DashboardLayout } from '@/features/dashboard/components/DashboardLayout';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { SectionManagerPage } from '@/features/cms/pages/SectionManagerPage';
+import { FaqPage } from '@/features/faq/pages/FaqPage';
 import { Loader } from '@/components/ui/Loader';
 import { PopupListPage } from '@/features/cms/pages/PopupListPage';
 import { PopupFormPage } from '@/features/cms/pages/PopupFormPage';
@@ -29,6 +30,7 @@ export const AppRouter: React.FC = () => {
 
   return (
     <Routes>
+      <Route path="/faq" element={<FaqPage />} />
       {isAuthenticated ? (
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
