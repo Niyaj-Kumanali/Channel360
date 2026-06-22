@@ -258,8 +258,8 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                     </svg>
                   </div>
                 ))}
-                {Array.from({ length: steps.length }, (_, i) => (
-                  <div key={`u${i}`} className="absolute left-0 flex justify-center w-8" style={{ top: (iconPositions[i] ?? 0) - 40 }}>
+                {Array.from({ length: steps.length - 1 }, (_, i) => (
+                  <div key={`u${i}`} className="absolute left-0 flex justify-center w-8" style={{ top: (iconPositions[i + 1] ?? 0) - 40 }}>
                     <svg width="12" height="16" viewBox="0 0 12 16" fill="none" className="text-primary/60">
                       <line x1="6" y1="4" x2="6" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                       <polyline points="2,10 6,4 10,10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
