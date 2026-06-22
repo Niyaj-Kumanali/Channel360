@@ -1,6 +1,3 @@
-> ⚠️ **Phase 1 is FROZEN.** Do not modify any auth-related code.
-> See `instructions.md` for the complete list of frozen files.
-
 # Channel360 — Progress
 
 ## Phase 1 — Foundation (✅ Completed)
@@ -55,9 +52,9 @@
 
 ---
 
-## Phase 2 — Platform
+## Phase 2 — Homepage CMS + Theme (✅ Completed)
 
-### Step 1: Feature Reorganization (✅ Done)
+### Feature Reorganization
 - [x] Move `DashboardPage` → `features/dashboard/pages/DashboardPage.tsx`
 - [x] Move `HomePage` → `features/home/pages/HomePage.tsx`
 - [x] Update `AppRouter.tsx` imports
@@ -65,23 +62,34 @@
 - [x] Auth storage switched from `localStorage` to `sessionStorage` (via `lib/storage.ts`)
 - [x] `appStorage` wrapper for `localStorage` ready for theme/settings
 
-### Step 2: DashboardLayout
-- [ ] Navbar component
-- [ ] Sidebar component
-- [ ] DashboardLayout (Navbar + Sidebar + `<Outlet />`, responsive)
-- [ ] Wire into authenticated routes in AppRouter
+### DashboardLayout
+- [x] Navbar component
+- [x] Sidebar component
+- [x] DashboardLayout (Navbar + Sidebar + `<Outlet />`, responsive)
+- [x] Wired into authenticated routes in AppRouter
 
-### Step 3: CMS Backend
-- [ ] `homepage_sections` table + stored procedures
-- [ ] CRUD endpoints (admin)
-- [ ] Public GET endpoint (published sections only)
-- [ ] Menu entries for CMS admin pages
+### CMS Backend
+- [x] `homepage_sections` table + stored procedures (`sp_homepage_section_save`, `sp_homepage_section_delete`, `sp_homepage_section_reorder`)
+- [x] CRUD endpoints (admin): create, update, delete, get all, reorder
+- [x] Public GET endpoint (published sections only, filtered by active + date range)
+- [x] Menu entries for CMS admin pages
+- [x] `homepage_popups` table + CRUD + public GET endpoint
+- [x] Section type validation via `@Pattern` regex + `AppConstants.VALID_SECTION_TYPES`
+- [x] Seed data: 11 section rows (6 active, 5 inactive for super admin to enable)
 
-### Step 4: CMS Frontend Admin
-- [ ] Section list page (behind DashboardLayout)
-- [ ] Section create/edit forms
+### CMS Frontend Admin
+- [x] Section list page (behind DashboardLayout) with DnD reorder
+- [x] Section create/edit slide-over panel with live preview
+- [x] Toggle active/inactive per section
+- [x] Popup list page + create/edit form
+- [x] SECTION_TYPES enum shared across CMS and homepage
 
-### Step 4b: Dark/Light Theme (✅ Done)
+### Popup Management
+- [x] PopupModal component with timed dismissal
+- [x] Priority-based sorting, active date range filtering
+- [x] Static fallback + API-driven
+
+### Dark/Light Theme (✅ Done)
 - [x] `.dark` CSS variables added to `index.css` (additive, `:root` untouched)
 - [x] `ThemeProvider` with `appStorage` (localStorage) persistence + system preference detection
 - [x] `useTheme` hook: `{ theme, toggleTheme, setTheme }`
@@ -90,26 +98,59 @@
 - [x] HomePage uses theme-aware classes (`bg-background`, `text-foreground`, `border-border`, `bg-card`, etc.)
 - [x] Uses existing Phase 1 `Logo` component with theme-based variant switching
 
-### Step 5: Public Homepage (✅ Hardcoded — CMS pending)
-- [x] Navbar: Logo component + theme toggle + Sign In
-- [x] Hero: "Complete Visibility Across Your Channel Ecosystem" — positioned as enterprise channel platform
-- [x] Stats bar: End-to-End Lifecycle, Multi-Tier Support, Role-Based Access, CMS-Driven Content
-- [x] Product Journey: 5-step flow (Manufacturer → Distributor → Channel Partner → End Customer → Activation)
-- [x] — Bouncing ball travels between 5 nodes (bounce-h + bounce-v, 7s, 20px parabolic bounces)
-- [x] — On return to Manufacturer, ball jumps into gear/recycle icon (ball-repair keyframe, -51px)
-- [x] — Gear/recycle rises first, ball follows; gear spins 1080°; ball drops first, gear descends
-- [x] — Alternating gear/recycle icons per cycle (gearTypeRef + 4900ms/7000ms timeouts)
-- [x] — JS-controlled timing (no onAnimationEnd) for precise sync across all animations
-- [x] Business Areas: 2D radial network diagram with concentric orbit rings, spokes, curved arcs, cross-connections, single amber color
-- [x] Benefits section: 5 key value propositions with bullet styling
-- [x] CTA section + Footer with Logo component
-- [x] Hero background: stylized 3D amber wireframe globe centered with accurate continent shapes (Natural Earth GeoJSON), 7 city markers, curved connection arcs, animated jumping dots radiating from India (Mumbai)
-- [x] All content reflects actual Channel360 platform purpose (not generic marketing SaaS)
-- [ ] Replace with CMS-driven dynamic sections (when CMS backend is built)
+### Public Homepage (CMS-Driven + Static Fallback)
 
-### Pending (Known Gaps)
-- [ ] Audit fields (`created_by`, `updated_by`) populated automatically
-- [ ] Input sanitization / validation hardening
-- [ ] User management CRUD pages
-- [ ] Role management CRUD pages
-- [ ] Shared components: DataTable, Modal, Badge, Select, Skeleton, EmptyState
+**Core Sections (6 active by default):**
+- [x] Hero: RotatingEarth 3D globe background, gradient overlay, CTA button
+- [x] Product Journey: 5-step pipeline with bouncing ball animation, departure-based highlight + pulse, mobile arrows
+- [x] Platform Capabilities: 6 unique inline SVG visualizations, masonry layout, staggered entry
+- [x] Benefits: 5 inline SVG components (TimelineViz, HubViz, WaveViz, ShieldViz, GrowthViz), gradient heading, staggered reveal
+- [x] Contact: Enterprise split layout, 4 floating gradient blobs, unified accent, multi-color title
+- [x] Footer: CMS-backed multi-column layout, `useTheme` for logo, parses description JSON
+
+**Optional Sections (5 inactive, super admin enables via CMS):**
+- [x] Announcement: MegaphoneViz inline SVG, gradient heading, CTA
+- [x] Information Block: InfoViz inline SVG, 2-col grid, CTA
+- [x] Promotion: BadgeViz inline SVG, badge pill, gradient heading, CTA
+- [x] Image Card: ImagePlaceholderViz inline SVG, card with image area
+- [x] FAQ: DocumentViz inline SVG, dual-mode (section shows 2 Q&A + "View All FAQs" → full page at `/faq`)
+
+**Homepage Architecture:**
+- [x] Static sections render immediately (no loader), API replaces content on arrival
+- [x] All sections `min-h-[calc(100vh-4rem)]` at all screen sizes
+- [x] SectionRenderer maps sectionType → component
+- [x] Consistent styling: gradient headings, inline SVGs, theme-aware classes
+- [x] `business_areas` and `stats_bar` removed (obsoleted by CMS-driven approach)
+
+### FAQ Page
+- [x] Dedicated `/faq` route outside auth ternary (accessible to all)
+- [x] FaqPage fetches from CMS API with static fallback
+- [x] "Back to Home" navigation
+- [x] `faq` section type fully registered in SECTION_TYPES, icons, renderers, seed
+
+### Polish (Low Priority)
+- [x] Tailwind `ease-[cubic-bezier(...)]` warnings resolved — custom easings in `tailwind.config.js`
+- [x] Backend section type validation — `@Pattern` regex on `HomepageSectionRequest.sectionType`
+- [x] Section type constants in `AppConstants.java` with `VALID_SECTION_TYPES` array
+
+---
+
+## Phase 3 — Channel Operations 📋 Planned
+
+- Channel Entry: track manufacturer → distributor → partner movement
+- Partner Transfer: track inter-distributor movement
+- Customer Purchase: end-customer sales tracking
+- Channel-specific data tables, CRUD, stored procedures
+
+## Phase 4 — Product Activation + Claims 📋 Planned
+
+- Product Activation: link activation records with channel movement
+- Claims Management: channel claims and incentive program tracking
+- Lifecycle visibility dashboard
+
+## Phase 5 — External Data + Reporting 📋 Planned
+
+- External data upload and management
+- Reporting dashboards
+- Analytics and business intelligence
+- Notifications and alerts

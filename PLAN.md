@@ -1,15 +1,11 @@
 # Channel360 — Build Plan
 
-## ⚠️ Phase 1 is FROZEN
-
-Do **not** modify any Phase 1 (Auth) code in future phases. Build new features on top of it without altering it. See `instructions.md` for the complete list of frozen files.
-
 ## Phase Overview
 
 | Phase | Status |
 |-------|--------|
 | **1. Auth Foundation** | ✅ **FROZEN** |
-| **2. Homepage CMS + Theme** | 🔜 In Progress |
+| **2. Homepage CMS + Theme** | ✅ **FROZEN** |
 | 3. Channel Operations (Entry, Transfer, Purchase) | 📋 Planned |
 | 4. Product Activation + Claims | 📋 Planned |
 | 5. External Data + Reporting | 📋 Planned |
@@ -20,28 +16,25 @@ Login, Forgot/Reset Password, Password Strength UI, User & Role Management (CRUD
 
 **→ FROZEN. No modifications allowed.**
 
-## Phase 2 — Homepage CMS + Theme 🔜
+## Phase 2 — Homepage CMS + Theme ✅
 
 ### Scope
 
 | Feature | Status |
 |---------|--------|
-| Landing page (hardcoded, CMS-ready) | ✅ Done |
+| Landing page (staticSections + API-driven fallback) | ✅ Done |
+| 6 core sections + 5 optional CMS-managed sections | ✅ Done |
 | Light/Dark theme with persistent toggle | ✅ Done |
 | Theme toggle in homepage navbar | ✅ Done |
-| Homepage CMS backend (hero banners, announcements, info blocks, promotions, image cards, rich content) | 🔜 Next |
-| CMS admin pages (section CRUD behind DashboardLayout) | 🔜 Next |
-| Popup management (create, configure, enable/disable with display periods) | 🔜 Next |
-| Replace hardcoded homepage sections with CMS-driven dynamic content | 🔜 Next |
+| Homepage CMS backend (sections CRUD, popups, stored procedures) | ✅ Done |
+| CMS admin pages (section list with DnD reorder, create/edit with live preview, toggle) | ✅ Done |
+| Popup management (create, configure, enable/disable with display periods) | ✅ Done |
+| FAQ page at `/faq` | ✅ Done |
+| Section type validation in backend DTO | ✅ Done |
+| Custom easings in Tailwind config | ✅ Done |
+| All content reflects actual Channel360 platform purpose | ✅ Done |
 
-### Steps
-
-1. ✅ Feature reorganization (DashboardPage → `features/dashboard/`, HomePage → `features/home/`)
-2. ⏳ DashboardLayout (Navbar + Sidebar + Outlet) — needed for CMS admin pages
-3. ⏳ CMS backend — `homepage_sections` table, stored procedures, CRUD + public GET endpoints
-4. ⏳ CMS frontend admin — section list + create/edit forms
-5. ⏳ Popup management backend + frontend
-6. ⏳ Swap hardcoded HomePage sections for dynamic CMS render
+**→ FROZEN. No modifications allowed.**
 
 ## Phase 3 — Channel Operations 📋
 
