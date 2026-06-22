@@ -417,7 +417,7 @@ const VIZ_CLASS: Record<CardVariant, string> = {
   donut:    'absolute right-4 bottom-4 w-24 h-24 sm:w-28 sm:h-28 opacity-90 pointer-events-none select-none',
   progress: 'absolute right-4 bottom-6 w-28 h-20 sm:w-36 sm:h-24 opacity-85 pointer-events-none select-none',
   flow:     'absolute inset-0 w-full h-full opacity-60 pointer-events-none select-none [mask-image:linear-gradient(to_right,transparent_0%,white_15%)]',
-  wide:     'absolute right-4 inset-y-0 w-2/5 opacity-95 pointer-events-none select-none hidden md:block [mask-image:linear-gradient(to_left,white_80%,transparent)]',
+  wide:     'absolute right-4 inset-y-0 w-2/5 opacity-95 pointer-events-none select-none [mask-image:linear-gradient(to_left,white_80%,transparent)]',
 };
 
 const CARD_CLASS: Record<CardVariant, string> = {
