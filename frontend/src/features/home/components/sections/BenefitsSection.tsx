@@ -185,14 +185,14 @@ export const BenefitsSection: React.FC<Props> = ({ section }) => {
             return (
               <div
                 key={benefit.title}
-                className={`relative flex overflow-hidden rounded-xl border bg-card transition-all duration-600 ease-out hover:border-primary/30 hover:shadow-[0_0_15px_-5px] hover:shadow-primary/15 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} ${cfg.span} ${cfg.align} ${cfg.pad} ${cfg.gradient ? 'border-primary/20 bg-gradient-to-br from-card to-primary/[0.02]' : ''} ${index === 0 ? 'justify-between' : ''} flex-col`}
+                className={`group relative flex overflow-hidden rounded-xl border bg-card transition-all duration-600 ease-out hover:border-primary/30 hover:shadow-[0_0_15px_-5px] hover:shadow-primary/15 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} ${cfg.span} ${cfg.align} ${cfg.pad} ${cfg.gradient ? 'border-primary/20 bg-gradient-to-br from-card to-primary/[0.02]' : ''} ${index === 0 ? 'justify-between' : ''} flex-col`}
                 style={{
                   transitionDuration: '600ms',
                   transitionDelay: `${delay}ms`,
                 }}
               >
                 {Viz && (
-                  <div className={`absolute pointer-events-none select-none ${index === 0 ? 'inset-0 w-full h-full opacity-40' : index === 4 ? 'right-0 bottom-0 w-62 h-40 opacity-40' : 'right-0 bottom-0 w-40 h-32 opacity-40'}`}>
+                  <div className={`absolute pointer-events-none select-none transition-all duration-1000 ease-out group-hover:scale-105 group-hover:opacity-60 ${index === 0 ? 'inset-0 w-full h-full opacity-40' : index === 4 ? 'right-0 bottom-0 w-62 h-40 opacity-40' : 'right-0 bottom-0 w-40 h-32 opacity-40'}`}>
                     <Viz className="h-full w-full" />
                   </div>
                 )}
