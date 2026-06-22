@@ -44,7 +44,6 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
   const [pulsingNode, setPulsingNode] = useState<number | null>(null);
   const [isDesktop, setIsDesktop] = useState(true);
   const [mobileActiveNode, setMobileActiveNode] = useState(-1);
-  const [ballPosition, setBallPosition] = useState(0);
   const iconTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const repairTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cycleRef = useRef(0);
@@ -183,9 +182,6 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
     const activeEl = cardElementsRef.current[mobileActiveNode];
     const pipelineEl = pipelineRef.current;
     if (!activeEl || !pipelineEl || mobileActiveNode < 0) return;
-    const cardRect = activeEl.getBoundingClientRect();
-    const pipelineRect = pipelineEl.getBoundingClientRect();
-    setBallPosition(cardRect.top - pipelineRect.top + 24);
   }, [mobileActiveNode]);
 
   const displayActiveNode = isDesktop ? activeNode : mobileActiveNode;
@@ -228,16 +224,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
             </div>
           </div>
 
-          {/* Mobile vertical pipeline */}
-          <div ref={pipelineRef} className="block lg:hidden absolute left-5 top-0 bottom-0 w-6 z-10 pointer-events-none">
-            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 -translate-x-1/2 bg-gradient-to-b from-primary/10 via-primary/30 to-primary/10" />
-            <div
-              className="absolute left-1/2 -translate-x-1/2 h-3 w-3 rounded-full bg-primary shadow-[0_0_10px_4px_#f59e0b50] transition-all duration-500 ease-out"
-              style={{ top: mobileActiveNode >= 0 ? ballPosition : 12 }}
-            />
-          </div>
-
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5 pl-12 lg:pl-0">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
             {steps.map((step, index) => {
               const Icon = defaultIcons[index] || Package;
               const delay = index * 120;
@@ -246,7 +233,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                 <div
                   key={step.title}
                   ref={el => { cardElementsRef.current[index] = el; }}
-                  className={`flex h-full flex-col items-center transition-all duration-600 ease-out ${inView ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
+                  className={`flex h-full flex-col gap-8 items-center transition-all duration-600 ease-out ${inView ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
                   style={{
                     transitionDuration: '600ms',
                     transitionDelay: `${delay}ms`,
@@ -311,7 +298,7 @@ export const ProductJourneySection: React.FC<Props> = ({ section }) => {
                   </div>
 
                   {/* Card */}
-                  <div className={`mt-4 flex w-full flex-1 flex-col rounded-xl border p-4 text-center transition-[opacity,transform] duration-500 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} ${
+                  <div className={`flex w-full flex-1 flex-col rounded-xl border p-4 text-center transition-[opacity,transform] duration-500 ${inView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} ${
                     displayActiveNode === index ? 'border-primary/40 bg-primary/[0.02] shadow-[0_0_10px_-3px] shadow-primary/20' : 'border-border bg-card'
                   }`}
                     style={{
