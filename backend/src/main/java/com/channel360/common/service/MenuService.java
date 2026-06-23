@@ -2,13 +2,13 @@ package com.channel360.common.service;
 
 import com.channel360.common.dto.response.MenuItem;
 import com.channel360.common.security.CustomUserDetails;
-import com.channel360.menu.dto.MenuRequest;
-import com.channel360.menu.dto.MenuResponse;
-import com.channel360.menu.dto.MenuWithPermissions;
-import com.channel360.menu.dto.PermissionItem;
-import com.channel360.menu.repository.MenuItemRepository;
-import com.channel360.role.repository.PermissionRepository;
-import com.channel360.user.repository.UserRepository;
+import com.channel360.menu.api.MenuRequest;
+import com.channel360.menu.api.MenuResponse;
+import com.channel360.menu.api.MenuWithPermissions;
+import com.channel360.menu.api.PermissionItem;
+import com.channel360.menu.infrastructure.MenuItemRepository;
+import com.channel360.role.infrastructure.PermissionRepository;
+import com.channel360.user.infrastructure.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -50,12 +50,12 @@ public class MenuService {
 
         Set<Long> visibleIds = new HashSet<>(menuItemRepository.findMenuItemIdsByRoleIds(userRoleIds));
 
-        List<com.channel360.menu.entity.MenuItem> parentItems =
+        List<com.channel360.menu.domain.MenuItem> parentItems =
                 menuItemRepository.findByParentIdIsNullAndActiveTrueOrderByDisplayOrder();
 
         List<MenuItem> result = new ArrayList<>();
-        for (com.channel360.menu.entity.MenuItem parent : parentItems) {
-            List<com.channel360.menu.entity.MenuItem> children =
+        for (com.channel360.menu.domain.MenuItem parent : parentItems) {
+            List<com.channel360.menu.domain.MenuItem> children =
                     menuItemRepository.findByParentIdAndActiveTrueOrderByDisplayOrder(parent.getId());
             List<MenuItem> childItems = children.stream()
                     .filter(c -> visibleIds.contains(c.getId()))
@@ -78,32 +78,32 @@ public class MenuService {
     // --- Admin CRUD ---
 
     public List<MenuResponse> getAllMenuItems() {
-        List<com.channel360.menu.entity.MenuItem> all = menuItemRepository.findAllByOrderByDisplayOrder();
+        List<com.channel360.menu.domain.MenuItem> all = menuItemRepository.findAllByOrderByDisplayOrder();
         return all.stream().map(this::toMenuResponse).toList();
     }
 
     public MenuResponse getMenuItem(Long id) {
-        com.channel360.menu.entity.MenuItem entity = menuItemRepository.findById(id)
+        com.channel360.menu.domain.MenuItem entity = menuItemRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Menu item not found: " + id));
         return toMenuResponse(entity);
     }
 
     @Transactional
     public MenuResponse createMenuItem(MenuRequest request) {
-        com.channel360.menu.entity.MenuItem entity = new com.channel360.menu.entity.MenuItem();
+        com.channel360.menu.domain.MenuItem entity = new com.channel360.menu.domain.MenuItem();
         applyRequest(entity, request);
         entity.setActive(request.getActive() != null ? request.getActive() : true);
         entity.setPermissionName(request.getPermissionName());
-        com.channel360.menu.entity.MenuItem saved = menuItemRepository.save(entity);
+        com.channel360.menu.domain.MenuItem saved = menuItemRepository.save(entity);
         return toMenuResponse(saved);
     }
 
     @Transactional
     public MenuResponse updateMenuItem(Long id, MenuRequest request) {
-        com.channel360.menu.entity.MenuItem entity = menuItemRepository.findById(id)
+        com.channel360.menu.domain.MenuItem entity = menuItemRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Menu item not found: " + id));
         applyRequest(entity, request);
-        com.channel360.menu.entity.MenuItem saved = menuItemRepository.save(entity);
+        com.channel360.menu.domain.MenuItem saved = menuItemRepository.save(entity);
         return toMenuResponse(saved);
     }
 
@@ -159,7 +159,7 @@ public class MenuService {
 
     // --- Helpers ---
 
-    private MenuItem toMenuItemDto(com.channel360.menu.entity.MenuItem entity) {
+    private MenuItem toMenuItemDto(com.channel360.menu.domain.MenuItem entity) {
         return MenuItem.builder()
                 .path(entity.getPath())
                 .label(entity.getLabel())
@@ -168,7 +168,7 @@ public class MenuService {
                 .build();
     }
 
-    private MenuResponse toMenuResponse(com.channel360.menu.entity.MenuItem entity) {
+    private MenuResponse toMenuResponse(com.channel360.menu.domain.MenuItem entity) {
         return MenuResponse.builder()
                 .id(entity.getId())
                 .parentId(entity.getParentId())
@@ -183,7 +183,7 @@ public class MenuService {
                 .build();
     }
 
-    private void applyRequest(com.channel360.menu.entity.MenuItem entity, MenuRequest request) {
+    private void applyRequest(com.channel360.menu.domain.MenuItem entity, MenuRequest request) {
         if (request.getLabel() != null) entity.setLabel(request.getLabel());
         if (request.getPath() != null) entity.setPath(request.getPath());
         if (request.getIcon() != null) entity.setIcon(request.getIcon());

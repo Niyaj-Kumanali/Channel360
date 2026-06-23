@@ -1,9 +1,9 @@
 package com.channel360.common.security;
 
-import com.channel360.role.entity.Permission;
-import com.channel360.role.entity.Role;
-import com.channel360.user.entity.User;
-import com.channel360.user.repository.UserRepository;
+import com.channel360.role.domain.Permission;
+import com.channel360.role.domain.Role;
+import com.channel360.user.domain.User;
+import com.channel360.user.infrastructure.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

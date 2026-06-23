@@ -1,6 +1,6 @@
 package com.channel360.common.security;
 
-import com.channel360.user.repository.UserRepository;
+import com.channel360.user.infrastructure.UserRepository;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
