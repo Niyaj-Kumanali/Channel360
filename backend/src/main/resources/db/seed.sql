@@ -1,13 +1,33 @@
 INSERT INTO roles (name, description)
-VALUES ('ROLE_ADMIN', 'Administrator with full access')
+VALUES ('ROLE_SUPER_ADMIN', 'Platform administrator — manages users, roles, menus, CMS, workflows, regions. No channel data access.')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO roles (name, description)
-VALUES ('ROLE_USER', 'Regular user with basic access')
+VALUES ('ROLE_ADMIN', 'Highest business authority — full operational access, all regions, override approval chains.')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO roles (name, description)
-VALUES ('ROLE_SUPER_ADMIN', 'Super administrator with full system access')
+VALUES ('ROLE_MANAGER', 'Geographically scoped business approver — authority determined by assigned region.')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO roles (name, description)
+VALUES ('ROLE_INTERNAL_EMPLOYEE', 'Internal company employee — operations, sales, finance, product team.')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO roles (name, description)
+VALUES ('ROLE_EXTERNAL_EMPLOYEE', 'Contractor or outsourced user with limited operational access.')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO roles (name, description)
+VALUES ('ROLE_DISTRIBUTOR', 'Distributor partner — scoped to own company. Uploads sales, manages inventory.')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO roles (name, description)
+VALUES ('ROLE_CHANNEL_PARTNER', 'Channel partner — scoped to own company. Customer sales, activations.')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO roles (name, description)
+VALUES ('ROLE_GUEST', 'Default registration role — minimal dashboard access.')
 ON CONFLICT (name) DO NOTHING;
 
 -- Remove old coarse permissions (replaced by granular ones below)
@@ -74,24 +94,28 @@ INSERT INTO permissions (name, description, module)
 VALUES ('menu.manage', 'Manage sidebar menu items', 'menu')
 ON CONFLICT (name) DO NOTHING;
 
--- ROLE_SUPER_ADMIN gets all permissions
+-- ROLE_SUPER_ADMIN gets all permissions (platform management)
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'ROLE_SUPER_ADMIN'
 ON CONFLICT DO NOTHING;
 
--- ROLE_ADMIN gets dashboard.view + users.* only (not content/permissions/menu)
+-- ROLE_ADMIN gets dashboard + users + sections + popups + menu (business admin)
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'ROLE_ADMIN'
   AND p.name IN ('dashboard.view',
-                 'users.view', 'users.create', 'users.edit')
+                 'users.view', 'users.create', 'users.edit',
+                 'sections.view', 'sections.create', 'sections.edit',
+                 'popups.view', 'popups.create', 'popups.edit')
 ON CONFLICT DO NOTHING;
 
--- ROLE_USER gets dashboard.view only
+-- MANAGER, INTERNAL_EMPLOYEE, EXTERNAL_EMPLOYEE, DISTRIBUTOR, CHANNEL_PARTNER, GUEST
+-- get dashboard.view only (expanded in Phase 4+ as modules are built)
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
-WHERE r.name = 'ROLE_USER'
+WHERE r.name IN ('ROLE_MANAGER', 'ROLE_INTERNAL_EMPLOYEE', 'ROLE_EXTERNAL_EMPLOYEE',
+                 'ROLE_DISTRIBUTOR', 'ROLE_CHANNEL_PARTNER', 'ROLE_GUEST')
   AND p.name = 'dashboard.view'
 ON CONFLICT DO NOTHING;
 

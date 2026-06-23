@@ -19,7 +19,6 @@ import com.channel360.common.security.JwtTokenProvider;
 import com.channel360.common.service.EmailService;
 import com.channel360.role.entity.Permission;
 import com.channel360.role.entity.Role;
-import com.channel360.role.enums.RoleName;
 import com.channel360.role.repository.RoleRepository;
 import com.channel360.user.entity.User;
 import com.channel360.user.repository.UserRepository;
@@ -112,8 +111,8 @@ public class AuthService {
         User user = authMapper.registerRequestToUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        Role defaultRole = roleRepository.findByName(RoleName.ROLE_USER.name())
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", RoleName.ROLE_USER.name()));
+        Role defaultRole = roleRepository.findByName("ROLE_GUEST")
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "ROLE_GUEST"));
 
         userRepository.spSave(null, user.getFirstName(), user.getLastName(),
                 user.getEmail(), user.getPassword(), user.getMobileNumber(),

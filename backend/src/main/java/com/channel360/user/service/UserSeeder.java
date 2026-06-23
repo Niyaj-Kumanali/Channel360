@@ -7,7 +7,6 @@ import com.channel360.common.config.SuperAdminProperties;
 import com.channel360.common.exception.DuplicateResourceException;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.role.entity.Role;
-import com.channel360.role.enums.RoleName;
 import com.channel360.role.repository.RoleRepository;
 import com.channel360.user.entity.User;
 import com.channel360.user.repository.UserRepository;
@@ -36,20 +35,20 @@ public class UserSeeder implements CommandLineRunner {
                 adminProperties.email(), adminProperties.password(),
                 adminProperties.firstName(), adminProperties.lastName(),
                 adminProperties.mobileNumber(), adminProperties.skip(),
-                RoleName.ROLE_ADMIN, "Admin"
+                "ROLE_ADMIN", "Admin"
         );
         seedAdmin(
                 superAdminProperties.email(), superAdminProperties.password(),
                 superAdminProperties.firstName(), superAdminProperties.lastName(),
                 superAdminProperties.mobileNumber(), superAdminProperties.skip(),
-                RoleName.ROLE_SUPER_ADMIN, "Super Admin"
+                "ROLE_SUPER_ADMIN", "Super Admin"
         );
     }
 
     private void seedAdmin(
             String email, String password, String firstName, String lastName,
             String mobileNumber, boolean skip,
-            RoleName roleName, String label
+            String roleName, String label
     ) {
         if (skip) {
             log.info("{} seeder skipped via config", label);
@@ -75,10 +74,10 @@ public class UserSeeder implements CommandLineRunner {
             log.info("{} user already exists: {}", label, user.getEmail());
         }
 
-        Role role = roleRepository.findByName(roleName.name())
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleName.name()));
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleName));
 
         userService.assignRoles(user.getId(), java.util.List.of(role.getId()));
-        log.info("Assigned {} to user {}", roleName.name(), user.getEmail());
+        log.info("Assigned {} to user {}", roleName, user.getEmail());
     }
 }

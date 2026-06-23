@@ -131,6 +131,11 @@ CREATE INDEX idx_homepage_popups_deleted_flag ON homepage_popups(deleted_flag);
 -- SEED DATA
 -- ============================================
 INSERT INTO roles (name, description) VALUES
-    ('ROLE_SUPER_ADMIN', 'Super Administrator - full system access'),
-    ('ROLE_ADMIN', 'Administrator - management access'),
-    ('ROLE_USER', 'Regular user - basic access');
+    ('ROLE_SUPER_ADMIN', 'Platform administrator — manages users, roles, menus, CMS, workflows, regions. No channel data access.'),
+    ('ROLE_ADMIN', 'Highest business authority — full operational access, all regions, override approval chains.'),
+    ('ROLE_MANAGER', 'Geographically scoped business approver — authority determined by assigned region.'),
+    ('ROLE_INTERNAL_EMPLOYEE', 'Internal company employee — operations, sales, finance, product team.'),
+    ('ROLE_EXTERNAL_EMPLOYEE', 'Contractor or outsourced user with limited operational access.'),
+    ('ROLE_DISTRIBUTOR', 'Distributor partner — scoped to own company. Uploads sales, manages inventory.'),
+    ('ROLE_CHANNEL_PARTNER', 'Channel partner — scoped to own company. Customer sales, activations.'),
+    ('ROLE_GUEST', 'Default registration role — minimal dashboard access.');
