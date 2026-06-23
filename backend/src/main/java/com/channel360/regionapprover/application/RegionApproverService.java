@@ -1,5 +1,6 @@
 package com.channel360.regionapprover.application;
 
+import com.channel360.auth.api.AuthFacade;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.region.api.RegionFacade;
 import com.channel360.region.api.RegionResponse;
@@ -26,6 +27,7 @@ public class RegionApproverService {
     private final RegionFacade regionFacade;
     private final RoleFacade roleFacade;
     private final UserFacade userFacade;
+    private final AuthFacade authFacade;
 
     public List<RegionApproverResponse> getAllApprovers() {
         return regionApproverRepository.findByActiveFlagTrueOrderByRegionIdAsc().stream()
@@ -96,7 +98,7 @@ public class RegionApproverService {
         try {
             UserResponse u = userFacade.getById(ra.getUserId());
             userName = u.getFirstName() + " " + u.getLastName();
-            userEmail = u.getEmail();
+            userEmail = authFacade.getAuthById(ra.getUserId()).getEmail();
         } catch (Exception ignored) {}
 
         return RegionApproverResponse.builder()

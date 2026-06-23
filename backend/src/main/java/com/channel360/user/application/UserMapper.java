@@ -15,17 +15,12 @@ public interface UserMapper {
     UserResponse toDto(User user);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "password", ignore = true)
     @Mapping(target = "roles", ignore = true)
-    @Mapping(target = "lastLoginAt", ignore = true)
     @Mapping(target = "status", constant = "ACTIVE")
     User toEntity(CreateUserRequest request);
 
-    @Mapping(target = "password", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "employeeId", ignore = true)
-    @Mapping(target = "email", ignore = true)
     @Mapping(target = "status", ignore = true)
-    @Mapping(target = "lastLoginAt", ignore = true)
     void updateEntity(UpdateUserRequest request, @MappingTarget User user);
 }

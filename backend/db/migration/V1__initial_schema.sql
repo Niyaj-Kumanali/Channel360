@@ -4,8 +4,10 @@
 -- Drop tables if they exist (for development reset)
 DROP TABLE IF EXISTS homepage_popups CASCADE;
 DROP TABLE IF EXISTS homepage_sections CASCADE;
+DROP TABLE IF EXISTS password_reset_tokens CASCADE;
 DROP TABLE IF EXISTS user_roles CASCADE;
 DROP TABLE IF EXISTS refresh_tokens CASCADE;
+DROP TABLE IF EXISTS auth_users CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS roles CASCADE;
 
@@ -19,17 +21,12 @@ CREATE TABLE roles (
 );
 
 -- ============================================
--- 2. USERS
+-- 2. AUTH USERS (Authentication — Auth module owns)
 -- ============================================
-CREATE TABLE users (
+CREATE TABLE auth_users (
     id BIGSERIAL PRIMARY KEY,
-    employee_id VARCHAR(50) NOT NULL UNIQUE,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    mobile_number VARCHAR(20),
     password VARCHAR(255) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     last_login_at TIMESTAMP,
     created_by VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -39,7 +36,24 @@ CREATE TABLE users (
 );
 
 -- ============================================
--- 3. USER_ROLES (Many-to-Many)
+-- 3. USERS (Business Profile — User module owns)
+-- ============================================
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    employee_id VARCHAR(50) NOT NULL UNIQUE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    mobile_number VARCHAR(20),
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_by VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(255),
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_flag BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- ============================================
+-- 4. USER_ROLES (Many-to-Many)
 -- ============================================
 CREATE TABLE user_roles (
     user_id BIGINT NOT NULL,
@@ -50,7 +64,7 @@ CREATE TABLE user_roles (
 );
 
 -- ============================================
--- 4. REFRESH TOKENS
+-- 5. REFRESH TOKENS
 -- ============================================
 CREATE TABLE refresh_tokens (
     id BIGSERIAL PRIMARY KEY,
@@ -60,6 +74,19 @@ CREATE TABLE refresh_tokens (
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_refresh_token_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- ============================================
+-- 6. PASSWORD RESET TOKENS
+-- ============================================
+CREATE TABLE password_reset_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    expiry TIMESTAMP NOT NULL,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_password_reset_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- ============================================
@@ -110,13 +137,17 @@ CREATE TABLE homepage_popups (
 -- ============================================
 -- INDEXES
 -- ============================================
-CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_auth_users_email ON auth_users(email);
+CREATE INDEX idx_auth_users_deleted_flag ON auth_users(deleted_flag);
+
 CREATE INDEX idx_users_employee_id ON users(employee_id);
 CREATE INDEX idx_users_status ON users(status);
 CREATE INDEX idx_users_deleted_flag ON users(deleted_flag);
 
 CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
+
+CREATE INDEX idx_password_reset_tokens_token ON password_reset_tokens(token);
 
 CREATE INDEX idx_homepage_sections_active ON homepage_sections(active);
 CREATE INDEX idx_homepage_sections_display_order ON homepage_sections(display_order);

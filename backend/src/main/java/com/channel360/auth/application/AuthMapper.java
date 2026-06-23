@@ -10,7 +10,6 @@ import org.mapstruct.ReportingPolicy;
 public interface AuthMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "password", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "status", constant = "ACTIVE")
     User registerRequestToUser(RegisterRequest request);

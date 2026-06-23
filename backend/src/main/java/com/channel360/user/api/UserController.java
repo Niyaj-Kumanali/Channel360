@@ -1,19 +1,18 @@
 package com.channel360.user.api;
 
+import com.channel360.auth.api.AuthFacade;
 import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.dto.response.PageResponse;
 import com.channel360.common.security.RequirePermission;
-import com.channel360.user.api.CreateUserRequest;
-import com.channel360.user.api.UpdateUserRequest;
-import com.channel360.user.api.UserFilterRequest;
-import com.channel360.user.api.UserResponse;
 import com.channel360.user.application.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +20,12 @@ import java.util.Map;
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
+    private static final String CHAR_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final int PASSWORD_LENGTH = 16;
+
     private final UserService userService;
+    private final AuthFacade authFacade;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping
     @RequirePermission("users.view")
@@ -77,7 +81,17 @@ public class UserController {
     @PostMapping("/{id}/reset-password")
     @RequirePermission("users.edit")
     public ResponseEntity<ApiResponse<Void>> resetPassword(@PathVariable Long id) {
-        userService.resetPassword(id);
+        String newPassword = generateRandomPassword();
+        authFacade.changePassword(id, passwordEncoder.encode(newPassword));
         return ResponseEntity.ok(ApiResponse.success(null, "Password reset successfully"));
+    }
+
+    private String generateRandomPassword() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(PASSWORD_LENGTH);
+        for (int i = 0; i < PASSWORD_LENGTH; i++) {
+            sb.append(CHAR_POOL.charAt(random.nextInt(CHAR_POOL.length())));
+        }
+        return sb.toString();
     }
 }

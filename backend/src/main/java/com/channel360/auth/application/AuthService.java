@@ -1,8 +1,9 @@
 package com.channel360.auth.application;
 
 import com.channel360.auth.api.*;
+import com.channel360.auth.domain.AuthUser;
 import com.channel360.auth.domain.RefreshToken;
-import com.channel360.auth.application.AuthMapper;
+import com.channel360.auth.infrastructure.AuthUserRepository;
 import com.channel360.auth.infrastructure.RefreshTokenRepository;
 import com.channel360.common.constants.AppConstants;
 import com.channel360.common.exception.BadRequestException;
@@ -13,7 +14,6 @@ import com.channel360.common.security.JwtTokenProvider;
 import com.channel360.common.service.EmailService;
 import com.channel360.role.api.RoleFacade;
 import com.channel360.role.api.RoleResponse;
-import com.channel360.user.api.AuthUserDto;
 import com.channel360.user.api.UserFacade;
 import com.channel360.user.api.UserResponse;
 import lombok.RequiredArgsConstructor;
@@ -46,12 +46,13 @@ public class AuthService {
         }
     }
 
+    private final AuthFacade authFacade;
     private final UserFacade userFacade;
     private final RoleFacade roleFacade;
+    private final AuthUserRepository authUserRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final AuthMapper authMapper;
     private final EmailService emailService;
 
     @Value("${app.frontend-url}")
@@ -61,7 +62,7 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        AuthUserDto user = userFacade.findByEmail(request.getEmail());
+        AuthUserDto user = authFacade.findByEmail(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BadCredentialsException("Invalid email or password");
@@ -86,19 +87,18 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
-        if (userFacade.existsByEmail(request.getEmail())) {
+        if (authFacade.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("User", "email", request.getEmail());
         }
 
-        com.channel360.user.domain.User user = authMapper.registerRequestToUser(request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+
+        Long userId = userFacade.saveUser(request.getFirstName(), request.getLastName(),
+                request.getMobileNumber(), request.getEmployeeId(), "ACTIVE", null, null);
+
+        authFacade.saveAuthUser(request.getEmail(), encodedPassword, userId, null);
 
         RoleResponse defaultRole = roleFacade.findByName("ROLE_GUEST");
-
-        Long userId = userFacade.saveUser(user.getFirstName(), user.getLastName(),
-                user.getEmail(), user.getPassword(), user.getMobileNumber(),
-                user.getEmployeeId(), "ACTIVE", null, null);
-
         userFacade.assignRoles(userId, String.valueOf(defaultRole.getId()), null);
         return userFacade.getById(userId);
     }
@@ -121,12 +121,12 @@ public class AuthService {
             throw new BadRequestException("Current password is incorrect");
         }
 
-        userFacade.changePassword(userDetails.getId(), passwordEncoder.encode(request.getNewPassword()));
+        authFacade.changePassword(userDetails.getId(), passwordEncoder.encode(request.getNewPassword()));
     }
 
     public void forgotPassword(ForgotPasswordRequest request) {
         try {
-            userFacade.findByEmail(request.getEmail());
+            authFacade.findByEmail(request.getEmail());
             String resetToken = UUID.randomUUID().toString();
             passwordResetTokens.put(request.getEmail(),
                     new ResetTokenEntry(resetToken, LocalDateTime.now().plusMinutes(RESET_TOKEN_EXPIRY_MINUTES)));
@@ -160,8 +160,8 @@ public class AuthService {
                 .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
 
         try {
-            AuthUserDto user = userFacade.findByEmail(email);
-            userFacade.changePassword(user.getId(), passwordEncoder.encode(request.getNewPassword()));
+            AuthUserDto user = authFacade.findByEmail(email);
+            authFacade.changePassword(user.getId(), passwordEncoder.encode(request.getNewPassword()));
         } catch (Exception e) {
             throw new ResourceNotFoundException("User", "email", email);
         }
@@ -191,7 +191,7 @@ public class AuthService {
             throw new BadRequestException("Refresh token has expired");
         }
 
-        AuthUserDto user = userFacade.getAuthById(refreshToken.getUserId());
+        AuthUserDto user = authFacade.getAuthById(refreshToken.getUserId());
 
         refreshTokenRepository.spRevoke(request.getRefreshToken());
 

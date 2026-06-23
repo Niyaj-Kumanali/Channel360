@@ -1,7 +1,7 @@
 package com.channel360.common.security;
 
-import com.channel360.user.api.AuthUserDto;
-import com.channel360.user.api.UserFacade;
+import com.channel360.auth.api.AuthFacade;
+import com.channel360.auth.api.AuthUserDto;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,15 +14,15 @@ import java.util.Set;
 @Transactional
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserFacade userFacade;
+    private final AuthFacade authFacade;
 
-    public CustomUserDetailsService(UserFacade userFacade) {
-        this.userFacade = userFacade;
+    public CustomUserDetailsService(AuthFacade authFacade) {
+        this.authFacade = authFacade;
     }
 
     @Override
     public UserDetails loadUserByUsername(String emailOrId) throws UsernameNotFoundException {
-        AuthUserDto user = userFacade.findByEmail(emailOrId);
+        AuthUserDto user = authFacade.findByEmail(emailOrId);
 
         Set<String> roles = user.getRoleNames();
         Set<String> permissions = user.getPermissionNames();

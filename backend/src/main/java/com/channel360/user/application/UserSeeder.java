@@ -1,6 +1,7 @@
 package com.channel360.user.application;
 
 import com.channel360.auth.api.AuthFacade;
+import com.channel360.auth.api.AuthUserDto;
 import com.channel360.auth.api.RegisterRequest;
 import com.channel360.common.config.AdminProperties;
 import com.channel360.common.config.SuperAdminProperties;
@@ -65,15 +66,16 @@ public class UserSeeder implements CommandLineRunner {
             request.setMobileNumber(mobileNumber);
 
             user = authFacade.register(request);
-            log.info("Created {} user: {}", label, user.getEmail());
+            log.info("Created {} user: {}", label, email);
         } catch (DuplicateResourceException e) {
-            user = userService.getUserByEmail(email);
-            log.info("{} user already exists: {}", label, user.getEmail());
+            AuthUserDto authUser = authFacade.findByEmail(email);
+            user = userService.getUserById(authUser.getId());
+            log.info("{} user already exists: {}", label, email);
         }
 
         RoleResponse role = roleFacade.findByName(roleName);
 
         userService.assignRoles(user.getId(), java.util.List.of(role.getId()));
-        log.info("Assigned {} to user {}", roleName, user.getEmail());
+        log.info("Assigned {} to user {}", roleName, email);
     }
 }

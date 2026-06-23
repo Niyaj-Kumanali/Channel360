@@ -18,7 +18,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,12 +40,6 @@ public class User extends BaseEntity {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    @Column(nullable = false)
-    private String password;
-
     @Column(name = "mobile_number")
     private String mobileNumber;
 
@@ -55,9 +48,6 @@ public class User extends BaseEntity {
 
     @Column(name = "status")
     private String status;
-
-    @Column(name = "last_login_at")
-    private LocalDateTime lastLoginAt;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

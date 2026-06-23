@@ -1,6 +1,9 @@
 package com.channel360.user.application;
 
+import com.channel360.auth.api.AuthFacade;
+import com.channel360.auth.api.AuthUserDto;
 import com.channel360.common.exception.BadRequestException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.dto.response.PageResponse;
 import com.channel360.role.api.RoleFacade;
@@ -9,13 +12,11 @@ import com.channel360.user.api.CreateUserRequest;
 import com.channel360.user.api.UpdateUserRequest;
 import com.channel360.user.api.UserFilterRequest;
 import com.channel360.user.domain.User;
-import com.channel360.user.application.UserMapper;
 import com.channel360.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +27,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
+
     private static final String CHAR_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int PASSWORD_LENGTH = 16;
 
     private final UserRepository userRepository;
     private final RoleFacade roleFacade;
     private final UserMapper userMapper;
+    private final AuthFacade authFacade;
     private final PasswordEncoder passwordEncoder;
 
     private String toSnakeCase(String camelCase) {
@@ -51,31 +54,35 @@ public class UserService {
 
         Page<User> page = new PageImpl<>(users, PageRequest.of(filter.getPage(), filter.getSize()), totalCount);
         Page<UserResponse> dtoPage = page.map(userMapper::toDto);
+        dtoPage.getContent().forEach(this::populateAuthFields);
         return PageResponse.from(dtoPage);
     }
 
     public UserResponse getUserById(Long id) {
-        return userRepository.findById(id)
+        UserResponse response = userRepository.findById(id)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        populateAuthFields(response);
+        return response;
     }
 
     @Transactional
     public UserResponse createUser(CreateUserRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email already in use: " + request.getEmail());
-        }
         if (request.getEmployeeId() != null && userRepository.existsByEmployeeId(request.getEmployeeId())) {
             throw new BadRequestException("Employee ID already in use: " + request.getEmployeeId());
         }
+        if (authFacade.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("Email already in use: " + request.getEmail());
+        }
+
+        userRepository.spSave(null, request.getFirstName(), request.getLastName(),
+                request.getMobileNumber(), request.getEmployeeId(), "ACTIVE", null, null);
+
+        User user = userRepository.findByEmployeeId(request.getEmployeeId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "employeeId", request.getEmployeeId()));
 
         String encodedPassword = passwordEncoder.encode(generateRandomPassword());
-        userRepository.spSave(null, request.getFirstName(), request.getLastName(),
-                request.getEmail(), encodedPassword, request.getMobileNumber(),
-                request.getEmployeeId(), "ACTIVE", null, null);
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.getEmail()));
+        authFacade.saveAuthUser(request.getEmail(), encodedPassword, user.getId(), null);
 
         if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
             validateRolesExist(request.getRoleIds());
@@ -83,7 +90,9 @@ public class UserService {
             userRepository.spAssignRoles(user.getId(), joined, null);
         }
 
-        return userMapper.toDto(user);
+        UserResponse response = userMapper.toDto(user);
+        populateAuthFields(response);
+        return response;
     }
 
     @Transactional
@@ -93,8 +102,8 @@ public class UserService {
 
         userMapper.updateEntity(request, user);
 
-        userRepository.spSave(id, user.getFirstName(), user.getLastName(), user.getEmail(),
-                null, user.getMobileNumber(), user.getEmployeeId(),
+        userRepository.spSave(id, user.getFirstName(), user.getLastName(),
+                user.getMobileNumber(), user.getEmployeeId(),
                 user.getStatus(), null, null);
 
         if (request.getRoleIds() != null) {
@@ -103,7 +112,9 @@ public class UserService {
             userRepository.spAssignRoles(id, joined, null);
         }
 
-        return userMapper.toDto(userRepository.findById(id).orElseThrow());
+        UserResponse response = userMapper.toDto(userRepository.findById(id).orElseThrow());
+        populateAuthFields(response);
+        return response;
     }
 
     @Transactional
@@ -119,8 +130,10 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }
-        userRepository.spSave(id, null, null, null, null, null, null, "ACTIVE", null, null);
-        return userMapper.toDto(userRepository.findById(id).orElseThrow());
+        userRepository.spSave(id, null, null, null, null, "ACTIVE", null, null);
+        UserResponse response = userMapper.toDto(userRepository.findById(id).orElseThrow());
+        populateAuthFields(response);
+        return response;
     }
 
     @Transactional
@@ -128,8 +141,10 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }
-        userRepository.spSave(id, null, null, null, null, null, null, "INACTIVE", null, null);
-        return userMapper.toDto(userRepository.findById(id).orElseThrow());
+        userRepository.spSave(id, null, null, null, null, "INACTIVE", null, null);
+        UserResponse response = userMapper.toDto(userRepository.findById(id).orElseThrow());
+        populateAuthFields(response);
+        return response;
     }
 
     @Transactional
@@ -140,21 +155,18 @@ public class UserService {
         validateRolesExist(roleIds);
         String joined = String.join(",", roleIds.stream().map(String::valueOf).toList());
         userRepository.spAssignRoles(id, joined, null);
-        return userMapper.toDto(userRepository.findById(id).orElseThrow());
+        UserResponse response = userMapper.toDto(userRepository.findById(id).orElseThrow());
+        populateAuthFields(response);
+        return response;
     }
 
-    @Transactional
-    public void resetPassword(Long id) {
-        userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        String newPassword = passwordEncoder.encode(generateRandomPassword());
-        userRepository.spChangePassword(id, newPassword);
-    }
-
-    public UserResponse getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .map(userMapper::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+    private void populateAuthFields(UserResponse response) {
+        try {
+            AuthUserDto authDto = authFacade.getAuthById(response.getId());
+            response.setEmail(authDto.getEmail());
+            response.setLastLoginAt(authDto.getLastLoginAt());
+        } catch (Exception ignored) {
+        }
     }
 
     private String generateRandomPassword() {
