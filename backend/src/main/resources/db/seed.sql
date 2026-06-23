@@ -132,10 +132,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'ROLE_ADMIN'
-  AND p.name IN ('dashboard.view',
-                 'users.view', 'users.create', 'users.edit',
-                 'sections.view', 'sections.create', 'sections.edit',
-                 'popups.view', 'popups.create', 'popups.edit')
+  AND p.name IN ('dashboard.view')
 ON CONFLICT DO NOTHING;
 
 -- MANAGER, INTERNAL_EMPLOYEE, EXTERNAL_EMPLOYEE, DISTRIBUTOR, CHANNEL_PARTNER, GUEST

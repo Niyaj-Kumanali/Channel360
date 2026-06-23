@@ -1,9 +1,7 @@
 package com.channel360.common.security;
 
-import com.channel360.role.domain.Permission;
-import com.channel360.role.domain.Role;
-import com.channel360.user.domain.User;
-import com.channel360.user.infrastructure.UserRepository;
+import com.channel360.user.api.AuthUserDto;
+import com.channel360.user.api.UserFacade;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,31 +9,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final UserFacade userFacade;
 
-    public CustomUserDetailsService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public CustomUserDetailsService(UserFacade userFacade) {
+        this.userFacade = userFacade;
     }
 
     @Override
     public UserDetails loadUserByUsername(String emailOrId) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(emailOrId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + emailOrId));
+        AuthUserDto user = userFacade.findByEmail(emailOrId);
 
-        Set<String> roles = user.getRoles().stream()
-                .map(Role::getName)
-                .collect(Collectors.toSet());
-
-        Set<String> permissions = user.getRoles().stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .map(Permission::getName)
-                .collect(Collectors.toSet());
+        Set<String> roles = user.getRoleNames();
+        Set<String> permissions = user.getPermissionNames();
 
         return new CustomUserDetails(
                 user.getId(),

@@ -1,16 +1,16 @@
 package com.channel360.regionapprover.application;
 
 import com.channel360.common.exception.ResourceNotFoundException;
-import com.channel360.region.domain.Region;
-import com.channel360.region.infrastructure.RegionRepository;
+import com.channel360.region.api.RegionFacade;
+import com.channel360.region.api.RegionResponse;
 import com.channel360.regionapprover.api.RegionApproverRequest;
 import com.channel360.regionapprover.api.RegionApproverResponse;
 import com.channel360.regionapprover.domain.RegionApprover;
 import com.channel360.regionapprover.infrastructure.RegionApproverRepository;
-import com.channel360.role.domain.Role;
-import com.channel360.role.infrastructure.RoleRepository;
-import com.channel360.user.domain.User;
-import com.channel360.user.infrastructure.UserRepository;
+import com.channel360.role.api.RoleFacade;
+import com.channel360.role.api.RoleResponse;
+import com.channel360.user.api.UserFacade;
+import com.channel360.user.api.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +23,9 @@ import java.util.List;
 public class RegionApproverService {
 
     private final RegionApproverRepository regionApproverRepository;
-    private final RegionRepository regionRepository;
-    private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
+    private final RegionFacade regionFacade;
+    private final RoleFacade roleFacade;
+    private final UserFacade userFacade;
 
     public List<RegionApproverResponse> getAllApprovers() {
         return regionApproverRepository.findByActiveFlagTrueOrderByRegionIdAsc().stream()
@@ -41,12 +41,9 @@ public class RegionApproverService {
 
     @Transactional
     public RegionApproverResponse createApprover(RegionApproverRequest request, String user) {
-        regionRepository.findActiveById(request.getRegionId())
-                .orElseThrow(() -> new ResourceNotFoundException("Region", "id", request.getRegionId()));
-        roleRepository.findById(request.getRoleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", request.getRoleId()));
-        userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", request.getUserId()));
+        regionFacade.getById(request.getRegionId());
+        roleFacade.getById(request.getRoleId());
+        userFacade.getById(request.getUserId());
 
         regionApproverRepository.spSave(null, request.getRegionId(), request.getRoleId(),
                 request.getUserId(), true, user);
@@ -83,27 +80,23 @@ public class RegionApproverService {
         String regionName = null;
         String regionPath = null;
         try {
-            Region region = regionRepository.findActiveById(ra.getRegionId()).orElse(null);
-            if (region != null) {
-                regionName = region.getName();
-                regionPath = region.getPath();
-            }
+            RegionResponse region = regionFacade.getById(ra.getRegionId());
+            regionName = region.getName();
+            regionPath = region.getPath();
         } catch (Exception ignored) {}
 
         String roleName = null;
         try {
-            Role role = roleRepository.findById(ra.getRoleId()).orElse(null);
-            if (role != null) roleName = role.getName();
+            RoleResponse role = roleFacade.getById(ra.getRoleId());
+            roleName = role.getName();
         } catch (Exception ignored) {}
 
         String userName = null;
         String userEmail = null;
         try {
-            User u = userRepository.findById(ra.getUserId()).orElse(null);
-            if (u != null) {
-                userName = u.getFirstName() + " " + u.getLastName();
-                userEmail = u.getEmail();
-            }
+            UserResponse u = userFacade.getById(ra.getUserId());
+            userName = u.getFirstName() + " " + u.getLastName();
+            userEmail = u.getEmail();
         } catch (Exception ignored) {}
 
         return RegionApproverResponse.builder()

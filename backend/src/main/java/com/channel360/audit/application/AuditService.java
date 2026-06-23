@@ -3,8 +3,8 @@ package com.channel360.audit.application;
 import com.channel360.audit.api.AuditLogResponse;
 import com.channel360.audit.domain.AuditLog;
 import com.channel360.audit.infrastructure.AuditLogRepository;
-import com.channel360.user.domain.User;
-import com.channel360.user.infrastructure.UserRepository;
+import com.channel360.user.api.UserFacade;
+import com.channel360.user.api.UserResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.List;
 public class AuditService {
 
     private final AuditLogRepository auditLogRepository;
-    private final UserRepository userRepository;
+    private final UserFacade userFacade;
     private final ObjectMapper objectMapper;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -67,11 +67,9 @@ public class AuditService {
         String userEmail = null;
         if (log.getUserId() != null) {
             try {
-                User u = userRepository.findById(log.getUserId()).orElse(null);
-                if (u != null) {
-                    userName = u.getFirstName() + " " + u.getLastName();
-                    userEmail = u.getEmail();
-                }
+                UserResponse u = userFacade.getById(log.getUserId());
+                userName = u.getFirstName() + " " + u.getLastName();
+                userEmail = u.getEmail();
             } catch (Exception ignored) {}
         }
         return AuditLogResponse.builder()

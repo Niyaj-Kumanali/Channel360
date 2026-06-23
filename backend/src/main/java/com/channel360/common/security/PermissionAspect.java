@@ -1,6 +1,6 @@
 package com.channel360.common.security;
 
-import com.channel360.user.infrastructure.UserRepository;
+import com.channel360.user.api.UserFacade;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -19,42 +19,34 @@ public class PermissionAspect {
 
     private static final Logger log = LoggerFactory.getLogger(PermissionAspect.class);
 
-    private final UserRepository userRepository;
+    private final UserFacade userFacade;
 
-    public PermissionAspect(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public PermissionAspect(UserFacade userFacade) {
+        this.userFacade = userFacade;
     }
 
     @Around("@annotation(requirePermission)")
-    public Object checkPermission(ProceedingJoinPoint pjp, RequirePermission requirePermission) throws Throwable {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    public Object checkPermission(ProceedingJoinPoint joinPoint, RequirePermission requirePermission) throws Throwable {
+        String requiredPermission = requirePermission.value();
 
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() instanceof String) {
-            log.warn("Access denied: no authenticated user");
-            throw new AccessDeniedException("Access denied");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("Authentication required");
         }
 
-        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-        Set<String> jwtPermissions = userDetails.getPermissions();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        Set<String> userPermissions = (jwtPermissions != null && !jwtPermissions.isEmpty())
-                ? jwtPermissions
-                : userRepository.findPermissionNamesByUserId(userDetails.getId());
-
-        // If the required permission isn't in the JWT, try loading from DB as fallback
-        if (!userPermissions.contains(requirePermission.value())) {
-            Set<String> dbPermissions = userRepository.findPermissionNamesByUserId(userDetails.getId());
-            if (dbPermissions.contains(requirePermission.value())) {
-                userPermissions = dbPermissions;
-            }
+        Set<String> permissions = userDetails.getPermissions();
+        if (permissions == null || permissions.isEmpty()) {
+            permissions = userFacade.findPermissionNamesByUserId(userDetails.getId());
         }
 
-        if (!userPermissions.contains(requirePermission.value())) {
-            log.warn("Access denied for user {}: missing permission '{}' (has: {})",
-                    userDetails.getId(), requirePermission.value(), userPermissions);
-            throw new AccessDeniedException("Access denied. Required permission: " + requirePermission.value());
+        if (permissions.contains(requiredPermission)) {
+            return joinPoint.proceed();
         }
 
-        return pjp.proceed();
+        log.warn("Access denied for user {}: missing permission '{}'",
+                userDetails.getId(), requiredPermission);
+        throw new AccessDeniedException("Access denied: missing permission '" + requiredPermission + "'");
     }
 }

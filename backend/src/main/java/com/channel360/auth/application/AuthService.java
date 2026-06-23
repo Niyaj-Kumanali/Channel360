@@ -1,12 +1,6 @@
 package com.channel360.auth.application;
 
-import com.channel360.auth.api.ChangePasswordRequest;
-import com.channel360.auth.api.ForgotPasswordRequest;
-import com.channel360.auth.api.LoginRequest;
-import com.channel360.auth.api.RefreshTokenRequest;
-import com.channel360.auth.api.RegisterRequest;
-import com.channel360.auth.api.ResetPasswordRequest;
-import com.channel360.auth.api.LoginResponse;
+import com.channel360.auth.api.*;
 import com.channel360.auth.domain.RefreshToken;
 import com.channel360.auth.application.AuthMapper;
 import com.channel360.auth.infrastructure.RefreshTokenRepository;
@@ -17,11 +11,11 @@ import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.security.CustomUserDetails;
 import com.channel360.common.security.JwtTokenProvider;
 import com.channel360.common.service.EmailService;
-import com.channel360.role.domain.Permission;
-import com.channel360.role.domain.Role;
-import com.channel360.role.infrastructure.RoleRepository;
-import com.channel360.user.domain.User;
-import com.channel360.user.infrastructure.UserRepository;
+import com.channel360.role.api.RoleFacade;
+import com.channel360.role.api.RoleResponse;
+import com.channel360.user.api.AuthUserDto;
+import com.channel360.user.api.UserFacade;
+import com.channel360.user.api.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,8 +46,8 @@ public class AuthService {
         }
     }
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final UserFacade userFacade;
+    private final RoleFacade roleFacade;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -69,8 +61,7 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+        AuthUserDto user = userFacade.findByEmail(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BadCredentialsException("Invalid email or password");
@@ -80,16 +71,7 @@ public class AuthService {
             throw new BadCredentialsException("Account has been deactivated");
         }
 
-        Set<String> roles = user.getRoles().stream()
-                .map(Role::getName)
-                .collect(Collectors.toSet());
-
-        Set<String> permissionNames = user.getRoles().stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .map(Permission::getName)
-                .collect(Collectors.toSet());
-
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), roles, permissionNames);
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getRoleNames(), user.getPermissionNames());
         String refreshTokenStr = jwtTokenProvider.generateRefreshToken(user.getId());
 
         saveRefreshToken(user.getId(), refreshTokenStr);
@@ -103,26 +85,22 @@ public class AuthService {
     }
 
     @Transactional
-    public User register(RegisterRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+    public UserResponse register(RegisterRequest request) {
+        if (userFacade.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("User", "email", request.getEmail());
         }
 
-        User user = authMapper.registerRequestToUser(request);
+        com.channel360.user.domain.User user = authMapper.registerRequestToUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        Role defaultRole = roleRepository.findByName("ROLE_GUEST")
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "ROLE_GUEST"));
+        RoleResponse defaultRole = roleFacade.findByName("ROLE_GUEST");
 
-        userRepository.spSave(null, user.getFirstName(), user.getLastName(),
+        Long userId = userFacade.saveUser(user.getFirstName(), user.getLastName(),
                 user.getEmail(), user.getPassword(), user.getMobileNumber(),
                 user.getEmployeeId(), "ACTIVE", null, null);
 
-        User savedUser = userRepository.findByEmail(user.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", user.getEmail()));
-
-        userRepository.spAssignRoles(savedUser.getId(), String.valueOf(defaultRole.getId()), null);
-        return savedUser;
+        userFacade.assignRoles(userId, String.valueOf(defaultRole.getId()), null);
+        return userFacade.getById(userId);
     }
 
     @Transactional
@@ -137,18 +115,18 @@ public class AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        userRepository.findById(userDetails.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userDetails.getId()));
+        userFacade.getById(userDetails.getId());
 
         if (!passwordEncoder.matches(request.getOldPassword(), userDetails.getPassword())) {
             throw new BadRequestException("Current password is incorrect");
         }
 
-        userRepository.spChangePassword(userDetails.getId(), passwordEncoder.encode(request.getNewPassword()));
+        userFacade.changePassword(userDetails.getId(), passwordEncoder.encode(request.getNewPassword()));
     }
 
     public void forgotPassword(ForgotPasswordRequest request) {
-        userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+        try {
+            userFacade.findByEmail(request.getEmail());
             String resetToken = UUID.randomUUID().toString();
             passwordResetTokens.put(request.getEmail(),
                     new ResetTokenEntry(resetToken, LocalDateTime.now().plusMinutes(RESET_TOKEN_EXPIRY_MINUTES)));
@@ -158,7 +136,9 @@ public class AuthService {
             emailService.sendResetPasswordEmail(request.getEmail(), resetLink);
 
             log.info("Password reset email sent to: {}", request.getEmail());
-        });
+        } catch (Exception e) {
+            log.info("Password reset requested for non-existent email: {}", request.getEmail());
+        }
     }
 
     @Transactional
@@ -179,22 +159,23 @@ public class AuthService {
                 .findFirst()
                 .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
-
-        userRepository.spChangePassword(user.getId(), passwordEncoder.encode(request.getNewPassword()));
+        try {
+            AuthUserDto user = userFacade.findByEmail(email);
+            userFacade.changePassword(user.getId(), passwordEncoder.encode(request.getNewPassword()));
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("User", "email", email);
+        }
 
         passwordResetTokens.remove(email);
     }
 
-    public User getCurrentUser() {
+    public UserResponse getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BadRequestException("No authenticated user found");
         }
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return userRepository.findById(userDetails.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userDetails.getId()));
+        return userFacade.getById(userDetails.getId());
     }
 
     public LoginResponse refreshToken(RefreshTokenRequest request) {
@@ -210,19 +191,11 @@ public class AuthService {
             throw new BadRequestException("Refresh token has expired");
         }
 
-        User user = userRepository.findById(refreshToken.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", refreshToken.getUserId()));
+        AuthUserDto user = userFacade.getAuthById(refreshToken.getUserId());
 
         refreshTokenRepository.spRevoke(request.getRefreshToken());
 
-        Set<String> roles = user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
-
-        Set<String> permissionNames = user.getRoles().stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .map(Permission::getName)
-                .collect(Collectors.toSet());
-
-        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), roles, permissionNames);
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getRoleNames(), user.getPermissionNames());
         String newRefreshTokenStr = jwtTokenProvider.generateRefreshToken(user.getId());
 
         saveRefreshToken(user.getId(), newRefreshTokenStr);

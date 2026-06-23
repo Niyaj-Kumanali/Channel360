@@ -1,15 +1,14 @@
 package com.channel360.user.application;
 
+import com.channel360.auth.api.AuthFacade;
 import com.channel360.auth.api.RegisterRequest;
-import com.channel360.auth.application.AuthService;
 import com.channel360.common.config.AdminProperties;
 import com.channel360.common.config.SuperAdminProperties;
 import com.channel360.common.exception.DuplicateResourceException;
 import com.channel360.common.exception.ResourceNotFoundException;
-import com.channel360.role.domain.Role;
-import com.channel360.role.infrastructure.RoleRepository;
-import com.channel360.user.domain.User;
-import com.channel360.user.infrastructure.UserRepository;
+import com.channel360.role.api.RoleFacade;
+import com.channel360.role.api.RoleResponse;
+import com.channel360.user.api.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -22,10 +21,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class UserSeeder implements CommandLineRunner {
 
-    private final AuthService authService;
+    private final AuthFacade authFacade;
     private final UserService userService;
-    private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
+    private final RoleFacade roleFacade;
     private final AdminProperties adminProperties;
     private final SuperAdminProperties superAdminProperties;
 
@@ -57,7 +55,7 @@ public class UserSeeder implements CommandLineRunner {
 
         log.info("Seeding {} user: {}", label, email);
 
-        User user;
+        UserResponse user;
         try {
             RegisterRequest request = new RegisterRequest();
             request.setEmail(email);
@@ -66,16 +64,14 @@ public class UserSeeder implements CommandLineRunner {
             request.setPassword(password);
             request.setMobileNumber(mobileNumber);
 
-            user = authService.register(request);
+            user = authFacade.register(request);
             log.info("Created {} user: {}", label, user.getEmail());
         } catch (DuplicateResourceException e) {
-            user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+            user = userService.getUserByEmail(email);
             log.info("{} user already exists: {}", label, user.getEmail());
         }
 
-        Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleName));
+        RoleResponse role = roleFacade.findByName(roleName);
 
         userService.assignRoles(user.getId(), java.util.List.of(role.getId()));
         log.info("Assigned {} to user {}", roleName, user.getEmail());

@@ -3,7 +3,7 @@ package com.channel360.user.application;
 import com.channel360.common.exception.BadRequestException;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.dto.response.PageResponse;
-import com.channel360.role.infrastructure.RoleRepository;
+import com.channel360.role.api.RoleFacade;
 import com.channel360.user.api.UserResponse;
 import com.channel360.user.api.CreateUserRequest;
 import com.channel360.user.api.UpdateUserRequest;
@@ -30,7 +30,7 @@ public class UserService {
     private static final int PASSWORD_LENGTH = 16;
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final RoleFacade roleFacade;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -151,8 +151,9 @@ public class UserService {
         userRepository.spChangePassword(id, newPassword);
     }
 
-    public User getUserByEmail(String email) {
+    public UserResponse getUserByEmail(String email) {
         return userRepository.findByEmail(email)
+                .map(userMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
     }
 
@@ -167,7 +168,7 @@ public class UserService {
 
     private void validateRolesExist(List<Long> roleIds) {
         for (Long roleId : roleIds) {
-            if (!roleRepository.existsById(roleId)) {
+            if (!roleFacade.existsById(roleId)) {
                 throw new ResourceNotFoundException("Role", "id", roleId);
             }
         }

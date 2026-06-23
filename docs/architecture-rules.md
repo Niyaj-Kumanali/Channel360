@@ -573,3 +573,16 @@ Microservice Ready Modular Monolith
 Do not build:
 
 Monolith That Requires Rewrite
+
+
+# Critical Rule #8
+
+Never inject repositories from another module even "just for a lookup".
+
+If data from another module is needed:
+
+Module -> Facade -> DTO
+
+Always.
+
+Even if it feels slower to implement.

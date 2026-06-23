@@ -29,7 +29,7 @@ public class MenuController {
     @GetMapping("/{id}")
     @RequirePermission("menu.manage")
     public ResponseEntity<ApiResponse<MenuResponse>> getMenuItem(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(menuService.getMenuItem(id)));
+        return ResponseEntity.ok(ApiResponse.success(menuService.getMenuItemById(id)));
     }
 
     @PostMapping
@@ -54,7 +54,9 @@ public class MenuController {
     @PutMapping("/reorder")
     @RequirePermission("menu.manage")
     public ResponseEntity<ApiResponse<Void>> reorderMenuItems(@RequestBody List<MenuRequest> items) {
-        menuService.reorderMenuItems(items);
+        for (MenuRequest item : items) {
+            menuService.reorderMenu(item.getId(), item.getDisplayOrder());
+        }
         return ResponseEntity.ok(ApiResponse.success(null, "Menu items reordered"));
     }
 

@@ -11,7 +11,7 @@ import com.channel360.auth.api.LoginResponse;
 import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.dto.response.MenuItem;
 import com.channel360.common.service.MenuService;
-import com.channel360.user.domain.User;
+import com.channel360.user.api.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +42,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<User>> register(@Valid @RequestBody RegisterRequest request) {
-        User user = authService.register(request);
+    public ResponseEntity<ApiResponse<UserResponse>> register(@Valid @RequestBody RegisterRequest request) {
+        UserResponse user = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(user, "Registration successful"));
     }
@@ -73,8 +73,8 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<User>> getCurrentUser() {
-        User user = authService.getCurrentUser();
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser() {
+        UserResponse user = authService.getCurrentUser();
         return ResponseEntity.ok(ApiResponse.success(user));
     }
 

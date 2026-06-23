@@ -9,18 +9,15 @@ import com.channel360.approval.domain.ApprovalTask;
 import com.channel360.approval.infrastructure.ApprovalRequestRepository;
 import com.channel360.approval.infrastructure.ApprovalTaskRepository;
 import com.channel360.common.exception.ResourceNotFoundException;
-import com.channel360.region.domain.Region;
-import com.channel360.region.infrastructure.RegionRepository;
-import com.channel360.regionapprover.domain.RegionApprover;
-import com.channel360.regionapprover.infrastructure.RegionApproverRepository;
-import com.channel360.role.domain.Role;
-import com.channel360.role.infrastructure.RoleRepository;
-import com.channel360.user.domain.User;
-import com.channel360.user.infrastructure.UserRepository;
-import com.channel360.workflow.domain.ApprovalWorkflow;
-import com.channel360.workflow.domain.ApprovalWorkflowStep;
-import com.channel360.workflow.infrastructure.WorkflowRepository;
-import com.channel360.workflow.infrastructure.WorkflowStepRepository;
+import com.channel360.region.api.RegionFacade;
+import com.channel360.region.api.RegionResponse;
+import com.channel360.regionapprover.api.RegionApproverFacade;
+import com.channel360.role.api.RoleFacade;
+import com.channel360.role.api.RoleResponse;
+import com.channel360.user.api.UserFacade;
+import com.channel360.user.api.UserResponse;
+import com.channel360.workflow.api.WorkflowFacade;
+import com.channel360.workflow.api.WorkflowStepResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,12 +33,11 @@ public class ApprovalService {
 
     private final ApprovalRequestRepository requestRepository;
     private final ApprovalTaskRepository taskRepository;
-    private final WorkflowRepository workflowRepository;
-    private final WorkflowStepRepository stepRepository;
-    private final RegionRepository regionRepository;
-    private final RegionApproverRepository regionApproverRepository;
-    private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
+    private final WorkflowFacade workflowFacade;
+    private final RegionFacade regionFacade;
+    private final RegionApproverFacade regionApproverFacade;
+    private final RoleFacade roleFacade;
+    private final UserFacade userFacade;
 
     public List<ApprovalRequestResponse> getAllRequests() {
         return requestRepository.findByStatusOrderByCreatedAtDesc(null).stream()
@@ -63,8 +59,7 @@ public class ApprovalService {
 
     @Transactional
     public ApprovalRequestResponse createRequest(ApprovalRequestCreate req) {
-        workflowRepository.findActiveById(req.getWorkflowId())
-                .orElseThrow(() -> new ResourceNotFoundException("Workflow", "id", req.getWorkflowId()));
+        workflowFacade.getById(req.getWorkflowId());
 
         ApprovalRequest request = ApprovalRequest.builder()
                 .workflowId(req.getWorkflowId())
@@ -76,16 +71,14 @@ public class ApprovalService {
                 .build();
         request = requestRepository.save(request);
 
-        List<ApprovalWorkflowStep> steps = stepRepository
-                .findByWorkflowIdAndDeletedFlagFalseOrderByStepOrder(req.getWorkflowId());
+        List<WorkflowStepResponse> steps = workflowFacade.getStepsByWorkflowId(req.getWorkflowId());
 
         List<ApprovalTask> tasks = new ArrayList<>();
-        for (ApprovalWorkflowStep step : steps) {
+        for (WorkflowStepResponse step : steps) {
             Long resolvedUserId = resolveApprover(req.getRequestRegionId(), step.getRoleName());
             Long resolvedRegionId = resolveApproverRegion(req.getRequestRegionId());
 
-            Role role = roleRepository.findByName(step.getRoleName())
-                    .orElseThrow(() -> new ResourceNotFoundException("Role", "name", step.getRoleName()));
+            RoleResponse role = roleFacade.findByName(step.getRoleName());
 
             ApprovalTask task = ApprovalTask.builder()
                     .approvalRequestId(request.getId())
@@ -163,23 +156,27 @@ public class ApprovalService {
 
         List<Long> regionChain = new ArrayList<>();
         regionChain.add(regionId);
-
-        Region current = regionRepository.findActiveById(regionId).orElse(null);
-        while (current != null && current.getParentId() != null) {
-            Long parentId = current.getParentId();
-            regionChain.add(parentId);
-            Region parent = regionRepository.findActiveById(parentId).orElse(null);
-            current = parent;
+        try {
+            RegionResponse current = regionFacade.getById(regionId);
+            while (current != null && current.getParentId() != null) {
+                Long parentId = current.getParentId();
+                regionChain.add(parentId);
+                current = regionFacade.getById(parentId);
+            }
+        } catch (Exception e) {
+            return null;
         }
 
-        Role role = roleRepository.findByName(roleName).orElse(null);
-        if (role == null) return null;
+        RoleResponse role;
+        try {
+            role = roleFacade.findByName(roleName);
+        } catch (Exception e) {
+            return null;
+        }
 
         for (Long rid : regionChain) {
-            RegionApprover approver = regionApproverRepository
-                    .findByRegionIdAndRoleIdAndUserIdAndActiveFlagTrue(rid, role.getId(), null)
-                    .orElse(null);
-            if (approver != null) return approver.getUserId();
+            Long userId = regionApproverFacade.findApproverUserId(rid, role.getId(), null);
+            if (userId != null) return userId;
         }
 
         return null;
@@ -187,21 +184,26 @@ public class ApprovalService {
 
     private Long resolveApproverRegion(Long regionId) {
         if (regionId == null) return null;
-        Region region = regionRepository.findActiveById(regionId).orElse(null);
-        if (region == null) return null;
+        try {
+            regionFacade.getById(regionId);
+        } catch (Exception e) {
+            return null;
+        }
 
         List<Long> chain = new ArrayList<>();
         chain.add(regionId);
-        Region current = region;
-        while (current.getParentId() != null) {
-            chain.add(current.getParentId());
-            Region parent = regionRepository.findActiveById(current.getParentId()).orElse(null);
-            if (parent == null) break;
-            current = parent;
+        try {
+            RegionResponse current = regionFacade.getById(regionId);
+            while (current.getParentId() != null) {
+                chain.add(current.getParentId());
+                current = regionFacade.getById(current.getParentId());
+            }
+        } catch (Exception e) {
+            chain = List.of(regionId);
         }
 
         for (Long rid : chain) {
-            if (regionApproverRepository.existsByRegionIdAndActiveFlagTrue(rid)) {
+            if (regionApproverFacade.existsByRegionId(rid)) {
                 return rid;
             }
         }
@@ -211,20 +213,18 @@ public class ApprovalService {
     private ApprovalRequestResponse toDto(ApprovalRequest request) {
         String workflowName = null;
         try {
-            workflowName = workflowRepository.findActiveById(request.getWorkflowId())
-                    .map(ApprovalWorkflow::getName).orElse(null);
+            workflowName = workflowFacade.getWorkflowNameById(request.getWorkflowId());
         } catch (Exception ignored) {}
 
         String regionName = null;
         try {
-            regionName = regionRepository.findActiveById(request.getRequestRegionId())
-                    .map(Region::getName).orElse(null);
+            regionName = regionFacade.getRegionNameById(request.getRequestRegionId());
         } catch (Exception ignored) {}
 
         String requestorName = null;
         try {
-            User u = userRepository.findById(request.getRequestorId()).orElse(null);
-            if (u != null) requestorName = u.getFirstName() + " " + u.getLastName();
+            UserResponse u = userFacade.getById(request.getRequestorId());
+            requestorName = u.getFirstName() + " " + u.getLastName();
         } catch (Exception ignored) {}
 
         List<ApprovalTaskResponse> tasks = taskRepository
@@ -252,43 +252,44 @@ public class ApprovalService {
         String stepLabel = null;
         Integer stepOrder = null;
         try {
-            ApprovalWorkflowStep step = stepRepository.findActiveById(task.getWorkflowStepId()).orElse(null);
-            if (step != null) { stepLabel = step.getLabel(); stepOrder = step.getStepOrder(); }
+            WorkflowStepResponse step = workflowFacade.getStepById(task.getWorkflowStepId());
+            stepLabel = step.getLabel();
+            stepOrder = step.getStepOrder();
         } catch (Exception ignored) {}
 
         String roleName = null;
         try {
-            roleName = roleRepository.findById(task.getAssignedRoleId()).map(Role::getName).orElse(null);
+            roleName = roleFacade.getRoleNameById(task.getAssignedRoleId());
         } catch (Exception ignored) {}
 
         String userName = null;
         try {
             if (task.getAssignedUserId() != null) {
-                User u = userRepository.findById(task.getAssignedUserId()).orElse(null);
-                if (u != null) userName = u.getFirstName() + " " + u.getLastName();
+                UserResponse u = userFacade.getById(task.getAssignedUserId());
+                userName = u.getFirstName() + " " + u.getLastName();
             }
         } catch (Exception ignored) {}
 
         String regionName = null;
         try {
             if (task.getAssignedRegionId() != null) {
-                regionName = regionRepository.findActiveById(task.getAssignedRegionId()).map(Region::getName).orElse(null);
+                regionName = regionFacade.getRegionNameById(task.getAssignedRegionId());
             }
         } catch (Exception ignored) {}
 
         String approvedByName = null;
         try {
             if (task.getApprovedBy() != null) {
-                User u = userRepository.findById(task.getApprovedBy()).orElse(null);
-                if (u != null) approvedByName = u.getFirstName() + " " + u.getLastName();
+                UserResponse u = userFacade.getById(task.getApprovedBy());
+                approvedByName = u.getFirstName() + " " + u.getLastName();
             }
         } catch (Exception ignored) {}
 
         String rejectedByName = null;
         try {
             if (task.getRejectedBy() != null) {
-                User u = userRepository.findById(task.getRejectedBy()).orElse(null);
-                if (u != null) rejectedByName = u.getFirstName() + " " + u.getLastName();
+                UserResponse u = userFacade.getById(task.getRejectedBy());
+                rejectedByName = u.getFirstName() + " " + u.getLastName();
             }
         } catch (Exception ignored) {}
 
