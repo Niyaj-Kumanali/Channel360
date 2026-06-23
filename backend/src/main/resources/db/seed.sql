@@ -94,6 +94,34 @@ INSERT INTO permissions (name, description, module)
 VALUES ('menu.manage', 'Manage sidebar menu items', 'menu')
 ON CONFLICT (name) DO NOTHING;
 
+INSERT INTO permissions (name, description, module)
+VALUES ('permissions.assign', 'Assign permissions to roles', 'permissions')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO permissions (name, description, module)
+VALUES ('regions.view', 'View region hierarchy', 'regions')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('regions.create', 'Create regions', 'regions')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('regions.edit', 'Edit regions', 'regions')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('regions.delete', 'Delete regions', 'regions')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO permissions (name, description, module)
+VALUES ('workflows.view', 'View approval workflows', 'workflows')
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions (name, description, module)
+VALUES ('workflows.configure', 'Configure approval workflow steps', 'workflows')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO permissions (name, description, module)
+VALUES ('audit.view', 'View audit logs', 'audit')
+ON CONFLICT (name) DO NOTHING;
+
 -- ROLE_SUPER_ADMIN gets all permissions (platform management)
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
@@ -136,6 +164,34 @@ INSERT INTO menu_items (label, path, icon, display_order, permission_name)
 SELECT 'Menu', '/admin/menu', 'Menu', 4, 'menu.manage'
 WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Menu' AND parent_id IS NULL);
 
+INSERT INTO menu_items (label, path, icon, display_order, permission_name)
+SELECT 'Regions', '/admin/regions', 'GitBranch', 5, 'regions.view'
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Regions' AND parent_id IS NULL);
+
+INSERT INTO menu_items (label, path, icon, display_order, permission_name)
+SELECT 'Workflows', '/admin/workflows', 'GitFork', 6, 'workflows.view'
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Workflows' AND parent_id IS NULL);
+
+INSERT INTO menu_items (label, path, icon, display_order, permission_name)
+SELECT 'Region Approvers', '/admin/region-approvers', 'UserCheck', 7, 'workflows.view'
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Region Approvers' AND parent_id IS NULL);
+
+INSERT INTO menu_items (label, path, icon, display_order, permission_name)
+SELECT 'Audit Logs', '/admin/audit-logs', 'History', 8, 'audit.view'
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Audit Logs' AND parent_id IS NULL);
+
+INSERT INTO menu_items (label, path, icon, display_order, permission_name)
+SELECT 'Approval Requests', '/admin/approval-requests', 'Flag', 9, 'workflows.view'
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Approval Requests' AND parent_id IS NULL);
+
+INSERT INTO menu_items (label, path, icon, display_order, permission_name)
+SELECT 'Permissions', '/admin/permissions', 'Key', 10, 'permissions.assign'
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Permissions' AND parent_id IS NULL);
+
+INSERT INTO menu_items (label, path, icon, display_order, permission_name)
+SELECT 'Users', '/admin/users', 'Users', 11, 'users.view'
+WHERE NOT EXISTS (SELECT 1 FROM menu_items WHERE label = 'Users' AND parent_id IS NULL);
+
 INSERT INTO menu_items (parent_id, label, path, icon, display_order, permission_name)
 SELECT p.id, 'Homepage Sections', '/admin/sections', 'Layout', 1, 'sections.view'
 FROM menu_items p WHERE p.label = 'Content' AND p.parent_id IS NULL
@@ -150,6 +206,9 @@ FROM menu_items p WHERE p.label = 'Content' AND p.parent_id IS NULL
 UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Dashboard' AND parent_id IS NULL)           WHERE name = 'dashboard.view';
 UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Roles' AND parent_id IS NULL)                WHERE module = 'roles';
 UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Menu' AND parent_id IS NULL)                 WHERE module = 'menu';
+UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Regions' AND parent_id IS NULL)              WHERE module = 'regions';
+UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Workflows' AND parent_id IS NULL)            WHERE module = 'workflows';
+UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Region Approvers' AND parent_id IS NULL)    WHERE module = 'region_approvers';
 UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Homepage Sections')                          WHERE module = 'sections';
 UPDATE permissions SET menu_id = (SELECT id FROM menu_items WHERE label = 'Popups')                                     WHERE module = 'popups';
 

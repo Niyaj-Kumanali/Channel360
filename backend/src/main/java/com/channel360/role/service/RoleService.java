@@ -80,6 +80,18 @@ public class RoleService {
     }
 
     @Transactional
+    public void updateRolePermissions(Long roleId, List<Long> permissionIds) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", roleId));
+        Set<Permission> permissions = permissionIds.stream()
+                .map(id -> permissionRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Permission", "id", id)))
+                .collect(Collectors.toSet());
+        role.setPermissions(permissions);
+        roleRepository.save(role);
+    }
+
+    @Transactional
     public void deleteRole(Long id) {
         if (!roleRepository.existsById(id)) {
             throw new ResourceNotFoundException("Role", "id", id);

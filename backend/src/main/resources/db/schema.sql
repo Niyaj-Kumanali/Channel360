@@ -138,3 +138,117 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_module ON audit_logs(module_name);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs(entity_name, entity_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
+
+CREATE TABLE IF NOT EXISTS regions (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    parent_id BIGINT REFERENCES regions(id) ON DELETE CASCADE,
+    level VARCHAR(50) NOT NULL,
+    tree_type VARCHAR(10) NOT NULL,
+    path TEXT NOT NULL,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(255),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted_flag BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX IF NOT EXISTS idx_regions_parent_id ON regions(parent_id);
+CREATE INDEX IF NOT EXISTS idx_regions_level ON regions(level);
+CREATE INDEX IF NOT EXISTS idx_regions_tree_type ON regions(tree_type);
+CREATE INDEX IF NOT EXISTS idx_regions_path ON regions(path);
+CREATE INDEX IF NOT EXISTS idx_regions_deleted_flag ON regions(deleted_flag);
+
+CREATE TABLE IF NOT EXISTS approval_workflows (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    module VARCHAR(100),
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(255),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted_flag BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX IF NOT EXISTS idx_approval_workflows_module ON approval_workflows(module);
+CREATE INDEX IF NOT EXISTS idx_approval_workflows_active ON approval_workflows(active);
+CREATE INDEX IF NOT EXISTS idx_approval_workflows_deleted_flag ON approval_workflows(deleted_flag);
+
+CREATE TABLE IF NOT EXISTS approval_workflow_steps (
+    id BIGSERIAL PRIMARY KEY,
+    workflow_id BIGINT NOT NULL REFERENCES approval_workflows(id) ON DELETE CASCADE,
+    step_order INTEGER NOT NULL,
+    role_name VARCHAR(50) NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    mandatory BOOLEAN NOT NULL DEFAULT TRUE,
+    sla_hours INTEGER,
+    escalation_role VARCHAR(50),
+    description TEXT,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(255),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted_flag BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX IF NOT EXISTS idx_workflow_steps_workflow_id ON approval_workflow_steps(workflow_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_steps_order ON approval_workflow_steps(workflow_id, step_order);
+CREATE INDEX IF NOT EXISTS idx_workflow_steps_deleted_flag ON approval_workflow_steps(deleted_flag);
+
+ALTER TABLE approval_workflow_steps ADD COLUMN IF NOT EXISTS mandatory BOOLEAN NOT NULL DEFAULT TRUE;
+
+CREATE TABLE IF NOT EXISTS region_approvers (
+    id BIGSERIAL PRIMARY KEY,
+    region_id BIGINT NOT NULL REFERENCES regions(id) ON DELETE CASCADE,
+    role_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    active_flag BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(255),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_region_approvers_region ON region_approvers(region_id);
+CREATE INDEX IF NOT EXISTS idx_region_approvers_role ON region_approvers(role_id);
+CREATE INDEX IF NOT EXISTS idx_region_approvers_user ON region_approvers(user_id);
+CREATE INDEX IF NOT EXISTS idx_region_approvers_active ON region_approvers(active_flag);
+
+CREATE TABLE IF NOT EXISTS approval_requests (
+    id BIGSERIAL PRIMARY KEY,
+    workflow_id BIGINT NOT NULL REFERENCES approval_workflows(id),
+    request_type VARCHAR(100) NOT NULL,
+    request_reference_id BIGINT,
+    request_region_id BIGINT REFERENCES regions(id),
+    requestor_id BIGINT NOT NULL REFERENCES users(id),
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_approval_requests_workflow ON approval_requests(workflow_id);
+CREATE INDEX IF NOT EXISTS idx_approval_requests_region ON approval_requests(request_region_id);
+CREATE INDEX IF NOT EXISTS idx_approval_requests_status ON approval_requests(status);
+
+CREATE TABLE IF NOT EXISTS approval_tasks (
+    id BIGSERIAL PRIMARY KEY,
+    approval_request_id BIGINT NOT NULL REFERENCES approval_requests(id) ON DELETE CASCADE,
+    workflow_step_id BIGINT NOT NULL REFERENCES approval_workflow_steps(id),
+    assigned_role_id BIGINT NOT NULL REFERENCES roles(id),
+    assigned_user_id BIGINT REFERENCES users(id),
+    assigned_region_id BIGINT REFERENCES regions(id),
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    approved_by BIGINT REFERENCES users(id),
+    approved_at TIMESTAMP,
+    rejected_by BIGINT REFERENCES users(id),
+    rejected_at TIMESTAMP,
+    comments TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_approval_tasks_request ON approval_tasks(approval_request_id);
+CREATE INDEX IF NOT EXISTS idx_approval_tasks_assigned_user ON approval_tasks(assigned_user_id);
+CREATE INDEX IF NOT EXISTS idx_approval_tasks_status ON approval_tasks(status);
+CREATE INDEX IF NOT EXISTS idx_approval_tasks_region ON approval_tasks(assigned_region_id);

@@ -44,6 +44,15 @@ public class RoleController {
         return ResponseEntity.ok(ApiResponse.success(roleService.updateRole(id, roleDto), "Role updated successfully"));
     }
 
+    @PutMapping("/{roleId}/permissions")
+    @RequirePermission("permissions.assign")
+    public ResponseEntity<ApiResponse<Void>> updateRolePermissions(
+            @PathVariable Long roleId,
+            @RequestBody List<Long> permissionIds) {
+        roleService.updateRolePermissions(roleId, permissionIds);
+        return ResponseEntity.ok(ApiResponse.success(null, "Permissions updated successfully"));
+    }
+
     @DeleteMapping("/{id}")
     @RequirePermission("roles.delete")
     public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable Long id) {
