@@ -43,6 +43,12 @@ public class RoleService {
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", id));
     }
 
+    public RoleResponse getRoleByName(String name) {
+        return roleRepository.findByName(name)
+                .map(roleMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", name));
+    }
+
     public List<PermissionResponse> getAllPermissions() {
         return permissionRepository.findAll().stream()
                 .map(p -> new PermissionResponse(p.getId(), p.getName(), p.getDescription(), p.getModule(), p.getMenuId()))

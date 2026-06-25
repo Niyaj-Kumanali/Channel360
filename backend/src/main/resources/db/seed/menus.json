@@ -1,0 +1,95 @@
+[
+  {
+    "label": "Dashboard",
+    "path": "/dashboard",
+    "icon": "LayoutDashboard",
+    "displayOrder": 1,
+    "permissionName": "dashboard.view"
+  },
+  {
+    "label": "Content",
+    "path": "#",
+    "icon": "FileText",
+    "displayOrder": 2,
+    "permissionName": null,
+    "children": [
+      {
+        "label": "Homepage Sections",
+        "path": "/admin/sections",
+        "icon": "Layout",
+        "displayOrder": 1,
+        "permissionName": "sections.view"
+      },
+      {
+        "label": "Popups",
+        "path": "/admin/popups",
+        "icon": "Square",
+        "displayOrder": 2,
+        "permissionName": "popups.view"
+      }
+    ]
+  },
+  {
+    "label": "Roles",
+    "path": "/admin/roles",
+    "icon": "Shield",
+    "displayOrder": 3,
+    "permissionName": "roles.view"
+  },
+  {
+    "label": "Menu",
+    "path": "/admin/menu",
+    "icon": "Menu",
+    "displayOrder": 4,
+    "permissionName": "menu.manage"
+  },
+  {
+    "label": "Regions",
+    "path": "/admin/regions",
+    "icon": "GitBranch",
+    "displayOrder": 5,
+    "permissionName": "regions.view"
+  },
+  {
+    "label": "Workflows",
+    "path": "/admin/workflows",
+    "icon": "GitFork",
+    "displayOrder": 6,
+    "permissionName": "workflows.view"
+  },
+  {
+    "label": "Region Approvers",
+    "path": "/admin/region-approvers",
+    "icon": "UserCheck",
+    "displayOrder": 7,
+    "permissionName": "workflows.view"
+  },
+  {
+    "label": "Audit Logs",
+    "path": "/admin/audit-logs",
+    "icon": "History",
+    "displayOrder": 8,
+    "permissionName": "audit.view"
+  },
+  {
+    "label": "Approval Requests",
+    "path": "/admin/approval-requests",
+    "icon": "Flag",
+    "displayOrder": 9,
+    "permissionName": "workflows.view"
+  },
+  {
+    "label": "Permissions",
+    "path": "/admin/permissions",
+    "icon": "Key",
+    "displayOrder": 10,
+    "permissionName": "permissions.assign"
+  },
+  {
+    "label": "Users",
+    "path": "/admin/users",
+    "icon": "Users",
+    "displayOrder": 11,
+    "permissionName": "users.view"
+  }
+]

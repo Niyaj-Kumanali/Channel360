@@ -1,4 +1,4 @@
-package com.channel360.user.application;
+package com.channel360.common.seeder;
 
 import com.channel360.auth.api.AuthFacade;
 import com.channel360.auth.api.AuthUserDto;
@@ -6,29 +6,28 @@ import com.channel360.auth.api.RegisterRequest;
 import com.channel360.common.config.AdminProperties;
 import com.channel360.common.config.SuperAdminProperties;
 import com.channel360.common.exception.DuplicateResourceException;
-import com.channel360.role.api.RoleFacade;
 import com.channel360.role.api.RoleResponse;
+import com.channel360.role.application.RoleService;
 import com.channel360.user.api.UserResponse;
+import com.channel360.user.application.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-@Component
-@Order(2)
-@RequiredArgsConstructor
+import java.util.List;
+
 @Slf4j
-public class UserSeeder implements CommandLineRunner {
+@Component
+@RequiredArgsConstructor
+public class UserSeeder {
 
     private final AuthFacade authFacade;
     private final UserService userService;
-    private final RoleFacade roleFacade;
+    private final RoleService roleService;
     private final AdminProperties adminProperties;
     private final SuperAdminProperties superAdminProperties;
 
-    @Override
-    public void run(String... args) {
+    public void seed() {
         seedAdmin(
                 adminProperties.email(), adminProperties.password(),
                 adminProperties.firstName(), adminProperties.lastName(),
@@ -72,9 +71,8 @@ public class UserSeeder implements CommandLineRunner {
             log.info("{} user already exists: {}", label, email);
         }
 
-        RoleResponse role = roleFacade.findByName(roleName);
-
-        userService.assignRoles(user.getId(), java.util.List.of(role.getId()));
+        RoleResponse role = roleService.getRoleByName(roleName);
+        userService.assignRoles(user.getId(), List.of(role.getId()));
         log.info("Assigned {} to user {}", roleName, email);
     }
 }

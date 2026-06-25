@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Welcome to Channel360",
+    "description": "Discover end-to-end visibility across your entire channel ecosystem. Track products from manufacturer to end-customer activation.",
+    "ctaButtonText": "Explore Platform",
+    "ctaUrl": "/login",
+    "priority": 1,
+    "active": true,
+    "createdBy": "system"
+  },
+  {
+    "title": "New Partner Program Launching Q3",
+    "description": "Enhanced incentive tiers and streamlined onboarding for all channel partners. Join us for the launch event.",
+    "ctaButtonText": "Learn More",
+    "ctaUrl": "#",
+    "priority": 2,
+    "active": false,
+    "createdBy": "system"
+  }
+]

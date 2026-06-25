@@ -1,0 +1,10 @@
+[
+  { "name": "ROLE_SUPER_ADMIN", "description": "Platform administrator — manages users, roles, menus, CMS, workflows, regions. No channel data access." },
+  { "name": "ROLE_ADMIN", "description": "Highest business authority — full operational access, all regions, override approval chains." },
+  { "name": "ROLE_MANAGER", "description": "Geographically scoped business approver — authority determined by assigned region." },
+  { "name": "ROLE_INTERNAL_EMPLOYEE", "description": "Internal company employee — operations, sales, finance, product team." },
+  { "name": "ROLE_EXTERNAL_EMPLOYEE", "description": "Contractor or outsourced user with limited operational access." },
+  { "name": "ROLE_DISTRIBUTOR", "description": "Distributor partner — scoped to own company. Uploads sales, manages inventory." },
+  { "name": "ROLE_CHANNEL_PARTNER", "description": "Channel partner — scoped to own company. Customer sales, activations." },
+  { "name": "ROLE_GUEST", "description": "Default registration role — minimal dashboard access." }
+]

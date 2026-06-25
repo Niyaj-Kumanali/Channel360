@@ -1,0 +1,10 @@
+[
+  { "role": "ROLE_SUPER_ADMIN", "permissions": "*" },
+  { "role": "ROLE_ADMIN", "permissions": ["dashboard.view"] },
+  { "role": "ROLE_MANAGER", "permissions": ["dashboard.view"] },
+  { "role": "ROLE_INTERNAL_EMPLOYEE", "permissions": ["dashboard.view"] },
+  { "role": "ROLE_EXTERNAL_EMPLOYEE", "permissions": ["dashboard.view"] },
+  { "role": "ROLE_DISTRIBUTOR", "permissions": ["dashboard.view"] },
+  { "role": "ROLE_CHANNEL_PARTNER", "permissions": ["dashboard.view"] },
+  { "role": "ROLE_GUEST", "permissions": ["dashboard.view"] }
+]
