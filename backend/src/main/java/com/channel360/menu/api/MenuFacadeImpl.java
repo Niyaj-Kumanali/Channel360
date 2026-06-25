@@ -1,10 +1,10 @@
 package com.channel360.menu.api;
 
-import com.channel360.menu.domain.MenuItem;
+import com.channel360.common.dto.response.MenuItem;
+import com.channel360.menu.application.MenuApplicationService;
 import com.channel360.menu.infrastructure.MenuItemRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,6 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuFacadeImpl implements MenuFacade {
 
+    private final MenuApplicationService menuApplicationService;
     private final MenuItemRepository menuItemRepository;
 
     @Override
@@ -21,29 +22,22 @@ public class MenuFacadeImpl implements MenuFacade {
     }
 
     @Override
-    public List<MenuItem> findRootMenuItems() {
-        return menuItemRepository.findByParentIdIsNullAndActiveTrueOrderByDisplayOrder();
+    public List<MenuItem> getCurrentUserMenu() {
+        return menuApplicationService.getCurrentUserMenu();
     }
 
     @Override
-    public List<MenuItem> findChildMenuItems(Long parentId) {
-        return menuItemRepository.findByParentIdAndActiveTrueOrderByDisplayOrder(parentId);
+    public List<MenuResponse> findAllOrdered() {
+        return menuItemRepository.findAllByOrderByDisplayOrder().stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Override
-    public List<MenuItem> findAllOrdered() {
-        return menuItemRepository.findAllByOrderByDisplayOrder();
-    }
-
-    @Override
-    public MenuItem findById(Long id) {
+    public MenuResponse findById(Long id) {
         return menuItemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Menu item not found with id: " + id));
-    }
-
-    @Override
-    public MenuItem save(@NonNull MenuItem entity) {
-        return menuItemRepository.save(entity);
+                .map(this::toResponse)
+                .orElseThrow(() -> new EntityNotFoundException("Menu item not found with id: " + id));
     }
 
     @Override
@@ -54,5 +48,20 @@ public class MenuFacadeImpl implements MenuFacade {
     @Override
     public void deleteById(Long id) {
         menuItemRepository.deleteById(id);
+    }
+
+    private MenuResponse toResponse(com.channel360.menu.domain.MenuItem entity) {
+        return MenuResponse.builder()
+                .id(entity.getId())
+                .parentId(entity.getParentId())
+                .label(entity.getLabel())
+                .path(entity.getPath())
+                .icon(entity.getIcon())
+                .permissionName(entity.getPermissionName())
+                .displayOrder(entity.getDisplayOrder())
+                .active(entity.getActive())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .build();
     }
 }

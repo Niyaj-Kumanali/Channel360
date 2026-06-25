@@ -7,9 +7,11 @@ import com.channel360.workflow.api.WorkflowResponse;
 import com.channel360.workflow.api.WorkflowStepResponse;
 import com.channel360.workflow.domain.ApprovalWorkflow;
 import com.channel360.workflow.domain.ApprovalWorkflowStep;
+import com.channel360.workflow.domain.event.WorkflowCreatedEvent;
 import com.channel360.workflow.infrastructure.WorkflowRepository;
 import com.channel360.workflow.infrastructure.WorkflowStepRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ public class WorkflowService {
 
     private final WorkflowRepository workflowRepository;
     private final WorkflowStepRepository stepRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<WorkflowResponse> getAllWorkflows() {
         return workflowRepository.findByDeletedFlagFalseOrderByModuleAscNameAsc().stream()
@@ -42,6 +45,7 @@ public class WorkflowService {
 
         ApprovalWorkflow saved = workflowRepository.findActiveByName(request.getName())
                 .orElseThrow(() -> new ResourceNotFoundException("Workflow", "name", request.getName()));
+        eventPublisher.publishEvent(new WorkflowCreatedEvent(saved));
         return toDto(saved);
     }
 

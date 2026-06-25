@@ -9,9 +9,12 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        uses = {com.channel360.role.application.RoleMapper.class})
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
+
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "email", ignore = true)
+    @Mapping(target = "lastLoginAt", ignore = true)
     UserResponse toDto(User user);
 
     @Mapping(target = "id", ignore = true)

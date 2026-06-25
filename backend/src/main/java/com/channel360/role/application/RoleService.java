@@ -6,9 +6,13 @@ import com.channel360.role.api.RoleResponse;
 import com.channel360.role.domain.Permission;
 import com.channel360.role.domain.Role;
 import com.channel360.role.application.RoleMapper;
+import com.channel360.role.domain.event.RoleCreatedEvent;
+import com.channel360.role.domain.event.RoleDeletedEvent;
+import com.channel360.role.domain.event.RoleUpdatedEvent;
 import com.channel360.role.infrastructure.PermissionRepository;
 import com.channel360.role.infrastructure.RoleRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +28,7 @@ public class RoleService {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final RoleMapper roleMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<RoleResponse> getAllRoles() {
         return roleRepository.findAll()
@@ -59,6 +64,8 @@ public class RoleService {
             roleRepository.save(saved);
         }
 
+        eventPublisher.publishEvent(new RoleCreatedEvent(saved));
+
         return roleMapper.toDto(saved);
     }
 
@@ -78,8 +85,10 @@ public class RoleService {
             roleRepository.save(role);
         }
 
-        return roleMapper.toDto(roleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", id)));
+        Role updated = roleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", id));
+        eventPublisher.publishEvent(new RoleUpdatedEvent(updated));
+        return roleMapper.toDto(updated);
     }
 
     @Transactional

@@ -7,14 +7,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.dto.response.PageResponse;
 import com.channel360.role.api.RoleFacade;
+import com.channel360.role.api.RoleResponse;
 import com.channel360.user.api.UserResponse;
 import com.channel360.user.api.CreateUserRequest;
 import com.channel360.user.api.UpdateUserRequest;
 import com.channel360.user.api.UserFilterRequest;
 import com.channel360.user.domain.User;
+import com.channel360.user.domain.event.RoleAssignedEvent;
+import com.channel360.user.domain.event.UserCreatedEvent;
 import com.channel360.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,6 +44,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final AuthFacade authFacade;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
     private String toSnakeCase(String camelCase) {
         return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
@@ -55,15 +62,20 @@ public class UserService {
         );
 
         Page<User> page = new PageImpl<>(users, PageRequest.of(filter.getPage(), filter.getSize()), totalCount);
-        Page<UserResponse> dtoPage = page.map(userMapper::toDto);
+        Page<UserResponse> dtoPage = page.map(user -> {
+            UserResponse dto = userMapper.toDto(user);
+            populateRoles(dto, user);
+            return dto;
+        });
         dtoPage.getContent().forEach(this::populateAuthFields);
         return PageResponse.from(dtoPage);
     }
 
     public UserResponse getUserById(Long id) {
-        UserResponse response = userRepository.findById(id)
-                .map(userMapper::toDto)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        UserResponse response = userMapper.toDto(user);
+        populateRoles(response, user);
         populateAuthFields(response);
         return response;
     }
@@ -92,7 +104,10 @@ public class UserService {
             userRepository.spAssignRoles(user.getId(), joined, null);
         }
 
+        eventPublisher.publishEvent(new UserCreatedEvent(user.getId(), request.getEmail()));
+
         UserResponse response = userMapper.toDto(user);
+        populateRoles(response, user);
         populateAuthFields(response);
         return response;
     }
@@ -114,7 +129,10 @@ public class UserService {
             userRepository.spAssignRoles(id, joined, null);
         }
 
-        UserResponse response = userMapper.toDto(userRepository.findById(id).orElseThrow());
+        User updatedUser = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        UserResponse response = userMapper.toDto(updatedUser);
+        populateRoles(response, updatedUser);
         populateAuthFields(response);
         return response;
     }
@@ -133,7 +151,10 @@ public class UserService {
             throw new ResourceNotFoundException("User", "id", id);
         }
         userRepository.spSave(id, null, null, null, null, "ACTIVE", null, null);
-        UserResponse response = userMapper.toDto(userRepository.findById(id).orElseThrow());
+        User activatedUser = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        UserResponse response = userMapper.toDto(activatedUser);
+        populateRoles(response, activatedUser);
         populateAuthFields(response);
         return response;
     }
@@ -144,7 +165,10 @@ public class UserService {
             throw new ResourceNotFoundException("User", "id", id);
         }
         userRepository.spSave(id, null, null, null, null, "INACTIVE", null, null);
-        UserResponse response = userMapper.toDto(userRepository.findById(id).orElseThrow());
+        User deactivatedUser = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        UserResponse response = userMapper.toDto(deactivatedUser);
+        populateRoles(response, deactivatedUser);
         populateAuthFields(response);
         return response;
     }
@@ -157,8 +181,13 @@ public class UserService {
         validateRolesExist(roleIds);
         String joined = String.join(",", roleIds.stream().map(String::valueOf).toList());
         userRepository.spAssignRoles(id, joined, null);
-        UserResponse response = userMapper.toDto(userRepository.findById(id).orElseThrow());
+        User updatedUser = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        UserResponse response = userMapper.toDto(updatedUser);
+        populateRoles(response, updatedUser);
         populateAuthFields(response);
+
+        eventPublisher.publishEvent(new RoleAssignedEvent(id, joined));
         return response;
     }
 
@@ -171,6 +200,17 @@ public class UserService {
         authFacade.changePassword(id, passwordEncoder.encode(newPassword));
         log.info("Password reset for user {}", id);
         return newPassword;
+    }
+
+    private void populateRoles(UserResponse response, User user) {
+        try {
+            Set<RoleResponse> roleResponses = user.getRoles().stream()
+                    .map(role -> roleFacade.getById(role.getId()))
+                    .collect(Collectors.toSet());
+            response.setRoles(roleResponses);
+        } catch (Exception e) {
+            log.warn("Failed to populate roles for user {}: {}", user.getId(), e.getMessage());
+        }
     }
 
     private void populateAuthFields(UserResponse response) {

@@ -18,8 +18,10 @@ import com.channel360.user.api.UserFacade;
 import com.channel360.user.api.UserResponse;
 import com.channel360.workflow.api.WorkflowFacade;
 import com.channel360.workflow.api.WorkflowStepResponse;
+import com.channel360.workflow.domain.event.WorkflowApprovedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,7 @@ public class ApprovalService {
     private final RegionApproverFacade regionApproverFacade;
     private final RoleFacade roleFacade;
     private final UserFacade userFacade;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<ApprovalRequestResponse> getAllRequests() {
         return requestRepository.findByStatusOrderByCreatedAtDesc(null).stream()
@@ -154,6 +157,7 @@ public class ApprovalService {
         } else if (allApproved) {
             request.setStatus("APPROVED");
             requestRepository.save(request);
+            eventPublisher.publishEvent(new WorkflowApprovedEvent(requestId, null, null));
         }
     }
 

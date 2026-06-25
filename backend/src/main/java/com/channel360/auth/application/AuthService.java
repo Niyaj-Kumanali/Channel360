@@ -1,6 +1,7 @@
 package com.channel360.auth.application;
 
 import com.channel360.auth.api.*;
+import com.channel360.auth.domain.AuthUser;
 import com.channel360.auth.domain.RefreshToken;
 import com.channel360.auth.infrastructure.AuthUserRepository;
 import com.channel360.auth.infrastructure.RefreshTokenRepository;
@@ -16,8 +17,7 @@ import com.channel360.role.api.RoleResponse;
 import com.channel360.user.api.UserFacade;
 import com.channel360.user.api.UserResponse;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -31,11 +31,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private static final long RESET_TOKEN_EXPIRY_MINUTES = 30;
 
@@ -98,7 +98,12 @@ public class AuthService {
         Long userId = userFacade.saveUser(request.getFirstName(), request.getLastName(),
                 request.getMobileNumber(), request.getEmployeeId(), "ACTIVE", null, null);
 
-        authFacade.saveAuthUser(request.getEmail(), encodedPassword, userId, null);
+        AuthUser user = AuthUser.builder()
+                .id(userId)
+                .email(request.getEmail())
+                .password(encodedPassword)
+                .build();
+        authUserRepository.save(user);
 
         RoleResponse defaultRole = roleFacade.findByName("ROLE_GUEST");
         userFacade.assignRoles(userId, String.valueOf(defaultRole.getId()), null);
@@ -164,7 +169,10 @@ public class AuthService {
         try {
             AuthUserDto user = authFacade.findByEmail(email);
             authFacade.changePassword(user.getId(), passwordEncoder.encode(request.getNewPassword()));
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
+            log.error("Failed to reset password for email {}: {}", email, e.getMessage());
             throw new ResourceNotFoundException("User", "email", email);
         }
 
