@@ -95,10 +95,11 @@ Phase 7 & 8: Analysis (📋)
 
 | Step | Module | Status |
 |------|--------|--------|
-| 1 | **Roles** — Seed 8 identity roles in DB. Remove `RoleName` Java enum. Update `AuthService` default role to `ROLE_GUEST`. | ⏳ Pending |
-| 2 | **Permissions** — Seed granular `module.action` permissions for all modules. Assign base permissions per role. | ⏳ Pending |
-| 3 | **Regions** — Create `regions` table (self-referencing, B2B + B2C trees). Zone → Region → State → Territory levels. CRUD + admin page. | ⏳ Pending |
-| 4 | **User Management** — Enhance user CRUD with role assignment + region assignment (`user_regions` table) + distributor/partner linkage. | ⏳ Pending |
+| 1 | **Roles** — Seed 8 identity roles in DB. Remove `RoleName` Java enum. Update `AuthService` default role to `ROLE_GUEST`. | ✅ Roles seeded. RoleName enum removal pending. |
+| 2 | **Permissions** — Seed granular `module.action` permissions for all modules. Assign base permissions per role. | ✅ Permissions seeded and assigned to roles in seed.sql |
+| 3 | **Approval Workflow Engine** — `approval_workflows` + `approval_workflow_steps` tables. Reusable multi-level approval routing with region hierarchy resolution. | ✅ Implemented and operational |
+| 4 | **Regions** — Create `regions` table (self-referencing, B2B + B2C trees). Zone → Region → State → Territory levels. CRUD + admin page. | ⏳ Pending |
+| 5 | **User Management** — Enhance user CRUD with role assignment + region assignment (`user_regions` table) + distributor/partner linkage. | ⏳ Pending |
 
 ### Phase 4 — Master Data 📋
 
@@ -113,10 +114,9 @@ Phase 7 & 8: Analysis (📋)
 
 | Step | Module |
 |------|--------|
-| 9 | Approval Workflow Engine — `approval_workflows` + `approval_workflow_steps` tables. Reusable multi-level approval routing. SUPER_ADMIN configurable. |
-| 10 | Access Requests — Request system with cooldown. Routes through workflow engine. |
-| 11 | Access Grants — `user_access_grants` table. ADMIN bypass. Permanent grants. |
-| 12 | Approval Queue — Single pending queue UI for MANAGER/ADMIN. |
+| 9 | Access Requests — Request system with cooldown. Routes through workflow engine. |
+| 10 | Access Grants — `user_access_grants` table. ADMIN bypass. Permanent grants. |
+| 11 | Approval Queue — Single pending queue UI for MANAGER/ADMIN. |
 
 ### Phase 6 — Transactions 📋
 
@@ -141,6 +141,24 @@ Phase 7 & 8: Analysis (📋)
 | 19 | Reports — Per-role scoped report views. Materialized views/fact tables. |
 | 20 | Analytics — Business intelligence dashboards. |
 | 21 | External Data Upload — Third-party / marketplace data ingestion. |
+
+---
+
+## Completed Backend Refactoring
+
+The backend has undergone systematic refactoring to enforce modular monolith boundaries, modernize Java 21 patterns, and eliminate technical debt:
+
+| Phase | Work | Detail |
+|-------|------|--------|
+| **Phase 1** | Infrastructure | Constructor injection enforced, `@Builder.Default` added to entities, `BadRequestException` standardized |
+| **Phase 2** | Circular Dependencies | Auth↔User cycle broken (removed `UserFacade` from `AuthFacadeImpl`). `SecurityConfig`↔`JwtAuthenticationFilter` cycle broken (extracted `PasswordEncoderConfig`) |
+| **Phase 3** | Silent Catch Elimination | 13+ empty `catch (Exception ignored) {}` in `ApprovalService` replaced with `log.warn()` + proper propagation. Also fixed 3 in `RegionApproverService`, 1 in `AuditService`, 1 in `UserService` |
+| **Phase 4** | Entity Consistency | `FetchType.EAGER` → `LAZY` on all relationships. `PermissionResponse` record created to stop leaking JPA entities from controllers |
+| **Phase 5** | Module Boundaries | `MenuService` moved to proper module. `AuthController` fixed to use `MenuFacade` instead of direct `MenuApplicationService` injection |
+| **Phase 6** | Dead Code Cleanup | Duplicate `AuthUserDto` deleted. 6 empty directories removed. `AuthMapper.java` deleted (dead cross-module code) |
+| **Phase 7** | Cross-Module Violations | `MenuFacade` entity leaks fixed (DTOs replacing entities). `UserMapper` cross-module `RoleMapper` reference removed. `AuthService` narrowed generic `catch (Exception)` |
+| **Phase 8** | Domain Events | 7 events published at 6 key business actions (`UserCreated`, `RoleAssigned`, `RoleCreated`, `RoleUpdated`, `WorkflowCreated`, `WorkflowApproved`) |
+| **Phase 9** | DTO→Record Conversion | 14 response DTOs converted from mutable `@Data` to immutable Java 21 `record` types with `@Builder`. Updated 22 `.getXxx()` → `.xxx()` call sites across 6 files |
 
 ---
 

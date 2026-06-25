@@ -115,6 +115,30 @@ Each feature must encapsulate its own `dto/request/` and `dto/response/` sub-pac
 - Single Resource operations: Return `ApiResponse<T>`
 - Paginated Collections: Return `PageResponse<T>` directly. Do not wrap a `PageResponse` within an `ApiResponse`.
 
+### DTOs as Records
+All response DTOs must be Java 21 `record` types with Lombok `@Builder`. Response DTOs use `.xxx()` accessor pattern (not `.getXxx()`/`.isXxx()`). Request DTOs that require Jackson `@RequestBody` deserialization may remain `@Data`.
+
+### Constructor Injection Only
+```java
+// CORRECT
+@RequiredArgsConstructor
+public class UserService {
+    private final UserRepository userRepository;
+}
+
+// FORBIDDEN
+@Autowired private UserRepository userRepository;
+```
+
+### FetchType.LAZY Default
+All `@ManyToMany`, `@OneToMany`, `@ManyToOne` relationships must use `FetchType.LAZY`. Access lazy collections only within `@Transactional(readOnly = true)` methods. Use `JOIN FETCH` or `@EntityGraph` when eager loading is needed within a transaction.
+
+### JPA Auditing
+`@EnableJpaAuditing` is enabled via `JpaConfig`. `AuditorAware<String>` returns the current authenticated user's name or `"SYSTEM"` during unauthenticated operations (seeding, batch jobs). All entities extend `BaseEntity` which uses `@CreatedDate`, `@LastModifiedDate`, `@CreatedBy`, `@LastModifiedBy`.
+
+### Schema-First (DDL)
+All tables defined in `db/schema.sql` with explicit columns matching entity mappings. `spring.jpa.hibernate.ddl-auto: none`. Column names in schema must match Hibernate naming strategy (snake_case from camelCase field names).
+
 ### Soft Delete
 Hard deletes are prohibited. All deletable tables use `deleted_flag = TRUE` pattern. Procedures must SET `deleted_flag`, not `DELETE FROM`.
 
@@ -139,7 +163,47 @@ com.channel360
 
 ---
 
-## 5. Coding Standards
+## 5. Domain Events Pattern
+
+### Publishing
+Inject `ApplicationEventPublisher` and call `publishEvent(new XxxEvent(...))`:
+
+```java
+applicationEventPublisher.publishEvent(
+    new UserCreatedEvent(this, savedUser.getId(), savedUser.getEmail())
+);
+```
+
+### Event Conventions
+- Extend `java.util.EventObject` for serializability
+- Carry only IDs and primitive fields (never entities or full DTOs)
+- Named `<BusinessAction>Event` (e.g., `UserCreatedEvent`, `RoleAssignedEvent`)
+- Package in `domain/event/` within owning module
+
+### Listening (future)
+Use `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)` for async processing after transaction commit. Current implementation is synchronous; listeners process in the same transaction.
+
+---
+
+## 6. Module Boundary Compliance
+
+### Detection
+- No other module's `Repository` should be `@Autowired` or injected
+- No other module's `Entity` should be imported
+- No other module's `Mapper` should be referenced
+
+### Resolution
+- Access other modules only through their public `api/Facade` interfaces
+- DTOs (records) are the only objects that cross module boundaries
+- If data from another module is needed, add a method to that module's Facade
+
+### Enforcement
+- Grep regularly: `import com.channel360.<other_module>.domain`, `.application`, `.infrastructure`
+- Allowed pattern only: `import com.channel360.<other_module>.api.*`
+
+---
+
+## 7. Coding Standards
 
 ### General
 - **Clean Code**: Meaningful names, methods under 20 lines, classes under 200 lines
@@ -147,6 +211,31 @@ com.channel360
 - **TypeScript**: Strict mode, no `any` (use `unknown` + type guard), explicit return types on hooks
 - **CSS**: Tailwind utility classes only; no custom CSS files; CSS variables for design tokens
 - **Imports**: `@/` alias for all internal imports; group: React → library → feature → relative
+
+### Record Accessor Pattern
+Response DTOs are records. Use `.xxx()` not `.getXxx()` or `.isXxx()`:
+```java
+// record accessor:
+user.email()          // NOT user.getEmail()
+user.deletedFlag()    // NOT user.isDeletedFlag()
+user.roleNames()      // NOT user.getRoleNames()
+```
+
+### Silent Catch Elimination
+Empty catch blocks are prohibited:
+```java
+// FORBIDDEN:
+catch (Exception ignored) {}
+
+// CORRECT — log and re-throw:
+catch (ResourceNotFoundException e) {
+    throw e;  // let expected exceptions propagate
+}
+catch (Exception e) {
+    log.error("Unexpected error for {}: {}", resourceId, e.getMessage());
+    throw new BusinessException("Operation failed");
+}
+```
 
 ### Error Handling
 - Never swallow errors; always show feedback to user; log server-side
@@ -166,7 +255,7 @@ com.channel360
 
 ---
 
-## 6. Database Conventions
+## 8. Database Conventions
 
 - `snake_case` for columns and tables
 - Every table: `created_by`, `created_at`, `updated_by`, `updated_at`, `deleted_flag`
@@ -177,7 +266,7 @@ com.channel360
 
 ---
 
-## 7. Security Patterns
+## 9. Security Patterns
 
 - JWT access token (short-lived) + refresh token (long-lived, 7 days)
 - BCrypt for password hashing
@@ -189,7 +278,7 @@ com.channel360
 
 ---
 
-## 8. OpenCode Directives
+## 10. OpenCode Directives
 
 When working on this repository, AI tools must:
 
@@ -201,7 +290,7 @@ When working on this repository, AI tools must:
 
 ---
 
-## 9. Documentation Maintenance
+## 11. Documentation Maintenance
 
 ### Single Source of Truth
 All structural rules, database design patterns, and engineering instructions live exclusively inside `/docs`. When building features or modifying configurations, developers must cross-reference these documents.
@@ -212,6 +301,6 @@ All structural rules, database design patterns, and engineering instructions liv
 ```
 
 1. When a business shift or new feature requirement occurs, analyze architectural impact before changing code.
-2. Update the relevant files to reflect changes. For core infrastructure changes, draft a new ADR in [Architecture](architecture.md#10-architecture-decision-records).
+2. Update the relevant files to reflect changes. For core infrastructure changes, draft a new ADR in [Architecture](architecture.md#17-architecture-decision-records).
 3. Review changes against core principles to prevent regressions.
 4. Commit updated documentation alongside implementation code.

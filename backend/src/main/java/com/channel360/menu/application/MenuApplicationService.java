@@ -52,11 +52,15 @@ public class MenuApplicationService {
         List<com.channel360.menu.domain.MenuItem> rootItems = menuItemRepository.findByParentIdIsNullAndActiveTrueOrderByDisplayOrder();
 
         for (com.channel360.menu.domain.MenuItem parent : rootItems) {
-            if (visibleIds.contains(parent.getId())) {
+            if (visibleIds.contains(parent.getId()) || parent.getPermissionName() == null) {
                 List<com.channel360.menu.domain.MenuItem> children = menuItemRepository.findByParentIdAndActiveTrueOrderByDisplayOrder(parent.getId())
                         .stream()
                         .filter(child -> visibleIds.contains(child.getId()))
                         .toList();
+
+                if (parent.getPermissionName() == null && children.isEmpty()) {
+                    continue;
+                }
 
                 menuItems.add(MenuItem.builder()
                         .path(parent.getPath())

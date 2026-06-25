@@ -197,6 +197,10 @@ User                 (Region never depends on Workflow)
 
 Circular dependencies block extraction.
 
+**Resolved in codebase:**
+- **Auth ↔ User cycle:** Removed `UserFacade` injection from `AuthFacadeImpl`; `AuthFacadeImpl` now calls `AuthUserRepository` directly for auth-related operations. `AuthService` no longer injects `AuthFacade`.
+- **SecurityConfig ↔ JwtAuthenticationFilter ↔ CustomUserDetailsService cycle:** Extracted `PasswordEncoder` bean to dedicated `PasswordEncoderConfig` class, breaking the circular bean dependency.
+
 ### Critical Rule #5: Use Events for Side Effects
 
 ```java
@@ -214,46 +218,36 @@ UserCreatedEvent → AuditListener
 
 Current implementation may remain synchronous. Future microservices can consume the same events.
 
-### Critical Rule #6: Database Ownership
+**Implemented (7 events at 6 action points):**
+- `UserCreatedEvent` — published by `UserService.createUser()`
+- `RoleAssignedEvent` — published by `UserService.assignRoles()`
+- `RoleCreatedEvent` — published by `RoleService.createRole()`
+- `RoleUpdatedEvent` — published by `RoleService.updateRole()`
+- `WorkflowCreatedEvent` — published by `WorkflowService.createWorkflow()`
+- `WorkflowApprovedEvent` — published by `ApprovalService.checkAndUpdateRequestStatus()` on full approval
 
-Every table has one owner module. Only the owning module may modify the table. Other modules use APIs.
+Events carry only IDs and primitive fields (never entities or full DTOs). All publishers inject `ApplicationEventPublisher` via constructor.
 
-| Table | Owner Module |
-|-------|-------------|
-| `users` | User Module |
-| `roles` | Role Module |
-| `regions` | Region Module |
-| `approval_workflows` | Workflow Module |
+---
 
-### Critical Rule #7: No Shared Business Logic
+## 4.x Enforced Module Boundaries
 
-```java
-// FORBIDDEN:
-common/UserUtil.java
-common/WorkflowUtil.java
-common/RoleUtil.java
-```
+The following cross-module violations have been identified and fixed:
 
-Business logic belongs inside the owning module. The `common` package contains only Config, Security, Exceptions, Response Objects, Constants, and Utilities — never business rules.
+| Violation | Fix |
+|-----------|-----|
+| `MenuFacade` returned JPA entities (`MenuItem`, `Permission`) instead of DTOs | Replaced 5 entity-returning methods with DTO-returning equivalents (`MenuResponse`, `List<MenuResponse>`) |
+| `AuthController` injected `MenuApplicationService` directly (from another module) | Changed to inject `MenuFacade` and call `getCurrentUserMenu()` |
+| `UserMapper` referenced `RoleMapper` from role module via `uses = {RoleMapper.class}` | Removed cross-module reference; roles populated in `UserService` via `RoleFacade` |
+| `AuthMapper.java` imported `user.domain.User` from another module | Deleted (dead code, was unused) |
+| `MenuService` lived in `common/service/` instead of owning module | Moved to `menu/application/MenuApplicationService` |
 
-### Critical Rule #8: Never Inject Repositories from Another Module
+### Enforcement Rules
 
-If data from another module is needed: `Module → Facade → DTO`. Always. Even if it feels slower to implement.
-
-### Design Checklist
-
-Before creating any module verify:
-- ✓ Does this module own its tables?
-- ✓ Does it expose an API layer?
-- ✓ Are repositories hidden?
-- ✓ Are entities hidden?
-- ✓ Are only DTOs crossing boundaries?
-- ✓ Are dependencies one-directional?
-- ✓ Can this module be extracted later?
-
-### Golden Rule
-
-Build a **Microservice Ready Modular Monolith**. Do not build a monolith that requires a rewrite.
+1. **Only `api/` package is public** — `application/`, `domain/`, `infrastructure/` are module-private
+2. **Facades are the only cross-module entry point** — no direct repository, service, or mapper access
+3. **DTOs (records) are the only cross-module data type** — no entities cross boundaries
+4. **Grep `import com.channel360.<other_module>` regularly** — any import of another module's `domain`, `application`, or `infrastructure` is a violation
 
 ---
 
@@ -654,6 +648,30 @@ Channel Entry ----> Partner Transfer ----> Customer Purchase ----> Product Activ
 - **Context:** JPA's automatic schema generation and entity management can lead to production surprises and performance issues. Direct ORM writes bypass validation logic.
 - **Decision:** `ddl-auto: none` with explicit SQL schema management. Writes go through stored procedures (`sp_*`). Reads use JPA derived queries for simplicity.
 - **Consequences:** More explicit schema management. Stored procedures ensure data integrity at the database level.
+
+### ADR 008: Immutable DTOs via Java Records
+- **Status:** Implemented
+- **Context:** Mutable `@Data` DTOs can be modified after creation, leading to subtle bugs. Java 21 records provide immutability, compact constructors, and built-in `equals`/`hashCode`.
+- **Decision:** All response DTOs use Java 21 `record` types with Lombok `@Builder`. Accessor pattern changes from `.getXxx()`/`.isXxx()` to `.xxx()`. Request DTOs that require Jackson `@RequestBody` deserialization may remain `@Data`.
+- **Consequences:** 14 DTOs converted. Immutability guarantees data integrity across module boundaries. Call sites updated to record accessor pattern.
+
+### ADR 009: Domain Events for Business Actions
+- **Status:** Implemented
+- **Context:** Services were mixing side effects (email, audit, notifications) with core business logic, violating Single Responsibility.
+- **Decision:** Key business actions publish typed Spring `ApplicationEvent`. Events are synchronous by default; can be made async via `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)`. Events carry only IDs and primitive fields, never entities or full DTOs.
+- **Consequences:** 7 events published at 6 action points. Core services no longer depend on notification/audit services directly.
+
+### ADR 010: JPA Auditing for Entity Timestamps
+- **Status:** Implemented
+- **Context:** `@CreatedDate` and `@LastModifiedDate` annotations were declared on `BaseEntity` but never populated because `@EnableJpaAuditing` was not configured. Hibernate inserted NULL for `created_at`/`updated_at`, violating `NOT NULL` constraints.
+- **Decision:** Added `@EnableJpaAuditing` via `JpaConfig` class. Created `AuditorAware<String>` bean returning the current authenticated user's name or `"SYSTEM"` during unauthenticated operations (seeding, batch).
+- **Consequences:** All entities now correctly populate `created_at`, `updated_at`, `created_by`, `last_modified_by` automatically via `AuditingEntityListener`.
+
+### ADR 011: PasswordEncoder as Separate Configuration
+- **Status:** Implemented
+- **Context:** `SecurityConfig` imported `JwtAuthenticationFilter` which triggered `CustomUserDetailsService` → `AuthFacadeImpl` → `AuthService`, which required `PasswordEncoder` from `SecurityConfig`, creating a circular bean dependency.
+- **Decision:** `PasswordEncoder` bean extracted from `SecurityConfig` to a dedicated `PasswordEncoderConfig` `@Configuration` class.
+- **Consequences:** Circular dependency broken. `SecurityConfig` no longer depends on auth module beans at configuration time. All services that need `PasswordEncoder` can inject it from `PasswordEncoderConfig`.
 
 ---
 
