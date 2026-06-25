@@ -24,15 +24,15 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String emailOrId) throws UsernameNotFoundException {
         AuthUserDto user = authFacade.findByEmail(emailOrId);
 
-        Set<String> roles = user.getRoleNames();
-        Set<String> permissions = user.getPermissionNames();
+        Set<String> roles = user.roleNames();
+        Set<String> permissions = user.permissionNames();
 
         return new CustomUserDetails(
-                user.getId(),
-                user.getEmail(),
-                user.getPassword(),
+                user.id(),
+                user.email(),
+                user.password(),
                 roles,
-                !user.isDeletedFlag(),
+                !user.deletedFlag(),
                 permissions
         );
     }

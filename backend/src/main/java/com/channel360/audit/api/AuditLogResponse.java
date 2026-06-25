@@ -1,26 +1,20 @@
 package com.channel360.audit.api;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class AuditLogResponse {
-    private Long id;
-    private Long userId;
-    private String userName;
-    private String userEmail;
-    private String action;
-    private String moduleName;
-    private String entityName;
-    private Long entityId;
-    private String oldData;
-    private String newData;
-    private LocalDateTime createdAt;
-}
+public record AuditLogResponse(
+    Long id,
+    Long userId,
+    String userName,
+    String userEmail,
+    String action,
+    String moduleName,
+    String entityName,
+    Long entityId,
+    String oldData,
+    String newData,
+    LocalDateTime createdAt
+) {}

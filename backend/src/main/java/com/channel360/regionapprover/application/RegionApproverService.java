@@ -85,8 +85,8 @@ public class RegionApproverService {
         String regionPath = null;
         try {
             RegionResponse region = regionFacade.getById(ra.getRegionId());
-            regionName = region.getName();
-            regionPath = region.getPath();
+            regionName = region.name();
+            regionPath = region.path();
         } catch (Exception e) {
             log.warn("Failed to resolve region for id {}: {}", ra.getRegionId(), e.getMessage());
         }
@@ -104,7 +104,7 @@ public class RegionApproverService {
         try {
             UserResponse u = userFacade.getById(ra.getUserId());
             userName = u.getFirstName() + " " + u.getLastName();
-            userEmail = authFacade.getAuthById(ra.getUserId()).getEmail();
+            userEmail = authFacade.getAuthById(ra.getUserId()).email();
         } catch (Exception e) {
             log.warn("Failed to resolve user for id {}: {}", ra.getUserId(), e.getMessage());
         }

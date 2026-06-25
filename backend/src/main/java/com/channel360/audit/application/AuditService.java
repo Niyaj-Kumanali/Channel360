@@ -71,7 +71,7 @@ public class AuditService {
             try {
                 UserResponse u = userFacade.getById(auditLog.getUserId());
                 userName = u.getFirstName() + " " + u.getLastName();
-                userEmail = authFacade.getAuthById(auditLog.getUserId()).getEmail();
+                userEmail = authFacade.getAuthById(auditLog.getUserId()).email();
             } catch (Exception e) {
                 log.warn("Failed to resolve user for audit log {}: {}", auditLog.getId(), e.getMessage());
             }

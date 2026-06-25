@@ -68,7 +68,7 @@ public class UserSeeder implements CommandLineRunner {
             log.info("Created {} user: {}", label, email);
         } catch (DuplicateResourceException e) {
             AuthUserDto authUser = authFacade.findByEmail(email);
-            user = userService.getUserById(authUser.getId());
+            user = userService.getUserById(authUser.id());
             log.info("{} user already exists: {}", label, email);
         }
 

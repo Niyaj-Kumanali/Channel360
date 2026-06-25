@@ -216,8 +216,8 @@ public class UserService {
     private void populateAuthFields(UserResponse response) {
         try {
             AuthUserDto authDto = authFacade.getAuthById(response.getId());
-            response.setEmail(authDto.getEmail());
-            response.setLastLoginAt(authDto.getLastLoginAt());
+            response.setEmail(authDto.email());
+            response.setLastLoginAt(authDto.lastLoginAt());
         } catch (Exception e) {
             log.warn("Failed to populate auth fields for user {}: {}", response.getId(), e.getMessage());
         }

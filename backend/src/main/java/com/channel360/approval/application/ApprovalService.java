@@ -80,14 +80,14 @@ public class ApprovalService {
 
         List<ApprovalTask> tasks = new ArrayList<>();
         for (WorkflowStepResponse step : steps) {
-            Long resolvedUserId = resolveApprover(req.getRequestRegionId(), step.getRoleName());
+            Long resolvedUserId = resolveApprover(req.getRequestRegionId(), step.roleName());
             Long resolvedRegionId = resolveApproverRegion(req.getRequestRegionId());
 
-            RoleResponse role = roleFacade.findByName(step.getRoleName());
+            RoleResponse role = roleFacade.findByName(step.roleName());
 
             ApprovalTask task = ApprovalTask.builder()
                     .approvalRequestId(request.getId())
-                    .workflowStepId(step.getId())
+                    .workflowStepId(step.id())
                     .assignedRoleId(role.getId())
                     .assignedUserId(resolvedUserId)
                     .assignedRegionId(resolvedRegionId)
@@ -168,8 +168,8 @@ public class ApprovalService {
         regionChain.add(regionId);
         try {
             RegionResponse current = regionFacade.getById(regionId);
-            while (current != null && current.getParentId() != null) {
-                Long parentId = current.getParentId();
+            while (current != null && current.parentId() != null) {
+                Long parentId = current.parentId();
                 regionChain.add(parentId);
                 current = regionFacade.getById(parentId);
             }
@@ -201,9 +201,9 @@ public class ApprovalService {
         chain.add(regionId);
         try {
             RegionResponse current = regionFacade.getById(regionId);
-            while (current.getParentId() != null) {
-                chain.add(current.getParentId());
-                current = regionFacade.getById(current.getParentId());
+            while (current.parentId() != null) {
+                chain.add(current.parentId());
+                current = regionFacade.getById(current.parentId());
             }
         } catch (Exception e) {
             log.warn("Failed to resolve region chain for regionId {}: {}", regionId, e.getMessage());
@@ -249,8 +249,8 @@ public class ApprovalService {
         Integer stepOrder = null;
         try {
             WorkflowStepResponse step = workflowFacade.getStepById(task.getWorkflowStepId());
-            stepLabel = step.getLabel();
-            stepOrder = step.getStepOrder();
+            stepLabel = step.label();
+            stepOrder = step.stepOrder();
         } catch (Exception e) {
             log.warn("Failed to resolve step {} for task {}: {}", task.getWorkflowStepId(), task.getId(), e.getMessage());
         }

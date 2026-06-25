@@ -1,24 +1,23 @@
 package com.channel360.homepage.api;
 
 import lombok.Builder;
-import lombok.Data;
+
 import java.time.LocalDateTime;
 
-@Data
 @Builder
-public class HomepagePopupResponse {
-    private Long id;
-    private String title;
-    private String description;
-    private String imageUrl;
-    private String ctaButtonText;
-    private String ctaUrl;
-    private Integer priority;
-    private Boolean active;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-    private String createdBy;
-    private LocalDateTime createdAt;
-    private String updatedBy;
-    private LocalDateTime updatedAt;
-}
+public record HomepagePopupResponse(
+    Long id,
+    String title,
+    String description,
+    String imageUrl,
+    String ctaButtonText,
+    String ctaUrl,
+    Integer priority,
+    Boolean active,
+    LocalDateTime startDate,
+    LocalDateTime endDate,
+    String createdBy,
+    LocalDateTime createdAt,
+    String updatedBy,
+    LocalDateTime updatedAt
+) {}

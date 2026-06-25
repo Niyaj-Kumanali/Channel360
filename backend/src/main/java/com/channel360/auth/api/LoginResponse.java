@@ -1,15 +1,11 @@
 package com.channel360.auth.api;
 
-import lombok.*;
+import lombok.Builder;
 
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class LoginResponse {
-
-    private String accessToken;
-    private String refreshToken;
-    private String tokenType;
-    private Long expiresIn;
-}
+public record LoginResponse(
+    String accessToken,
+    String refreshToken,
+    String tokenType,
+    Long expiresIn
+) {}

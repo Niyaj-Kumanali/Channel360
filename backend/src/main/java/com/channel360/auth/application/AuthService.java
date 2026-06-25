@@ -63,21 +63,21 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
         AuthUserDto user = authFacade.findByEmail(request.getEmail());
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.password())) {
             throw new BadCredentialsException("Invalid email or password");
         }
 
-        if (user.isDeletedFlag()) {
+        if (user.deletedFlag()) {
             throw new BadCredentialsException("Account has been deactivated");
         }
 
-        var roleNames = userFacade.findRoleNamesByUserId(user.getId());
-        var permissionNames = userFacade.findPermissionNamesByUserId(user.getId());
+        var roleNames = userFacade.findRoleNamesByUserId(user.id());
+        var permissionNames = userFacade.findPermissionNamesByUserId(user.id());
 
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), roleNames, permissionNames);
-        String refreshTokenStr = jwtTokenProvider.generateRefreshToken(user.getId());
+        String accessToken = jwtTokenProvider.generateAccessToken(user.id(), roleNames, permissionNames);
+        String refreshTokenStr = jwtTokenProvider.generateRefreshToken(user.id());
 
-        saveRefreshToken(user.getId(), refreshTokenStr);
+        saveRefreshToken(user.id(), refreshTokenStr);
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
@@ -168,7 +168,7 @@ public class AuthService {
 
         try {
             AuthUserDto user = authFacade.findByEmail(email);
-            authFacade.changePassword(user.getId(), passwordEncoder.encode(request.getNewPassword()));
+            authFacade.changePassword(user.id(), passwordEncoder.encode(request.getNewPassword()));
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -205,13 +205,13 @@ public class AuthService {
 
         refreshTokenRepository.spRevoke(request.getRefreshToken());
 
-        var roleNames = userFacade.findRoleNamesByUserId(user.getId());
-        var permissionNames = userFacade.findPermissionNamesByUserId(user.getId());
+        var roleNames = userFacade.findRoleNamesByUserId(user.id());
+        var permissionNames = userFacade.findPermissionNamesByUserId(user.id());
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), roleNames, permissionNames);
-        String newRefreshTokenStr = jwtTokenProvider.generateRefreshToken(user.getId());
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user.id(), roleNames, permissionNames);
+        String newRefreshTokenStr = jwtTokenProvider.generateRefreshToken(user.id());
 
-        saveRefreshToken(user.getId(), newRefreshTokenStr);
+        saveRefreshToken(user.id(), newRefreshTokenStr);
 
         return LoginResponse.builder()
                 .accessToken(newAccessToken)
