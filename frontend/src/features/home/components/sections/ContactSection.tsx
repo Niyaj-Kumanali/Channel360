@@ -14,9 +14,9 @@ interface Props {
 }
 
 const defaults: ContactMethod[] = [
-  { type: 'email', label: 'Email Address', value: 'niyajkumanali@gmail.com' },
-  { type: 'phone', label: 'Phone Number', value: '+91 8217097121' },
-  { type: 'address', label: 'HQ Location', value: 'Nipani, Belagavi, Karnataka, India, 591237' },
+  { type: 'email', label: 'Email', value: 'niyajkumanali@gmail.com' },
+  { type: 'phone', label: 'Phone', value: '+91 8217097121' },
+  { type: 'address', label: 'Office', value: 'Nipani, Belagavi, Karnataka, India, 591237' },
   { type: 'linkedin', label: 'LinkedIn', value: 'linkedin.com/in/niyaj-kumanali' },
   { type: 'github', label: 'GitHub', value: 'github.com/Niyaj-Kumanali' },
   { type: 'website', label: 'Portfolio', value: 'niyazdev.vercel.app' },

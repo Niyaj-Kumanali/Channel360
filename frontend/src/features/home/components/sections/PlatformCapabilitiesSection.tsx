@@ -436,7 +436,14 @@ export const PlatformCapabilitiesSection: React.FC<Props> = ({ section }) => {
 
   const capabilities: Capability[] = section.description
     ? JSON.parse(section.description)
-    : [];
+    : [
+        { title: 'Channel Analytics', description: 'Real-time dashboards, reports, and actionable insights across the entire channel network.' },
+        { title: 'Partner Lifecycle', description: 'Streamlined onboarding, performance tracking, and relationship management for every partner.' },
+        { title: 'Claims & Incentives', description: 'Automated rebate, claim, and incentive program management with real-time tracking.' },
+        { title: 'Compliance Management', description: 'Automated compliance checks, audit trails, and regulatory reporting across markets.' },
+        { title: 'Data Integration Hub', description: 'Centralized data ingestion from ERP, CRM, and external partner systems.' },
+        { title: 'Smart Notifications', description: 'Configurable alerts for inventory thresholds, claim status, and partner activity.' },
+      ];
 
   return (
     <section

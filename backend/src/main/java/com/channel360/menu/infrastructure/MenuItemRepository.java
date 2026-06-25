@@ -17,8 +17,9 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     List<MenuItem> findAllByOrderByDisplayOrder();
 
-    @Query(value = "SELECT DISTINCT p.menu_id FROM permissions p "
+    @Query(value = "SELECT DISTINCT mi.id FROM menu_items mi "
+            + "JOIN permissions p ON (p.menu_id = mi.id OR p.name = mi.permission_name) "
             + "JOIN role_permissions rp ON rp.permission_id = p.id "
-            + "WHERE rp.role_id IN (:roleIds) AND p.menu_id IS NOT NULL", nativeQuery = true)
+            + "WHERE rp.role_id IN (:roleIds)", nativeQuery = true)
     List<Long> findMenuItemIdsByRoleIds(@Param("roleIds") List<Long> roleIds);
 }
