@@ -1,13 +1,17 @@
-# Channel360 — Enterprise API & Envelope Response Standards
+# Channel360 — Enterprise API Standards
 
 This document establishes standard patterns for endpoint design, success wrappers, error mapping payloads, and pagination schemas.
+
+> See [Architecture](architecture.md) for backend folder structure and stored procedure conventions.
 
 ---
 
 ## 1. Unified HTTP Response Envelopes
 
 ### A. Standard Objects / Single Resources (`ApiResponse<T>`)
-Every singular data output must wrap responses uniformly using this payload scheme:
+
+Every singular data output must wrap responses uniformly:
+
 ```json
 {
   "success": true,
@@ -19,10 +23,13 @@ Every singular data output must wrap responses uniformly using this payload sche
   "timestamp": 1782212400000,
   "statusCode": 200
 }
-B. Paginated Collections (PageResponse<T>)
-Paginated data structures are delivered directly to the client without an exterior ApiResponse container:
+```
 
-JSON
+### B. Paginated Collections (`PageResponse<T>`)
+
+Paginated data is delivered directly without an exterior `ApiResponse` container:
+
+```json
 {
   "content": [
     { "id": 1, "name": "Item Alpha" },
@@ -33,10 +40,13 @@ JSON
   "totalElements": 142,
   "totalPages": 8
 }
-2. Error Resolution & Validation Payload (ErrorResponse)
-When request validations fail or standard operations run into exceptions, endpoints must issue a standard 400 or 422 payload:
+```
 
-JSON
+## 2. Error Response (`ErrorResponse`)
+
+When request validations fail or standard operations encounter exceptions:
+
+```json
 {
   "success": false,
   "message": "Validation constraints failed.",
@@ -50,3 +60,12 @@ JSON
   "timestamp": 1782212405000,
   "statusCode": 400
 }
+```
+
+## 3. Summary
+
+| Envelope | Use Case | Returned As |
+|----------|----------|-------------|
+| `ApiResponse<T>` | Single resource | Wrapped response body |
+| `PageResponse<T>` | Paginated list | Direct response body (no wrapper) |
+| `ErrorResponse` | Validation / error | Thrown by `GlobalExceptionHandler` |

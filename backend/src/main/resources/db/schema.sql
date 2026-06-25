@@ -1,19 +1,29 @@
+DELETE FROM approval_tasks;
+DELETE FROM approval_requests;
+DELETE FROM user_roles;
+DELETE FROM refresh_tokens;
+DELETE FROM region_approvers;
+DELETE FROM audit_logs;
+DELETE FROM auth_users;
+DELETE FROM users;
+
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
     mobile_number VARCHAR(255),
     employee_id VARCHAR(255) UNIQUE,
     status VARCHAR(255) DEFAULT 'ACTIVE',
-    last_login_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     created_by VARCHAR(255),
     last_modified_by VARCHAR(255),
     deleted_flag BOOLEAN DEFAULT FALSE
 );
+
+ALTER TABLE users DROP COLUMN IF EXISTS email;
+ALTER TABLE users DROP COLUMN IF EXISTS password;
+ALTER TABLE users DROP COLUMN IF EXISTS last_login_at;
 
 CREATE TABLE IF NOT EXISTS roles (
     id BIGSERIAL PRIMARY KEY,
@@ -76,6 +86,24 @@ CREATE TABLE IF NOT EXISTS homepage_popups (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted_flag BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+CREATE TABLE IF NOT EXISTS auth_users (
+    id BIGINT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    last_login_at TIMESTAMP,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    last_modified_by VARCHAR(255),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted_flag BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+ALTER TABLE auth_users DROP COLUMN IF EXISTS updated_by;
+ALTER TABLE auth_users ADD COLUMN IF NOT EXISTS last_modified_by VARCHAR(255);
+
+CREATE INDEX IF NOT EXISTS idx_auth_users_email ON auth_users(email);
+CREATE INDEX IF NOT EXISTS idx_auth_users_deleted_flag ON auth_users(deleted_flag);
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_employee_id ON users(employee_id);

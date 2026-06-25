@@ -53,7 +53,12 @@ public class UserFacadeImpl implements UserFacade {
                           String employeeId, String status, String createdBy, String modifiedBy) {
         userRepository.spSave(null, firstName, lastName, mobileNumber,
                 employeeId, status, createdBy, modifiedBy);
-        return userRepository.findByEmployeeId(employeeId)
+        if (employeeId != null) {
+            return userRepository.findByEmployeeId(employeeId)
+                    .orElseThrow(() -> new RuntimeException("Failed to retrieve saved user"))
+                    .getId();
+        }
+        return userRepository.findTopByOrderByIdDesc()
                 .orElseThrow(() -> new RuntimeException("Failed to retrieve saved user"))
                 .getId();
     }

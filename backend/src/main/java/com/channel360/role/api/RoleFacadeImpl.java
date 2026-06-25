@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class RoleFacadeImpl implements RoleFacade {
     private final PermissionRepository permissionRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public RoleResponse getById(Long id) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", id));
@@ -28,6 +30,7 @@ public class RoleFacadeImpl implements RoleFacade {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RoleResponse findByName(String name) {
         Role role = roleRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "name", name));

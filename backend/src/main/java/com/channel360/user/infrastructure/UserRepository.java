@@ -27,6 +27,8 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 
     Optional<User> findByEmployeeId(String employeeId);
 
+    Optional<User> findTopByOrderByIdDesc();
+
     @Procedure("sp_users_save")
     void spSave(@Param("p_id") Long id, @Param("p_first_name") String firstName,
                 @Param("p_last_name") String lastName, @Param("p_mobile_number") String mobileNumber,

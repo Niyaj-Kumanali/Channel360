@@ -45,7 +45,6 @@ public class AuthService {
         }
     }
 
-    private final AuthFacade authFacade;
     private final UserFacade userFacade;
     private final RoleFacade roleFacade;
     private final AuthUserRepository authUserRepository;
@@ -61,7 +60,9 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        AuthUserDto user = authFacade.findByEmail(request.getEmail());
+        AuthUser authUser = authUserRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+        AuthUserDto user = toAuthDto(authUser);
 
         if (!passwordEncoder.matches(request.getPassword(), user.password())) {
             throw new BadCredentialsException("Invalid email or password");
@@ -89,7 +90,7 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
-        if (authFacade.existsByEmail(request.getEmail())) {
+        if (authUserRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("User", "email", request.getEmail());
         }
 
@@ -128,12 +129,12 @@ public class AuthService {
             throw new BadRequestException("Current password is incorrect");
         }
 
-        authFacade.changePassword(userDetails.getId(), passwordEncoder.encode(request.getNewPassword()));
+        authUserRepository.spChangePassword(userDetails.getId(), passwordEncoder.encode(request.getNewPassword()));
     }
 
     public void forgotPassword(ForgotPasswordRequest request) {
         try {
-            authFacade.findByEmail(request.getEmail());
+            authUserRepository.findByEmail(request.getEmail());
             String resetToken = UUID.randomUUID().toString();
             passwordResetTokens.put(request.getEmail(),
                     new ResetTokenEntry(resetToken, LocalDateTime.now().plusMinutes(RESET_TOKEN_EXPIRY_MINUTES)));
@@ -167,8 +168,9 @@ public class AuthService {
                 .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
 
         try {
-            AuthUserDto user = authFacade.findByEmail(email);
-            authFacade.changePassword(user.id(), passwordEncoder.encode(request.getNewPassword()));
+            AuthUser authUser = authUserRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+            authUserRepository.spChangePassword(authUser.getId(), passwordEncoder.encode(request.getNewPassword()));
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -201,7 +203,9 @@ public class AuthService {
             throw new BadRequestException("Refresh token has expired");
         }
 
-        AuthUserDto user = authFacade.getAuthById(refreshToken.getUserId());
+        AuthUser authUserForRefresh = authUserRepository.findById(refreshToken.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", refreshToken.getUserId()));
+        AuthUserDto user = toAuthDto(authUserForRefresh);
 
         refreshTokenRepository.spRevoke(request.getRefreshToken());
 
@@ -225,5 +229,15 @@ public class AuthService {
         refreshTokenRepository.spSave(null, tokenStr, userId,
                 LocalDateTime.now().plusSeconds(jwtTokenProvider.getAccessTokenExpiration() / 1000 * 7),
                 false);
+    }
+
+    private AuthUserDto toAuthDto(AuthUser authUser) {
+        return AuthUserDto.builder()
+                .id(authUser.getId())
+                .email(authUser.getEmail())
+                .password(authUser.getPassword())
+                .deletedFlag(authUser.isDeletedFlag())
+                .lastLoginAt(authUser.getLastLoginAt())
+                .build();
     }
 }
