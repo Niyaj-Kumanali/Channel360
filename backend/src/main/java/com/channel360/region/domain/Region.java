@@ -43,14 +43,15 @@ public class Region {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @Column(name = "deleted_flag", nullable = false)
-    private Boolean deletedFlag;
+    private Boolean deletedFlag = false;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (deletedFlag == null) deletedFlag = false;
+
     }
 
     @PreUpdate

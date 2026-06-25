@@ -25,8 +25,9 @@ public class RegionApprover {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @Builder.Default
     @Column(name = "active_flag", nullable = false)
-    private Boolean activeFlag;
+    private Boolean activeFlag = true;
 
     @Column(name = "created_by")
     private String createdBy;
@@ -44,7 +45,7 @@ public class RegionApprover {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (activeFlag == null) activeFlag = true;
+
     }
 
     @PreUpdate

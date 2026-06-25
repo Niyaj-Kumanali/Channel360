@@ -2,7 +2,6 @@ package com.channel360.role.api;
 
 import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.security.RequirePermission;
-import com.channel360.role.domain.Permission;
 import com.channel360.role.application.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,7 @@ public class PermissionController {
 
     @GetMapping
     @RequirePermission("roles.view")
-    public ResponseEntity<ApiResponse<List<Permission>>> getAllPermissions() {
+    public ResponseEntity<ApiResponse<List<PermissionResponse>>> getAllPermissions() {
         return ResponseEntity.ok(ApiResponse.success(roleService.getAllPermissions()));
     }
 }

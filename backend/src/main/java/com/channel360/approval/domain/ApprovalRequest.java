@@ -31,8 +31,9 @@ public class ApprovalRequest {
     @Column(name = "requestor_id", nullable = false)
     private Long requestorId;
 
+    @Builder.Default
     @Column(nullable = false, length = 50)
-    private String status;
+    private String status = "PENDING";
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -44,7 +45,7 @@ public class ApprovalRequest {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (status == null) status = "PENDING";
+
     }
 
     @PreUpdate

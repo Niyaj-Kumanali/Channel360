@@ -13,11 +13,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
@@ -39,8 +39,8 @@ public class JwtTokenProvider {
     }
 
     public String generateAccessToken(Long userId, Collection<String> roles, Collection<String> permissions) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + accessTokenExpiration);
+        var now = Date.from(Instant.now());
+        var expiryDate = Date.from(Instant.now().plusMillis(accessTokenExpiration));
 
         return Jwts.builder()
                 .subject(userId.toString())
@@ -53,8 +53,8 @@ public class JwtTokenProvider {
     }
 
     public String generateRefreshToken(Long userId) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
+        var now = Date.from(Instant.now());
+        var expiryDate = Date.from(Instant.now().plusMillis(refreshTokenExpiration));
 
         return Jwts.builder()
                 .subject(userId.toString())
@@ -94,10 +94,10 @@ public class JwtTokenProvider {
 
     @SuppressWarnings("unchecked")
     public List<String> getRolesFromToken(String token) {
-        Claims claims = getClaims(token);
+        var claims = getClaims(token);
         return ((List<String>) claims.get("roles")).stream()
                 .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @SuppressWarnings("unchecked")

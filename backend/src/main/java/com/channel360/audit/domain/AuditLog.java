@@ -37,8 +37,9 @@ public class AuditLog {
     @Column(name = "new_data", columnDefinition = "JSONB")
     private String newData;
 
+    @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @PrePersist
     protected void onCreate() {

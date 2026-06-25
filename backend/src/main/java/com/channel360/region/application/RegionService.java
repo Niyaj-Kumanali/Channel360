@@ -1,6 +1,5 @@
 package com.channel360.region.application;
 
-import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.region.api.RegionRequest;
 import com.channel360.region.api.RegionResponse;

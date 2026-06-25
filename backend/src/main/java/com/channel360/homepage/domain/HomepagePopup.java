@@ -31,11 +31,13 @@ public class HomepagePopup {
     @Column(name = "cta_url")
     private String ctaUrl;
 
+    @Builder.Default
     @Column(nullable = false)
-    private Integer priority;
+    private Integer priority = 0;
 
+    @Builder.Default
     @Column(nullable = false)
-    private Boolean active;
+    private Boolean active = true;
 
     @Column(name = "start_date")
     private LocalDateTime startDate;
@@ -55,16 +57,15 @@ public class HomepagePopup {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @Column(name = "deleted_flag", nullable = false)
-    private Boolean deletedFlag;
+    private Boolean deletedFlag = false;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (active == null) active = true;
-        if (deletedFlag == null) deletedFlag = false;
-        if (priority == null) priority = 0;
+
     }
 
     @PreUpdate

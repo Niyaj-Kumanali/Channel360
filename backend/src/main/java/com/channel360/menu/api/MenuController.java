@@ -2,7 +2,7 @@ package com.channel360.menu.api;
 
 import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.security.RequirePermission;
-import com.channel360.common.service.MenuService;
+import com.channel360.menu.application.MenuApplicationService;
 import com.channel360.menu.api.MenuRequest;
 import com.channel360.menu.api.MenuResponse;
 import com.channel360.menu.api.MenuWithPermissions;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuController {
 
-    private final MenuService menuService;
+    private final MenuApplicationService menuService;
 
     @GetMapping
     @RequirePermission("menu.manage")

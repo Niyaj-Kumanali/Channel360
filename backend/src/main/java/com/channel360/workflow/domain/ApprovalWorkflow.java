@@ -24,8 +24,9 @@ public class ApprovalWorkflow {
 
     private String module;
 
+    @Builder.Default
     @Column(nullable = false)
-    private Boolean active;
+    private Boolean active = true;
 
     @Column(name = "created_by")
     private String createdBy;
@@ -39,15 +40,15 @@ public class ApprovalWorkflow {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @Column(name = "deleted_flag", nullable = false)
-    private Boolean deletedFlag;
+    private Boolean deletedFlag = false;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (active == null) active = true;
-        if (deletedFlag == null) deletedFlag = false;
+
     }
 
     @PreUpdate

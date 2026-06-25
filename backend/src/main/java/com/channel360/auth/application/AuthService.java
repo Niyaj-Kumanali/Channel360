@@ -1,7 +1,6 @@
 package com.channel360.auth.application;
 
 import com.channel360.auth.api.*;
-import com.channel360.auth.domain.AuthUser;
 import com.channel360.auth.domain.RefreshToken;
 import com.channel360.auth.infrastructure.AuthUserRepository;
 import com.channel360.auth.infrastructure.RefreshTokenRepository;
@@ -72,7 +71,10 @@ public class AuthService {
             throw new BadCredentialsException("Account has been deactivated");
         }
 
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getRoleNames(), user.getPermissionNames());
+        var roleNames = userFacade.findRoleNamesByUserId(user.getId());
+        var permissionNames = userFacade.findPermissionNamesByUserId(user.getId());
+
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), roleNames, permissionNames);
         String refreshTokenStr = jwtTokenProvider.generateRefreshToken(user.getId());
 
         saveRefreshToken(user.getId(), refreshTokenStr);
@@ -195,7 +197,10 @@ public class AuthService {
 
         refreshTokenRepository.spRevoke(request.getRefreshToken());
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getRoleNames(), user.getPermissionNames());
+        var roleNames = userFacade.findRoleNamesByUserId(user.getId());
+        var permissionNames = userFacade.findPermissionNamesByUserId(user.getId());
+
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), roleNames, permissionNames);
         String newRefreshTokenStr = jwtTokenProvider.generateRefreshToken(user.getId());
 
         saveRefreshToken(user.getId(), newRefreshTokenStr);

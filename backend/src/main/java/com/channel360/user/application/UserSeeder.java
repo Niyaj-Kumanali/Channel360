@@ -6,7 +6,6 @@ import com.channel360.auth.api.RegisterRequest;
 import com.channel360.common.config.AdminProperties;
 import com.channel360.common.config.SuperAdminProperties;
 import com.channel360.common.exception.DuplicateResourceException;
-import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.role.api.RoleFacade;
 import com.channel360.role.api.RoleResponse;
 import com.channel360.user.api.UserResponse;

@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -41,7 +42,8 @@ public abstract class BaseEntity {
     private String lastModifiedBy;
 
     @Column(name = "deleted_flag")
-    private boolean deletedFlag;
+    @Builder.Default
+    private boolean deletedFlag = false;
 
     public void markDeleted() {
         this.deletedFlag = true;

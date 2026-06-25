@@ -64,28 +64,30 @@ public class AuditService {
         return logs.stream().map(this::toDto).toList();
     }
 
-    private AuditLogResponse toDto(AuditLog log) {
+    private AuditLogResponse toDto(AuditLog auditLog) {
         String userName = null;
         String userEmail = null;
-        if (log.getUserId() != null) {
+        if (auditLog.getUserId() != null) {
             try {
-                UserResponse u = userFacade.getById(log.getUserId());
+                UserResponse u = userFacade.getById(auditLog.getUserId());
                 userName = u.getFirstName() + " " + u.getLastName();
-                userEmail = authFacade.getAuthById(log.getUserId()).getEmail();
-            } catch (Exception ignored) {}
+                userEmail = authFacade.getAuthById(auditLog.getUserId()).getEmail();
+            } catch (Exception e) {
+                log.warn("Failed to resolve user for audit log {}: {}", auditLog.getId(), e.getMessage());
+            }
         }
         return AuditLogResponse.builder()
-                .id(log.getId())
-                .userId(log.getUserId())
+                .id(auditLog.getId())
+                .userId(auditLog.getUserId())
                 .userName(userName)
                 .userEmail(userEmail)
-                .action(log.getAction())
-                .moduleName(log.getModuleName())
-                .entityName(log.getEntityName())
-                .entityId(log.getEntityId())
-                .oldData(log.getOldData())
-                .newData(log.getNewData())
-                .createdAt(log.getCreatedAt())
+                .action(auditLog.getAction())
+                .moduleName(auditLog.getModuleName())
+                .entityName(auditLog.getEntityName())
+                .entityId(auditLog.getEntityId())
+                .oldData(auditLog.getOldData())
+                .newData(auditLog.getNewData())
+                .createdAt(auditLog.getCreatedAt())
                 .build();
     }
 }

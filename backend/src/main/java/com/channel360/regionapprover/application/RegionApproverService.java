@@ -13,11 +13,13 @@ import com.channel360.role.api.RoleResponse;
 import com.channel360.user.api.UserFacade;
 import com.channel360.user.api.UserResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -85,13 +87,17 @@ public class RegionApproverService {
             RegionResponse region = regionFacade.getById(ra.getRegionId());
             regionName = region.getName();
             regionPath = region.getPath();
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.warn("Failed to resolve region for id {}: {}", ra.getRegionId(), e.getMessage());
+        }
 
         String roleName = null;
         try {
             RoleResponse role = roleFacade.getById(ra.getRoleId());
             roleName = role.getName();
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.warn("Failed to resolve role for id {}: {}", ra.getRoleId(), e.getMessage());
+        }
 
         String userName = null;
         String userEmail = null;
@@ -99,7 +105,9 @@ public class RegionApproverService {
             UserResponse u = userFacade.getById(ra.getUserId());
             userName = u.getFirstName() + " " + u.getLastName();
             userEmail = authFacade.getAuthById(ra.getUserId()).getEmail();
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.warn("Failed to resolve user for id {}: {}", ra.getUserId(), e.getMessage());
+        }
 
         return RegionApproverResponse.builder()
                 .id(ra.getId())

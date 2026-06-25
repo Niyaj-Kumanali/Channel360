@@ -31,8 +31,9 @@ public class ApprovalTask {
     @Column(name = "assigned_region_id")
     private Long assignedRegionId;
 
+    @Builder.Default
     @Column(nullable = false, length = 50)
-    private String status;
+    private String status = "PENDING";
 
     @Column(name = "approved_by")
     private Long approvedBy;
@@ -55,6 +56,6 @@ public class ApprovalTask {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (status == null) status = "PENDING";
+
     }
 }

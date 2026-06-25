@@ -3,7 +3,7 @@ package com.channel360.auth.api;
 import com.channel360.auth.application.AuthService;
 import com.channel360.auth.domain.AuthUser;
 import com.channel360.auth.infrastructure.AuthUserRepository;
-import com.channel360.user.api.UserFacade;
+import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.user.api.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,6 @@ public class AuthFacadeImpl implements AuthFacade {
 
     private final AuthService authService;
     private final AuthUserRepository authUserRepository;
-    private final UserFacade userFacade;
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -24,17 +23,15 @@ public class AuthFacadeImpl implements AuthFacade {
     @Override
     public AuthUserDto findByEmail(String email) {
         AuthUser user = authUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-        UserResponse profile = userFacade.getById(user.getId());
-        return toAuthDto(user, profile);
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        return toAuthDto(user);
     }
 
     @Override
     public AuthUserDto getAuthById(Long id) {
         AuthUser user = authUserRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-        UserResponse profile = userFacade.getById(id);
-        return toAuthDto(user, profile);
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        return toAuthDto(user);
     }
 
     @Override
@@ -58,18 +55,13 @@ public class AuthFacadeImpl implements AuthFacade {
         authUserRepository.spChangePassword(userId, encodedPassword);
     }
 
-    private AuthUserDto toAuthDto(AuthUser authUser, UserResponse profile) {
+    private AuthUserDto toAuthDto(AuthUser authUser) {
         return AuthUserDto.builder()
                 .id(authUser.getId())
                 .email(authUser.getEmail())
                 .password(authUser.getPassword())
-                .firstName(profile.getFirstName())
-                .lastName(profile.getLastName())
-                .status(profile.getStatus())
                 .deletedFlag(authUser.isDeletedFlag())
                 .lastLoginAt(authUser.getLastLoginAt())
-                .roleNames(userFacade.findRoleNamesByUserId(authUser.getId()))
-                .permissionNames(userFacade.findPermissionNamesByUserId(authUser.getId()))
                 .build();
     }
 }

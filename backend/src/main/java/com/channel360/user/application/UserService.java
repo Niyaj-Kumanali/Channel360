@@ -14,6 +14,7 @@ import com.channel360.user.api.UserFilterRequest;
 import com.channel360.user.domain.User;
 import com.channel360.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -160,12 +162,24 @@ public class UserService {
         return response;
     }
 
+    @Transactional
+    public String resetPassword(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("User", "id", id);
+        }
+        var newPassword = generateRandomPassword();
+        authFacade.changePassword(id, passwordEncoder.encode(newPassword));
+        log.info("Password reset for user {}", id);
+        return newPassword;
+    }
+
     private void populateAuthFields(UserResponse response) {
         try {
             AuthUserDto authDto = authFacade.getAuthById(response.getId());
             response.setEmail(authDto.getEmail());
             response.setLastLoginAt(authDto.getLastLoginAt());
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Failed to populate auth fields for user {}: {}", response.getId(), e.getMessage());
         }
     }
 

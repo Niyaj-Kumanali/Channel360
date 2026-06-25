@@ -28,8 +28,9 @@ public class ApprovalWorkflowStep {
     @Column(nullable = false)
     private String label;
 
+    @Builder.Default
     @Column(nullable = false)
-    private Boolean mandatory;
+    private Boolean mandatory = true;
 
     @Column(name = "sla_hours")
     private Integer slaHours;
@@ -52,15 +53,15 @@ public class ApprovalWorkflowStep {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @Column(name = "deleted_flag", nullable = false)
-    private Boolean deletedFlag;
+    private Boolean deletedFlag = false;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (mandatory == null) mandatory = true;
-        if (deletedFlag == null) deletedFlag = false;
+
     }
 
     @PreUpdate

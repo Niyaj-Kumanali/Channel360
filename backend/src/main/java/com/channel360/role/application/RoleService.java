@@ -1,6 +1,7 @@
 package com.channel360.role.application;
 
 import com.channel360.common.exception.ResourceNotFoundException;
+import com.channel360.role.api.PermissionResponse;
 import com.channel360.role.api.RoleResponse;
 import com.channel360.role.domain.Permission;
 import com.channel360.role.domain.Role;
@@ -37,8 +38,10 @@ public class RoleService {
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", id));
     }
 
-    public List<Permission> getAllPermissions() {
-        return permissionRepository.findAll();
+    public List<PermissionResponse> getAllPermissions() {
+        return permissionRepository.findAll().stream()
+                .map(p -> new PermissionResponse(p.getId(), p.getName(), p.getDescription(), p.getModule(), p.getMenuId()))
+                .toList();
     }
 
     @Transactional

@@ -3,17 +3,17 @@ package com.channel360.user.infrastructure;
 import com.channel360.user.domain.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.ParameterMode;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.StoredProcedureQuery;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     @Override
     public List<User> spList(String search, String status, Long roleId,

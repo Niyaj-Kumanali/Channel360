@@ -19,6 +19,7 @@ import com.channel360.user.api.UserResponse;
 import com.channel360.workflow.api.WorkflowFacade;
 import com.channel360.workflow.api.WorkflowStepResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -143,9 +145,13 @@ public class ApprovalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Approval request", "id", requestId));
 
         List<ApprovalTask> tasks = taskRepository.findByApprovalRequestIdOrderByCreatedAtAsc(requestId);
+        boolean anyRejected = tasks.stream().anyMatch(t -> "REJECTED".equals(t.getStatus()));
         boolean allApproved = tasks.stream().allMatch(t -> "APPROVED".equals(t.getStatus()));
 
-        if (allApproved) {
+        if (anyRejected) {
+            request.setStatus("REJECTED");
+            requestRepository.save(request);
+        } else if (allApproved) {
             request.setStatus("APPROVED");
             requestRepository.save(request);
         }
@@ -164,6 +170,7 @@ public class ApprovalService {
                 current = regionFacade.getById(parentId);
             }
         } catch (Exception e) {
+            log.warn("Failed to resolve region chain for regionId {}: {}", regionId, e.getMessage());
             return null;
         }
 
@@ -171,6 +178,7 @@ public class ApprovalService {
         try {
             role = roleFacade.findByName(roleName);
         } catch (Exception e) {
+            log.warn("Failed to find role by name {}: {}", roleName, e.getMessage());
             return null;
         }
 
@@ -184,11 +192,6 @@ public class ApprovalService {
 
     private Long resolveApproverRegion(Long regionId) {
         if (regionId == null) return null;
-        try {
-            regionFacade.getById(regionId);
-        } catch (Exception e) {
-            return null;
-        }
 
         List<Long> chain = new ArrayList<>();
         chain.add(regionId);
@@ -199,6 +202,7 @@ public class ApprovalService {
                 current = regionFacade.getById(current.getParentId());
             }
         } catch (Exception e) {
+            log.warn("Failed to resolve region chain for regionId {}: {}", regionId, e.getMessage());
             chain = List.of(regionId);
         }
 
@@ -211,21 +215,9 @@ public class ApprovalService {
     }
 
     private ApprovalRequestResponse toDto(ApprovalRequest request) {
-        String workflowName = null;
-        try {
-            workflowName = workflowFacade.getWorkflowNameById(request.getWorkflowId());
-        } catch (Exception ignored) {}
-
-        String regionName = null;
-        try {
-            regionName = regionFacade.getRegionNameById(request.getRequestRegionId());
-        } catch (Exception ignored) {}
-
-        String requestorName = null;
-        try {
-            UserResponse u = userFacade.getById(request.getRequestorId());
-            requestorName = u.getFirstName() + " " + u.getLastName();
-        } catch (Exception ignored) {}
+        String workflowName = resolveWorkflowName(request.getWorkflowId());
+        String regionName = resolveRegionName(request.getRequestRegionId());
+        String requestorName = resolveUserName(request.getRequestorId());
 
         List<ApprovalTaskResponse> tasks = taskRepository
                 .findByApprovalRequestIdOrderByCreatedAtAsc(request.getId())
@@ -255,43 +247,15 @@ public class ApprovalService {
             WorkflowStepResponse step = workflowFacade.getStepById(task.getWorkflowStepId());
             stepLabel = step.getLabel();
             stepOrder = step.getStepOrder();
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.warn("Failed to resolve step {} for task {}: {}", task.getWorkflowStepId(), task.getId(), e.getMessage());
+        }
 
-        String roleName = null;
-        try {
-            roleName = roleFacade.getRoleNameById(task.getAssignedRoleId());
-        } catch (Exception ignored) {}
-
-        String userName = null;
-        try {
-            if (task.getAssignedUserId() != null) {
-                UserResponse u = userFacade.getById(task.getAssignedUserId());
-                userName = u.getFirstName() + " " + u.getLastName();
-            }
-        } catch (Exception ignored) {}
-
-        String regionName = null;
-        try {
-            if (task.getAssignedRegionId() != null) {
-                regionName = regionFacade.getRegionNameById(task.getAssignedRegionId());
-            }
-        } catch (Exception ignored) {}
-
-        String approvedByName = null;
-        try {
-            if (task.getApprovedBy() != null) {
-                UserResponse u = userFacade.getById(task.getApprovedBy());
-                approvedByName = u.getFirstName() + " " + u.getLastName();
-            }
-        } catch (Exception ignored) {}
-
-        String rejectedByName = null;
-        try {
-            if (task.getRejectedBy() != null) {
-                UserResponse u = userFacade.getById(task.getRejectedBy());
-                rejectedByName = u.getFirstName() + " " + u.getLastName();
-            }
-        } catch (Exception ignored) {}
+        String roleName = resolveRoleName(task.getAssignedRoleId());
+        String userName = resolveUserName(task.getAssignedUserId());
+        String regionName = resolveRegionName(task.getAssignedRegionId());
+        String approvedByName = resolveUserName(task.getApprovedBy());
+        String rejectedByName = resolveUserName(task.getRejectedBy());
 
         return ApprovalTaskResponse.builder()
                 .id(task.getId())
@@ -315,5 +279,46 @@ public class ApprovalService {
                 .comments(task.getComments())
                 .createdAt(task.getCreatedAt())
                 .build();
+    }
+
+    private String resolveWorkflowName(Long workflowId) {
+        if (workflowId == null) return null;
+        try {
+            return workflowFacade.getWorkflowNameById(workflowId);
+        } catch (Exception e) {
+            log.warn("Failed to resolve workflow name for id {}: {}", workflowId, e.getMessage());
+            return null;
+        }
+    }
+
+    private String resolveRegionName(Long regionId) {
+        if (regionId == null) return null;
+        try {
+            return regionFacade.getRegionNameById(regionId);
+        } catch (Exception e) {
+            log.warn("Failed to resolve region name for id {}: {}", regionId, e.getMessage());
+            return null;
+        }
+    }
+
+    private String resolveUserName(Long userId) {
+        if (userId == null) return null;
+        try {
+            UserResponse u = userFacade.getById(userId);
+            return u.getFirstName() + " " + u.getLastName();
+        } catch (Exception e) {
+            log.warn("Failed to resolve user name for id {}: {}", userId, e.getMessage());
+            return null;
+        }
+    }
+
+    private String resolveRoleName(Long roleId) {
+        if (roleId == null) return null;
+        try {
+            return roleFacade.getRoleNameById(roleId);
+        } catch (Exception e) {
+            log.warn("Failed to resolve role name for id {}: {}", roleId, e.getMessage());
+            return null;
+        }
     }
 }
