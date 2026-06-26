@@ -62,7 +62,7 @@ public class RolePermissionSeeder {
                     }
                 }
 
-                roleService.updateRolePermissions(role.getId(), permissionIds);
+                roleService.updateRolePermissions(role.id(), permissionIds);
                 log.info("Assigned {} permissions to role {}", permissionIds.size(), roleName);
             }
         } catch (Exception e) {

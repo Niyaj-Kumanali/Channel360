@@ -36,16 +36,17 @@ public class HomepageSectionSeeder {
                     new TypeReference<List<Map<String, Object>>>() {});
 
             for (Map<String, Object> entry : sections) {
-                HomepageSectionRequest request = new HomepageSectionRequest();
-                request.setSectionName((String) entry.get("sectionName"));
-                request.setSectionType((String) entry.get("sectionType"));
-                request.setTitle((String) entry.get("title"));
-                request.setSubtitle((String) entry.get("subtitle"));
-                request.setDescription((String) entry.get("description"));
-                request.setButtonText((String) entry.get("buttonText"));
-                request.setButtonUrl((String) entry.get("buttonUrl"));
-                request.setDisplayOrder((Integer) entry.get("displayOrder"));
-                request.setActive((Boolean) entry.get("active"));
+                HomepageSectionRequest request = HomepageSectionRequest.builder()
+                        .sectionName((String) entry.get("sectionName"))
+                        .sectionType((String) entry.get("sectionType"))
+                        .title((String) entry.get("title"))
+                        .subtitle((String) entry.get("subtitle"))
+                        .description((String) entry.get("description"))
+                        .buttonText((String) entry.get("buttonText"))
+                        .buttonUrl((String) entry.get("buttonUrl"))
+                        .displayOrder((Integer) entry.get("displayOrder"))
+                        .active((Boolean) entry.get("active"))
+                        .build();
 
                 homepageService.saveSection(request, "system");
                 log.debug("Seeded homepage section: {}", entry.get("sectionName"));

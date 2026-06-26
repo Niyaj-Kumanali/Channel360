@@ -1,16 +1,9 @@
 package com.channel360.auth.api;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
-
+import lombok.Builder;
 
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-public class RefreshTokenRequest {
-
-    @NotBlank(message = "Refresh token is required")
-    private String refreshToken;
-}
+public record RefreshTokenRequest(
+    @NotBlank(message = "Refresh token is required") String refreshToken
+) {}

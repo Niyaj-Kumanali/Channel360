@@ -31,10 +31,11 @@ public class PermissionSeeder {
                     new TypeReference<List<Map<String, String>>>() {});
 
             for (Map<String, String> entry : permissions) {
-                CreatePermissionRequest request = new CreatePermissionRequest();
-                request.setName(entry.get("name"));
-                request.setDescription(entry.get("description"));
-                request.setModule(entry.get("module"));
+                CreatePermissionRequest request = new CreatePermissionRequest(
+                        entry.get("name"),
+                        entry.get("description"),
+                        entry.get("module")
+                );
                 permissionService.createIfNotExists(request);
                 log.debug("Seeded permission: {}", entry.get("name"));
             }

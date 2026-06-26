@@ -2,20 +2,13 @@ package com.channel360.auth.api;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
-
+import lombok.Builder;
 
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
-public class LoginRequest {
-
+public record LoginRequest(
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
-    private String email;
-
+    String email,
     @NotBlank(message = "Password is required")
-    private String password;
-}
+    String password
+) {}

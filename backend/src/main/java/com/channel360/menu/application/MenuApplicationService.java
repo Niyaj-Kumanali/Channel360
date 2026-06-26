@@ -162,12 +162,12 @@ public class MenuApplicationService {
     }
 
     private void applyRequest(com.channel360.menu.domain.MenuItem entity, MenuRequest request) {
-        if (request.getLabel() != null) entity.setLabel(request.getLabel());
-        if (request.getPath() != null) entity.setPath(request.getPath());
-        if (request.getIcon() != null) entity.setIcon(request.getIcon());
-        if (request.getParentId() != null) entity.setParentId(request.getParentId());
-        if (request.getPermissionName() != null) entity.setPermissionName(request.getPermissionName());
-        if (request.getDisplayOrder() != null) entity.setDisplayOrder(request.getDisplayOrder());
-        if (request.getActive() != null) entity.setActive(request.getActive());
+        if (request.label() != null) entity.setLabel(request.label());
+        if (request.path() != null) entity.setPath(request.path());
+        if (request.icon() != null) entity.setIcon(request.icon());
+        if (request.parentId() != null) entity.setParentId(request.parentId());
+        if (request.permissionName() != null) entity.setPermissionName(request.permissionName());
+        if (request.displayOrder() != null) entity.setDisplayOrder(request.displayOrder());
+        if (request.active() != null) entity.setActive(request.active());
     }
 }

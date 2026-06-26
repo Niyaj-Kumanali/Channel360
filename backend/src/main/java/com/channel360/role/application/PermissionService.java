@@ -16,12 +16,12 @@ public class PermissionService {
 
     @Transactional
     public PermissionResponse createIfNotExists(CreatePermissionRequest request) {
-        Permission permission = permissionRepository.findByName(request.getName())
+        Permission permission = permissionRepository.findByName(request.name())
                 .orElseGet(() -> {
                     Permission p = new Permission();
-                    p.setName(request.getName());
-                    p.setDescription(request.getDescription());
-                    p.setModule(request.getModule());
+                    p.setName(request.name());
+                    p.setDescription(request.description());
+                    p.setModule(request.module());
                     return permissionRepository.save(p);
                 });
         return new PermissionResponse(

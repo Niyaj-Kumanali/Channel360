@@ -1,25 +1,16 @@
 package com.channel360.menu.api;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.Builder;
 
-@Data
-public class MenuRequest {
-    private Long id;
-
-    private Long parentId;
-
-    @NotBlank(message = "Label is required")
-    private String label;
-
-    @NotBlank(message = "Path is required")
-    private String path;
-
-    private String icon;
-
-    private Integer displayOrder;
-
-    private Boolean active;
-
-    private String permissionName;
-}
+@Builder
+public record MenuRequest(
+    Long id,
+    Long parentId,
+    @NotBlank(message = "Label is required") String label,
+    @NotBlank(message = "Path is required") String path,
+    String icon,
+    Integer displayOrder,
+    Boolean active,
+    String permissionName
+) {}

@@ -36,7 +36,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
-        log.info("Login request received from: {}", request.getEmail());
+        log.info("Login request received from: {}", request.email());
         LoginResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
     }
@@ -50,7 +50,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody RefreshTokenRequest request) {
-        authService.logout(request.getRefreshToken());
+        authService.logout(request.refreshToken());
         return ResponseEntity.ok(ApiResponse.success(null, "Logout successful"));
     }
 

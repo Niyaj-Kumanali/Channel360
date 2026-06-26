@@ -36,13 +36,14 @@ public class HomepagePopUpSeeder {
                     new TypeReference<List<Map<String, Object>>>() {});
 
             for (Map<String, Object> entry : popups) {
-                HomepagePopupRequest request = new HomepagePopupRequest();
-                request.setTitle((String) entry.get("title"));
-                request.setDescription((String) entry.get("description"));
-                request.setCtaButtonText((String) entry.get("ctaButtonText"));
-                request.setCtaUrl((String) entry.get("ctaUrl"));
-                request.setPriority((Integer) entry.get("priority"));
-                request.setActive((Boolean) entry.get("active"));
+                HomepagePopupRequest request = HomepagePopupRequest.builder()
+                        .title((String) entry.get("title"))
+                        .description((String) entry.get("description"))
+                        .ctaButtonText((String) entry.get("ctaButtonText"))
+                        .ctaUrl((String) entry.get("ctaUrl"))
+                        .priority((Integer) entry.get("priority"))
+                        .active((Boolean) entry.get("active"))
+                        .build();
 
                 homepageService.savePopup(request, "system");
                 log.debug("Seeded homepage popup: {}", entry.get("title"));

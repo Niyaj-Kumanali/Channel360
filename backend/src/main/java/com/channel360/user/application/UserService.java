@@ -64,10 +64,9 @@ public class UserService {
         Page<User> page = new PageImpl<>(users, PageRequest.of(filter.getPage(), filter.getSize()), totalCount);
         Page<UserResponse> dtoPage = page.map(user -> {
             UserResponse dto = userMapper.toDto(user);
-            populateRoles(dto, user);
-            return dto;
+            return populateRoles(dto, user);
         });
-        dtoPage.getContent().forEach(this::populateAuthFields);
+        dtoPage.getContent().replaceAll(dto -> populateAuthFields(dto));
         return PageResponse.from(dtoPage);
     }
 
@@ -75,40 +74,40 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         UserResponse response = userMapper.toDto(user);
-        populateRoles(response, user);
-        populateAuthFields(response);
+        response = populateRoles(response, user);
+        response = populateAuthFields(response);
         return response;
     }
 
     @Transactional
     public UserResponse createUser(CreateUserRequest request) {
-        if (request.getEmployeeId() != null && userRepository.existsByEmployeeId(request.getEmployeeId())) {
-            throw new BadRequestException("Employee ID already in use: " + request.getEmployeeId());
+        if (request.employeeId() != null && userRepository.existsByEmployeeId(request.employeeId())) {
+            throw new BadRequestException("Employee ID already in use: " + request.employeeId());
         }
-        if (authFacade.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email already in use: " + request.getEmail());
+        if (authFacade.existsByEmail(request.email())) {
+            throw new BadRequestException("Email already in use: " + request.email());
         }
 
-        userRepository.spSave(null, request.getFirstName(), request.getLastName(),
-                request.getMobileNumber(), request.getEmployeeId(), "ACTIVE", null, null);
+        userRepository.spSave(null, request.firstName(), request.lastName(),
+                request.mobileNumber(), request.employeeId(), "ACTIVE", null, null);
 
-        User user = userRepository.findByEmployeeId(request.getEmployeeId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "employeeId", request.getEmployeeId()));
+        User user = userRepository.findByEmployeeId(request.employeeId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "employeeId", request.employeeId()));
 
         String encodedPassword = passwordEncoder.encode(generateRandomPassword());
-        authFacade.saveAuthUser(request.getEmail(), encodedPassword, user.getId(), null);
+        authFacade.saveAuthUser(request.email(), encodedPassword, user.getId(), null);
 
-        if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
-            validateRolesExist(request.getRoleIds());
-            String joined = String.join(",", request.getRoleIds().stream().map(String::valueOf).toList());
+        if (request.roleIds() != null && !request.roleIds().isEmpty()) {
+            validateRolesExist(request.roleIds());
+            String joined = String.join(",", request.roleIds().stream().map(String::valueOf).toList());
             userRepository.spAssignRoles(user.getId(), joined, null);
         }
 
-        eventPublisher.publishEvent(new UserCreatedEvent(user.getId(), request.getEmail()));
+        eventPublisher.publishEvent(new UserCreatedEvent(user.getId(), request.email()));
 
         UserResponse response = userMapper.toDto(user);
-        populateRoles(response, user);
-        populateAuthFields(response);
+        response = populateRoles(response, user);
+        response = populateAuthFields(response);
         return response;
     }
 
@@ -123,17 +122,17 @@ public class UserService {
                 user.getMobileNumber(), user.getEmployeeId(),
                 user.getStatus(), null, null);
 
-        if (request.getRoleIds() != null) {
-            validateRolesExist(request.getRoleIds());
-            String joined = String.join(",", request.getRoleIds().stream().map(String::valueOf).toList());
+        if (request.roleIds() != null) {
+            validateRolesExist(request.roleIds());
+            String joined = String.join(",", request.roleIds().stream().map(String::valueOf).toList());
             userRepository.spAssignRoles(id, joined, null);
         }
 
         User updatedUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         UserResponse response = userMapper.toDto(updatedUser);
-        populateRoles(response, updatedUser);
-        populateAuthFields(response);
+        response = populateRoles(response, updatedUser);
+        response = populateAuthFields(response);
         return response;
     }
 
@@ -154,8 +153,8 @@ public class UserService {
         User activatedUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         UserResponse response = userMapper.toDto(activatedUser);
-        populateRoles(response, activatedUser);
-        populateAuthFields(response);
+        response = populateRoles(response, activatedUser);
+        response = populateAuthFields(response);
         return response;
     }
 
@@ -168,8 +167,8 @@ public class UserService {
         User deactivatedUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         UserResponse response = userMapper.toDto(deactivatedUser);
-        populateRoles(response, deactivatedUser);
-        populateAuthFields(response);
+        response = populateRoles(response, deactivatedUser);
+        response = populateAuthFields(response);
         return response;
     }
 
@@ -184,8 +183,8 @@ public class UserService {
         User updatedUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         UserResponse response = userMapper.toDto(updatedUser);
-        populateRoles(response, updatedUser);
-        populateAuthFields(response);
+        response = populateRoles(response, updatedUser);
+        response = populateAuthFields(response);
 
         eventPublisher.publishEvent(new RoleAssignedEvent(id, joined));
         return response;
@@ -202,24 +201,28 @@ public class UserService {
         return newPassword;
     }
 
-    private void populateRoles(UserResponse response, User user) {
+    private UserResponse populateRoles(UserResponse response, User user) {
         try {
             Set<RoleResponse> roleResponses = user.getRoles().stream()
                     .map(role -> roleFacade.getById(role.getId()))
                     .collect(Collectors.toSet());
-            response.setRoles(roleResponses);
+            return response.toBuilder().roles(roleResponses).build();
         } catch (Exception e) {
             log.warn("Failed to populate roles for user {}: {}", user.getId(), e.getMessage());
+            return response;
         }
     }
 
-    private void populateAuthFields(UserResponse response) {
+    private UserResponse populateAuthFields(UserResponse response) {
         try {
-            AuthUserDto authDto = authFacade.getAuthById(response.getId());
-            response.setEmail(authDto.email());
-            response.setLastLoginAt(authDto.lastLoginAt());
+            AuthUserDto authDto = authFacade.getAuthById(response.id());
+            return response.toBuilder()
+                    .email(authDto.email())
+                    .lastLoginAt(authDto.lastLoginAt())
+                    .build();
         } catch (Exception e) {
-            log.warn("Failed to populate auth fields for user {}: {}", response.getId(), e.getMessage());
+            log.warn("Failed to populate auth fields for user {}: {}", response.id(), e.getMessage());
+            return response;
         }
     }
 

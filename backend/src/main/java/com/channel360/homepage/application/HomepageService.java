@@ -25,26 +25,26 @@ public class HomepageService {
     @Transactional
     public HomepageSectionResponse saveSection(HomepageSectionRequest request, String user) {
         sectionRepository.spSave(
-            request.getId(),
-            request.getSectionName(),
-            request.getSectionType(),
-            request.getTitle(),
-            request.getSubtitle(),
-            request.getDescription(),
-            request.getImageUrl(),
-            request.getButtonText(),
-            request.getButtonUrl(),
-            request.getDisplayOrder(),
-            request.getActive() != null ? request.getActive() : true,
-            request.getStartDate(),
-            request.getEndDate(),
+            request.id(),
+            request.sectionName(),
+            request.sectionType(),
+            request.title(),
+            request.subtitle(),
+            request.description(),
+            request.imageUrl(),
+            request.buttonText(),
+            request.buttonUrl(),
+            request.displayOrder(),
+            request.active() != null ? request.active() : true,
+            request.startDate(),
+            request.endDate(),
             user
         );
-        if (request.getId() == null) {
+        if (request.id() == null) {
             List<HomepageSection> all = sectionRepository.findAllActive();
             return all.isEmpty() ? null : mapSection(all.get(0));
         }
-        return sectionRepository.findActiveById(request.getId())
+        return sectionRepository.findActiveById(request.id())
                 .map(this::mapSection)
                 .orElse(null);
     }
@@ -75,30 +75,30 @@ public class HomepageService {
     @Transactional
     public void reorderSections(List<SectionReorderRequest.SectionOrderItem> items) {
         for (SectionReorderRequest.SectionOrderItem item : items) {
-            sectionRepository.updateDisplayOrder(item.getId(), item.getDisplayOrder());
+            sectionRepository.updateDisplayOrder(item.id(), item.displayOrder());
         }
     }
 
     @Transactional
     public HomepagePopupResponse savePopup(HomepagePopupRequest request, String user) {
         popupRepository.spSave(
-            request.getId(),
-            request.getTitle(),
-            request.getDescription(),
-            request.getImageUrl(),
-            request.getCtaButtonText(),
-            request.getCtaUrl(),
-            request.getPriority(),
-            request.getActive() != null ? request.getActive() : true,
-            request.getStartDate(),
-            request.getEndDate(),
+            request.id(),
+            request.title(),
+            request.description(),
+            request.imageUrl(),
+            request.ctaButtonText(),
+            request.ctaUrl(),
+            request.priority(),
+            request.active() != null ? request.active() : true,
+            request.startDate(),
+            request.endDate(),
             user
         );
-        if (request.getId() == null) {
+        if (request.id() == null) {
             List<HomepagePopup> all = popupRepository.findAllActive();
             return all.isEmpty() ? null : mapPopup(all.get(0));
         }
-        return popupRepository.findActiveById(request.getId())
+        return popupRepository.findActiveById(request.id())
                 .map(this::mapPopup)
                 .orElse(null);
     }

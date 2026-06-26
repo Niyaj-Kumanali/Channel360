@@ -45,17 +45,17 @@ public class RegionApproverService {
 
     @Transactional
     public RegionApproverResponse createApprover(RegionApproverRequest request, String user) {
-        regionFacade.getById(request.getRegionId());
-        roleFacade.getById(request.getRoleId());
-        userFacade.getById(request.getUserId());
+        regionFacade.getById(request.regionId());
+        roleFacade.getById(request.roleId());
+        userFacade.getById(request.userId());
 
-        regionApproverRepository.spSave(null, request.getRegionId(), request.getRoleId(),
-                request.getUserId(), true, user);
+        regionApproverRepository.spSave(null, request.regionId(), request.roleId(),
+                request.userId(), true, user);
 
         RegionApprover saved = regionApproverRepository
                 .findByRegionIdAndRoleIdAndUserIdAndActiveFlagTrue(
-                        request.getRegionId(), request.getRoleId(), request.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("Region approver", "regionId", request.getRegionId()));
+                        request.regionId(), request.roleId(), request.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("Region approver", "regionId", request.regionId()));
         return toDto(saved);
     }
 
@@ -64,8 +64,8 @@ public class RegionApproverService {
         regionApproverRepository.findActiveById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Region approver", "id", id));
 
-        regionApproverRepository.spSave(id, request.getRegionId(), request.getRoleId(),
-                request.getUserId(), true, user);
+        regionApproverRepository.spSave(id, request.regionId(), request.roleId(),
+                request.userId(), true, user);
 
         return regionApproverRepository.findActiveById(id)
                 .map(this::toDto)
@@ -94,7 +94,7 @@ public class RegionApproverService {
         String roleName = null;
         try {
             RoleResponse role = roleFacade.getById(ra.getRoleId());
-            roleName = role.getName();
+            roleName = role.name();
         } catch (Exception e) {
             log.warn("Failed to resolve role for id {}: {}", ra.getRoleId(), e.getMessage());
         }
@@ -103,7 +103,7 @@ public class RegionApproverService {
         String userEmail = null;
         try {
             UserResponse u = userFacade.getById(ra.getUserId());
-            userName = u.getFirstName() + " " + u.getLastName();
+            userName = u.firstName() + " " + u.lastName();
             userEmail = authFacade.getAuthById(ra.getUserId()).email();
         } catch (Exception e) {
             log.warn("Failed to resolve user for id {}: {}", ra.getUserId(), e.getMessage());

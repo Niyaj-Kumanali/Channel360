@@ -37,19 +37,20 @@ public class MenuSeeder {
                     continue;
                 }
 
-                MenuRequest request = new MenuRequest();
-                request.setLabel(label);
-                request.setPath(item.get("path").asText());
-                request.setIcon(item.has("icon") && !item.get("icon").isNull() ? item.get("icon").asText() : null);
-                request.setDisplayOrder(item.get("displayOrder").asInt());
-                request.setPermissionName(item.has("permissionName") && !item.get("permissionName").isNull()
-                        ? item.get("permissionName").asText() : null);
-                request.setActive(true);
+                MenuRequest request = MenuRequest.builder()
+                        .label(label)
+                        .path(item.get("path").asText())
+                        .icon(item.has("icon") && !item.get("icon").isNull() ? item.get("icon").asText() : null)
+                        .displayOrder(item.get("displayOrder").asInt())
+                        .permissionName(item.has("permissionName") && !item.get("permissionName").isNull()
+                                ? item.get("permissionName").asText() : null)
+                        .active(true)
+                        .build();
 
                 Long menuId = menuApplicationService.createMenuItem(request).id();
 
-                if (request.getPermissionName() != null) {
-                    permissionService.setMenuId(request.getPermissionName(), menuId);
+                if (request.permissionName() != null) {
+                    permissionService.setMenuId(request.permissionName(), menuId);
                 }
 
                 JsonNode children = item.get("children");
@@ -61,21 +62,22 @@ public class MenuSeeder {
                             continue;
                         }
 
-                        MenuRequest childRequest = new MenuRequest();
-                        childRequest.setLabel(childLabel);
-                        childRequest.setPath(child.get("path").asText());
-                        childRequest.setIcon(child.has("icon") && !child.get("icon").isNull()
-                                ? child.get("icon").asText() : null);
-                        childRequest.setDisplayOrder(child.get("displayOrder").asInt());
-                        childRequest.setPermissionName(child.has("permissionName") && !child.get("permissionName").isNull()
-                                ? child.get("permissionName").asText() : null);
-                        childRequest.setParentId(menuId);
-                        childRequest.setActive(true);
+                        MenuRequest childRequest = MenuRequest.builder()
+                                .label(childLabel)
+                                .path(child.get("path").asText())
+                                .icon(child.has("icon") && !child.get("icon").isNull()
+                                        ? child.get("icon").asText() : null)
+                                .displayOrder(child.get("displayOrder").asInt())
+                                .permissionName(child.has("permissionName") && !child.get("permissionName").isNull()
+                                        ? child.get("permissionName").asText() : null)
+                                .parentId(menuId)
+                                .active(true)
+                                .build();
 
                         Long childId = menuApplicationService.createMenuItem(childRequest).id();
 
-                        if (childRequest.getPermissionName() != null) {
-                            permissionService.setMenuId(childRequest.getPermissionName(), childId);
+                        if (childRequest.permissionName() != null) {
+                            permissionService.setMenuId(childRequest.permissionName(), childId);
                         }
                     }
                 }

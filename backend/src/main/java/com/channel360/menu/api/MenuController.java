@@ -55,7 +55,7 @@ public class MenuController {
     @RequirePermission("menu.manage")
     public ResponseEntity<ApiResponse<Void>> reorderMenuItems(@RequestBody List<MenuRequest> items) {
         for (MenuRequest item : items) {
-            menuService.reorderMenu(item.getId(), item.getDisplayOrder());
+            menuService.reorderMenu(item.id(), item.displayOrder());
         }
         return ResponseEntity.ok(ApiResponse.success(null, "Menu items reordered"));
     }

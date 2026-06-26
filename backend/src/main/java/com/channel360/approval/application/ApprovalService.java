@@ -64,31 +64,31 @@ public class ApprovalService {
 
     @Transactional
     public ApprovalRequestResponse createRequest(ApprovalRequestCreate req) {
-        workflowFacade.getById(req.getWorkflowId());
+        workflowFacade.getById(req.workflowId());
 
         ApprovalRequest request = ApprovalRequest.builder()
-                .workflowId(req.getWorkflowId())
-                .requestType(req.getRequestType())
-                .requestReferenceId(req.getRequestReferenceId())
-                .requestRegionId(req.getRequestRegionId())
-                .requestorId(req.getRequestorId())
+                .workflowId(req.workflowId())
+                .requestType(req.requestType())
+                .requestReferenceId(req.requestReferenceId())
+                .requestRegionId(req.requestRegionId())
+                .requestorId(req.requestorId())
                 .status("PENDING")
                 .build();
         request = requestRepository.save(request);
 
-        List<WorkflowStepResponse> steps = workflowFacade.getStepsByWorkflowId(req.getWorkflowId());
+        List<WorkflowStepResponse> steps = workflowFacade.getStepsByWorkflowId(req.workflowId());
 
         List<ApprovalTask> tasks = new ArrayList<>();
         for (WorkflowStepResponse step : steps) {
-            Long resolvedUserId = resolveApprover(req.getRequestRegionId(), step.roleName());
-            Long resolvedRegionId = resolveApproverRegion(req.getRequestRegionId());
+            Long resolvedUserId = resolveApprover(req.requestRegionId(), step.roleName());
+            Long resolvedRegionId = resolveApproverRegion(req.requestRegionId());
 
             RoleResponse role = roleFacade.findByName(step.roleName());
 
             ApprovalTask task = ApprovalTask.builder()
                     .approvalRequestId(request.getId())
                     .workflowStepId(step.id())
-                    .assignedRoleId(role.getId())
+                    .assignedRoleId(role.id())
                     .assignedUserId(resolvedUserId)
                     .assignedRegionId(resolvedRegionId)
                     .status("PENDING")
@@ -109,9 +109,9 @@ public class ApprovalService {
         }
 
         task.setStatus("APPROVED");
-        task.setApprovedBy(action.getUserId());
+        task.setApprovedBy(action.userId());
         task.setApprovedAt(LocalDateTime.now());
-        task.setComments(action.getComments());
+        task.setComments(action.comments());
         task = taskRepository.save(task);
 
         checkAndUpdateRequestStatus(task.getApprovalRequestId());
@@ -129,9 +129,9 @@ public class ApprovalService {
         }
 
         task.setStatus("REJECTED");
-        task.setRejectedBy(action.getUserId());
+        task.setRejectedBy(action.userId());
         task.setRejectedAt(LocalDateTime.now());
-        task.setComments(action.getComments());
+        task.setComments(action.comments());
         Long reqId = task.getApprovalRequestId();
         task = taskRepository.save(task);
 
@@ -187,7 +187,7 @@ public class ApprovalService {
         }
 
         for (Long rid : regionChain) {
-            Long userId = regionApproverFacade.findApproverUserId(rid, role.getId(), null);
+            Long userId = regionApproverFacade.findApproverUserId(rid, role.id(), null);
             if (userId != null) return userId;
         }
 
@@ -309,7 +309,7 @@ public class ApprovalService {
         if (userId == null) return null;
         try {
             UserResponse u = userFacade.getById(userId);
-            return u.getFirstName() + " " + u.getLastName();
+            return u.firstName() + " " + u.lastName();
         } catch (Exception e) {
             log.warn("Failed to resolve user name for id {}: {}", userId, e.getMessage());
             return null;

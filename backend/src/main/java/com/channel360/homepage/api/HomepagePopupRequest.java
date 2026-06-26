@@ -2,26 +2,20 @@ package com.channel360.homepage.api;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Builder;
+
 import java.time.LocalDateTime;
 
-@Data
-public class HomepagePopupRequest {
-
-    private Long id;
-
-    @NotBlank
-    private String title;
-
-    private String description;
-    private String imageUrl;
-    private String ctaButtonText;
-    private String ctaUrl;
-
-    @NotNull
-    private Integer priority;
-
-    private Boolean active;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-}
+@Builder
+public record HomepagePopupRequest(
+    Long id,
+    @NotBlank String title,
+    String description,
+    String imageUrl,
+    String ctaButtonText,
+    String ctaUrl,
+    @NotNull Integer priority,
+    Boolean active,
+    LocalDateTime startDate,
+    LocalDateTime endDate
+) {}

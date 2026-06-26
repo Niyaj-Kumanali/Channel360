@@ -61,7 +61,6 @@ public class HomepageController {
     public ResponseEntity<ApiResponse<HomepageSectionResponse>> createSection(
             @Valid @RequestBody HomepageSectionRequest request,
             Authentication auth) {
-        request.setId(null);
         HomepageSectionResponse section = homepageService.saveSection(request, auth.getName());
         return ResponseEntity.ok(ApiResponse.success(section, "Section created"));
     }
@@ -72,8 +71,23 @@ public class HomepageController {
             @PathVariable Long id,
             @Valid @RequestBody HomepageSectionRequest request,
             Authentication auth) {
-        request.setId(id);
-        HomepageSectionResponse section = homepageService.saveSection(request, auth.getName());
+        HomepageSectionResponse section = homepageService.saveSection(
+                HomepageSectionRequest.builder()
+                        .id(id)
+                        .sectionName(request.sectionName())
+                        .sectionType(request.sectionType())
+                        .title(request.title())
+                        .subtitle(request.subtitle())
+                        .description(request.description())
+                        .imageUrl(request.imageUrl())
+                        .buttonText(request.buttonText())
+                        .buttonUrl(request.buttonUrl())
+                        .displayOrder(request.displayOrder())
+                        .active(request.active())
+                        .startDate(request.startDate())
+                        .endDate(request.endDate())
+                        .build(),
+                auth.getName());
         return ResponseEntity.ok(ApiResponse.success(section, "Section updated"));
     }
 
@@ -87,7 +101,7 @@ public class HomepageController {
     @PutMapping("/sections/reorder")
     @RequirePermission("sections.edit")
     public ResponseEntity<ApiResponse<Void>> reorderSections(@Valid @RequestBody SectionReorderRequest request) {
-        homepageService.reorderSections(request.getItems());
+        homepageService.reorderSections(request.items());
         return ResponseEntity.ok(ApiResponse.success(null, "Sections reordered"));
     }
 
@@ -115,7 +129,6 @@ public class HomepageController {
     public ResponseEntity<ApiResponse<HomepagePopupResponse>> createPopup(
             @Valid @RequestBody HomepagePopupRequest request,
             Authentication auth) {
-        request.setId(null);
         HomepagePopupResponse popup = homepageService.savePopup(request, auth.getName());
         return ResponseEntity.ok(ApiResponse.success(popup, "Popup created"));
     }
@@ -126,8 +139,20 @@ public class HomepageController {
             @PathVariable Long id,
             @Valid @RequestBody HomepagePopupRequest request,
             Authentication auth) {
-        request.setId(id);
-        HomepagePopupResponse popup = homepageService.savePopup(request, auth.getName());
+        HomepagePopupResponse popup = homepageService.savePopup(
+                HomepagePopupRequest.builder()
+                        .id(id)
+                        .title(request.title())
+                        .description(request.description())
+                        .imageUrl(request.imageUrl())
+                        .ctaButtonText(request.ctaButtonText())
+                        .ctaUrl(request.ctaUrl())
+                        .priority(request.priority())
+                        .active(request.active())
+                        .startDate(request.startDate())
+                        .endDate(request.endDate())
+                        .build(),
+                auth.getName());
         return ResponseEntity.ok(ApiResponse.success(popup, "Popup updated"));
     }
 

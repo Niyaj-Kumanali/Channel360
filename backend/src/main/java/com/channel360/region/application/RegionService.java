@@ -38,15 +38,15 @@ public class RegionService {
 
     @Transactional
     public RegionResponse createRegion(RegionRequest request, String user) {
-        validateLevel(request.getLevel());
-        validateTreeType(request.getTreeType());
-        validateParent(request.getParentId());
+        validateLevel(request.level());
+        validateTreeType(request.treeType());
+        validateParent(request.parentId());
 
-        regionRepository.spSave(null, request.getName(), request.getParentId(),
-                request.getLevel(), request.getTreeType(), user);
+        regionRepository.spSave(null, request.name(), request.parentId(),
+                request.level(), request.treeType(), user);
 
-        Region saved = regionRepository.findActiveByName(request.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("Region", "name", request.getName()));
+        Region saved = regionRepository.findActiveByName(request.name())
+                .orElseThrow(() -> new ResourceNotFoundException("Region", "name", request.name()));
         return toDto(saved);
     }
 
@@ -55,11 +55,11 @@ public class RegionService {
         Region region = regionRepository.findActiveById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Region", "id", id));
 
-        if (request.getName() != null) validateLevel(request.getLevel());
-        if (request.getTreeType() != null) validateTreeType(request.getTreeType());
+        if (request.name() != null) validateLevel(request.level());
+        if (request.treeType() != null) validateTreeType(request.treeType());
 
-        regionRepository.spSave(id, request.getName(), request.getParentId(),
-                request.getLevel(), request.getTreeType(), user);
+        regionRepository.spSave(id, request.name(), request.parentId(),
+                request.level(), request.treeType(), user);
 
         return regionRepository.findActiveById(id)
                 .map(this::toDto)

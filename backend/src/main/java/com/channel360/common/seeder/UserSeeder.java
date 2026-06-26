@@ -56,12 +56,13 @@ public class UserSeeder {
 
         UserResponse user;
         try {
-            RegisterRequest request = new RegisterRequest();
-            request.setEmail(email);
-            request.setFirstName(firstName);
-            request.setLastName(lastName);
-            request.setPassword(password);
-            request.setMobileNumber(mobileNumber);
+            RegisterRequest request = RegisterRequest.builder()
+                    .email(email)
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .password(password)
+                    .mobileNumber(mobileNumber)
+                    .build();
 
             user = authFacade.register(request);
             log.info("Created {} user: {}", label, email);
@@ -72,7 +73,7 @@ public class UserSeeder {
         }
 
         RoleResponse role = roleService.getRoleByName(roleName);
-        userService.assignRoles(user.getId(), List.of(role.getId()));
+        userService.assignRoles(user.id(), List.of(role.id()));
         log.info("Assigned {} to user {}", roleName, email);
     }
 }

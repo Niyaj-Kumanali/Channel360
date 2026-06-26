@@ -40,11 +40,11 @@ public class WorkflowService {
 
     @Transactional
     public WorkflowResponse createWorkflow(WorkflowRequest request, String user) {
-        workflowRepository.spSave(null, request.getName(), request.getDescription(),
-                request.getModule(), request.getActive(), user);
+        workflowRepository.spSave(null, request.name(), request.description(),
+                request.module(), request.active(), user);
 
-        ApprovalWorkflow saved = workflowRepository.findActiveByName(request.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("Workflow", "name", request.getName()));
+        ApprovalWorkflow saved = workflowRepository.findActiveByName(request.name())
+                .orElseThrow(() -> new ResourceNotFoundException("Workflow", "name", request.name()));
         eventPublisher.publishEvent(new WorkflowCreatedEvent(saved));
         return toDto(saved);
     }
@@ -54,8 +54,8 @@ public class WorkflowService {
         workflowRepository.findActiveById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Workflow", "id", id));
 
-        workflowRepository.spSave(id, request.getName(), request.getDescription(),
-                request.getModule(), request.getActive(), user);
+        workflowRepository.spSave(id, request.name(), request.description(),
+                request.module(), request.active(), user);
 
         return workflowRepository.findActiveById(id)
                 .map(this::toDto)
@@ -72,18 +72,18 @@ public class WorkflowService {
 
     @Transactional
     public WorkflowStepResponse addStep(WorkflowStepRequest request, String user) {
-        workflowRepository.findActiveById(request.getWorkflowId())
-                .orElseThrow(() -> new ResourceNotFoundException("Workflow", "id", request.getWorkflowId()));
+        workflowRepository.findActiveById(request.workflowId())
+                .orElseThrow(() -> new ResourceNotFoundException("Workflow", "id", request.workflowId()));
 
-        stepRepository.spSave(null, request.getWorkflowId(), request.getStepOrder(),
-                request.getRoleName(), request.getLabel(), request.getMandatory(),
-                request.getSlaHours(), request.getEscalationRole(), request.getDescription(), user);
+        stepRepository.spSave(null, request.workflowId(), request.stepOrder(),
+                request.roleName(), request.label(), request.mandatory(),
+                request.slaHours(), request.escalationRole(), request.description(), user);
 
         ApprovalWorkflowStep saved = stepRepository
                 .findActiveByWorkflowIdAndStepOrderAndLabelAndRoleName(
-                        request.getWorkflowId(), request.getStepOrder(),
-                        request.getLabel(), request.getRoleName())
-                .orElseThrow(() -> new ResourceNotFoundException("Workflow step", "workflowId", request.getWorkflowId()));
+                        request.workflowId(), request.stepOrder(),
+                        request.label(), request.roleName())
+                .orElseThrow(() -> new ResourceNotFoundException("Workflow step", "workflowId", request.workflowId()));
         return toStepDto(saved);
     }
 
@@ -92,9 +92,9 @@ public class WorkflowService {
         stepRepository.findActiveById(stepId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workflow step", "id", stepId));
 
-        stepRepository.spSave(stepId, request.getWorkflowId(), request.getStepOrder(),
-                request.getRoleName(), request.getLabel(), request.getMandatory(),
-                request.getSlaHours(), request.getEscalationRole(), request.getDescription(), user);
+        stepRepository.spSave(stepId, request.workflowId(), request.stepOrder(),
+                request.roleName(), request.label(), request.mandatory(),
+                request.slaHours(), request.escalationRole(), request.description(), user);
 
         return stepRepository.findActiveById(stepId)
                 .map(this::toStepDto)

@@ -57,12 +57,12 @@ public class RoleService {
 
     @Transactional
     public RoleResponse createRole(RoleResponse roleDto) {
-        roleRepository.spSave(null, roleDto.getName(), roleDto.getDescription());
-        Role saved = roleRepository.findByName(roleDto.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleDto.getName()));
+        roleRepository.spSave(null, roleDto.name(), roleDto.description());
+        Role saved = roleRepository.findByName(roleDto.name())
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleDto.name()));
 
-        if (roleDto.getPermissionIds() != null && !roleDto.getPermissionIds().isEmpty()) {
-            Set<Permission> permissions = roleDto.getPermissionIds().stream()
+        if (roleDto.permissionIds() != null && !roleDto.permissionIds().isEmpty()) {
+            Set<Permission> permissions = roleDto.permissionIds().stream()
                     .map(id -> permissionRepository.findById(id)
                             .orElseThrow(() -> new ResourceNotFoundException("Permission", "id", id)))
                     .collect(Collectors.toSet());
@@ -80,10 +80,10 @@ public class RoleService {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", id));
 
-        roleRepository.spSave(id, roleDto.getName(), roleDto.getDescription());
+        roleRepository.spSave(id, roleDto.name(), roleDto.description());
 
-        if (roleDto.getPermissionIds() != null) {
-            Set<Permission> permissions = roleDto.getPermissionIds().stream()
+        if (roleDto.permissionIds() != null) {
+            Set<Permission> permissions = roleDto.permissionIds().stream()
                     .map(pid -> permissionRepository.findById(pid)
                             .orElseThrow(() -> new ResourceNotFoundException("Permission", "id", pid)))
                     .collect(Collectors.toSet());
