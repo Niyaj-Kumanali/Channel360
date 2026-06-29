@@ -24,14 +24,14 @@ public class AuthFacadeImpl implements AuthFacade {
     public AuthUserDto findByEmail(String email) {
         AuthUser user = authUserRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
-        return toAuthDto(user);
+        return buildAuthUserDto(user);
     }
 
     @Override
     public AuthUserDto getAuthById(Long id) {
         AuthUser user = authUserRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        return toAuthDto(user);
+        return buildAuthUserDto(user);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class AuthFacadeImpl implements AuthFacade {
         authUserRepository.spChangePassword(userId, encodedPassword);
     }
 
-    private AuthUserDto toAuthDto(AuthUser authUser) {
+    private AuthUserDto buildAuthUserDto(AuthUser authUser) {
         return AuthUserDto.builder()
                 .id(authUser.getId())
                 .email(authUser.getEmail())

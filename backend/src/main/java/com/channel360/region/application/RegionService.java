@@ -1,5 +1,6 @@
 package com.channel360.region.application;
 
+import com.channel360.common.exception.BadRequestException;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.region.api.RegionRequest;
 import com.channel360.region.api.RegionResponse;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -76,18 +78,16 @@ public class RegionService {
 
     private void validateLevel(String level) {
         if (level == null) return;
-        for (String valid : VALID_LEVELS) {
-            if (valid.equals(level)) return;
+        if (Arrays.stream(VALID_LEVELS).noneMatch(level::equals)) {
+            throw new BadRequestException("Invalid level: " + level + ". Must be Zone, Region, State, or Territory");
         }
-        throw new IllegalArgumentException("Invalid level: " + level + ". Must be Zone, Region, State, or Territory");
     }
 
     private void validateTreeType(String treeType) {
         if (treeType == null) return;
-        for (String valid : VALID_TREE_TYPES) {
-            if (valid.equals(treeType)) return;
+        if (Arrays.stream(VALID_TREE_TYPES).noneMatch(treeType::equals)) {
+            throw new BadRequestException("Invalid tree type: " + treeType + ". Must be B2B or B2C");
         }
-        throw new IllegalArgumentException("Invalid tree type: " + treeType + ". Must be B2B or B2C");
     }
 
     private void validateParent(Long parentId) {

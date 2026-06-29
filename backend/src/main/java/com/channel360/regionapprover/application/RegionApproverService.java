@@ -81,33 +81,16 @@ public class RegionApproverService {
     }
 
     private RegionApproverResponse toDto(RegionApprover ra) {
-        String regionName = null;
-        String regionPath = null;
-        try {
-            RegionResponse region = regionFacade.getById(ra.getRegionId());
-            regionName = region.name();
-            regionPath = region.path();
-        } catch (Exception e) {
-            log.warn("Failed to resolve region for id {}: {}", ra.getRegionId(), e.getMessage());
-        }
+        RegionResponse region = regionFacade.getById(ra.getRegionId());
+        String regionName = region.name();
+        String regionPath = region.path();
 
-        String roleName = null;
-        try {
-            RoleResponse role = roleFacade.getById(ra.getRoleId());
-            roleName = role.name();
-        } catch (Exception e) {
-            log.warn("Failed to resolve role for id {}: {}", ra.getRoleId(), e.getMessage());
-        }
+        RoleResponse role = roleFacade.getById(ra.getRoleId());
+        String roleName = role.name();
 
-        String userName = null;
-        String userEmail = null;
-        try {
-            UserResponse u = userFacade.getById(ra.getUserId());
-            userName = u.firstName() + " " + u.lastName();
-            userEmail = authFacade.getAuthById(ra.getUserId()).email();
-        } catch (Exception e) {
-            log.warn("Failed to resolve user for id {}: {}", ra.getUserId(), e.getMessage());
-        }
+        UserResponse u = userFacade.getById(ra.getUserId());
+        String userName = u.firstName() + " " + u.lastName();
+        String userEmail = authFacade.getAuthById(ra.getUserId()).email();
 
         return RegionApproverResponse.builder()
                 .id(ra.getId())

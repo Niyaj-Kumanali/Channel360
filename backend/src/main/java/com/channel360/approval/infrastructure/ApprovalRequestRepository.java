@@ -1,6 +1,7 @@
 package com.channel360.approval.infrastructure;
 
 import com.channel360.approval.domain.ApprovalRequest;
+import com.channel360.common.domain.ApprovalStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +15,7 @@ public interface ApprovalRequestRepository extends JpaRepository<ApprovalRequest
 
     List<ApprovalRequest> findByRequestorIdOrderByCreatedAtDesc(Long requestorId);
 
-    List<ApprovalRequest> findByStatusOrderByCreatedAtDesc(String status);
+    List<ApprovalRequest> findByStatusOrderByCreatedAtDesc(ApprovalStatus status);
 
     @Query("SELECT r FROM ApprovalRequest r WHERE r.id = :id")
     Optional<ApprovalRequest> findActiveById(@Param("id") Long id);

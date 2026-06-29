@@ -1,10 +1,13 @@
 package com.channel360.approval.domain;
 
+import com.channel360.common.domain.ApprovalStatus;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,9 +34,9 @@ public class ApprovalRequest {
     @Column(name = "requestor_id", nullable = false)
     private Long requestorId;
 
-    @Builder.Default
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String status = "PENDING";
+    private ApprovalStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -41,11 +44,14 @@ public class ApprovalRequest {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-
     }
 
     @PreUpdate

@@ -7,6 +7,7 @@ import com.channel360.homepage.api.HomepagePopupResponse;
 import com.channel360.homepage.api.HomepageSectionResponse;
 import com.channel360.homepage.domain.HomepagePopup;
 import com.channel360.homepage.domain.HomepageSection;
+import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.homepage.infrastructure.HomepagePopupRepository;
 import com.channel360.homepage.infrastructure.HomepageSectionRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,11 +43,14 @@ public class HomepageService {
         );
         if (request.id() == null) {
             List<HomepageSection> all = sectionRepository.findAllActive();
-            return all.isEmpty() ? null : mapSection(all.get(0));
+            if (all.isEmpty()) {
+                throw new ResourceNotFoundException("HomepageSection", "id", "after-save");
+            }
+            return mapSection(all.get(0));
         }
         return sectionRepository.findActiveById(request.id())
                 .map(this::mapSection)
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("HomepageSection", "id", request.id()));
     }
 
     @Transactional
@@ -57,7 +61,7 @@ public class HomepageService {
     public HomepageSectionResponse getSection(Long id, String user) {
         return sectionRepository.findActiveById(id)
                 .map(this::mapSection)
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("HomepageSection", "id", id));
     }
 
     public List<HomepageSectionResponse> getAllSections() {
@@ -74,9 +78,7 @@ public class HomepageService {
 
     @Transactional
     public void reorderSections(List<SectionReorderRequest.SectionOrderItem> items) {
-        for (SectionReorderRequest.SectionOrderItem item : items) {
-            sectionRepository.updateDisplayOrder(item.id(), item.displayOrder());
-        }
+        items.forEach(item -> sectionRepository.updateDisplayOrder(item.id(), item.displayOrder()));
     }
 
     @Transactional
@@ -96,11 +98,14 @@ public class HomepageService {
         );
         if (request.id() == null) {
             List<HomepagePopup> all = popupRepository.findAllActive();
-            return all.isEmpty() ? null : mapPopup(all.get(0));
+            if (all.isEmpty()) {
+                throw new ResourceNotFoundException("HomepagePopup", "id", "after-save");
+            }
+            return mapPopup(all.get(0));
         }
         return popupRepository.findActiveById(request.id())
                 .map(this::mapPopup)
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("HomepagePopup", "id", request.id()));
     }
 
     @Transactional
@@ -111,7 +116,7 @@ public class HomepageService {
     public HomepagePopupResponse getPopup(Long id) {
         return popupRepository.findActiveById(id)
                 .map(this::mapPopup)
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("HomepagePopup", "id", id));
     }
 
     public List<HomepagePopupResponse> getAllPopups() {

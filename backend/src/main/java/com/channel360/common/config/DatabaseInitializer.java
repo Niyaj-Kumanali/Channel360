@@ -34,6 +34,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             }
         } catch (Exception e) {
             log.error("Failed to initialize database procedures", e);
+            throw new RuntimeException("Failed to initialize database procedures", e);
         }
     }
 

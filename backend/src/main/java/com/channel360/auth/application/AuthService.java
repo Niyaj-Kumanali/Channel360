@@ -2,8 +2,10 @@ package com.channel360.auth.application;
 
 import com.channel360.auth.api.*;
 import com.channel360.auth.domain.AuthUser;
+import com.channel360.auth.domain.PasswordResetToken;
 import com.channel360.auth.domain.RefreshToken;
 import com.channel360.auth.infrastructure.AuthUserRepository;
+import com.channel360.auth.infrastructure.PasswordResetTokenRepository;
 import com.channel360.auth.infrastructure.RefreshTokenRepository;
 import com.channel360.common.constants.AppConstants;
 import com.channel360.common.exception.BadRequestException;
@@ -27,8 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -39,24 +39,17 @@ public class AuthService {
 
     private static final long RESET_TOKEN_EXPIRY_MINUTES = 30;
 
-    private record ResetTokenEntry(String token, LocalDateTime expiry) {
-        boolean isExpired() {
-            return LocalDateTime.now().isAfter(expiry);
-        }
-    }
-
     private final UserFacade userFacade;
     private final RoleFacade roleFacade;
     private final AuthUserRepository authUserRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
-
-    private final Map<String, ResetTokenEntry> passwordResetTokens = new HashMap<>();
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
@@ -132,53 +125,40 @@ public class AuthService {
         authUserRepository.spChangePassword(userDetails.getId(), passwordEncoder.encode(request.newPassword()));
     }
 
+    @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
-        try {
-            authUserRepository.findByEmail(request.email());
-            String resetToken = UUID.randomUUID().toString();
-            passwordResetTokens.put(request.email(),
-                    new ResetTokenEntry(resetToken, LocalDateTime.now().plusMinutes(RESET_TOKEN_EXPIRY_MINUTES)));
+        authUserRepository.findByEmail(request.email())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.email()));
 
-            String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .email(request.email())
+                .expiryDate(LocalDateTime.now().plusMinutes(RESET_TOKEN_EXPIRY_MINUTES))
+                .build();
+        passwordResetTokenRepository.save(resetToken);
 
-            emailService.sendResetPasswordEmail(request.email(), resetLink);
+        String resetLink = frontendUrl + "/reset-password?token=" + resetToken.getToken();
 
-            log.info("Password reset email sent to: {}", request.email());
-        } catch (Exception e) {
-            log.info("Password reset requested for non-existent email: {}", request.email());
-        }
+        emailService.sendResetPasswordEmail(request.email(), resetLink);
+
+        log.info("Password reset email sent to: {}", request.email());
     }
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        ResetTokenEntry entry = passwordResetTokens.values().stream()
-                .filter(resetTokenEntry -> resetTokenEntry.token().equals(request.token()))
-                .findFirst()
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.token())
                 .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
 
-        if (entry.isExpired()) {
-            passwordResetTokens.values().remove(entry);
+        if (resetToken.isUsed() || resetToken.isExpired()) {
             throw new BadRequestException("Invalid or expired reset token");
         }
 
-        String email = passwordResetTokens.entrySet().stream()
-                .filter(e -> e.getValue().token().equals(request.token()))
-                .map(Map.Entry::getKey)
-                .findFirst()
-                .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
+        AuthUser authUser = authUserRepository.findByEmail(resetToken.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", resetToken.getEmail()));
 
-        try {
-            AuthUser authUser = authUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
-            authUserRepository.spChangePassword(authUser.getId(), passwordEncoder.encode(request.newPassword()));
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to reset password for email {}: {}", email, e.getMessage());
-            throw new ResourceNotFoundException("User", "email", email);
-        }
+        authUserRepository.spChangePassword(authUser.getId(), passwordEncoder.encode(request.newPassword()));
 
-        passwordResetTokens.remove(email);
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
     }
 
     public UserResponse getCurrentUser() {

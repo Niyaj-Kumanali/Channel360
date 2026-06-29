@@ -8,6 +8,8 @@ import com.channel360.approval.domain.ApprovalRequest;
 import com.channel360.approval.domain.ApprovalTask;
 import com.channel360.approval.infrastructure.ApprovalRequestRepository;
 import com.channel360.approval.infrastructure.ApprovalTaskRepository;
+import com.channel360.common.domain.ApprovalStatus;
+import com.channel360.common.exception.BadRequestException;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.region.api.RegionFacade;
 import com.channel360.region.api.RegionResponse;
@@ -45,7 +47,7 @@ public class ApprovalService {
     private final ApplicationEventPublisher eventPublisher;
 
     public List<ApprovalRequestResponse> getAllRequests() {
-        return requestRepository.findByStatusOrderByCreatedAtDesc(null).stream()
+        return requestRepository.findAll().stream()
                 .map(this::toDto)
                 .toList();
     }
@@ -72,7 +74,7 @@ public class ApprovalService {
                 .requestReferenceId(req.requestReferenceId())
                 .requestRegionId(req.requestRegionId())
                 .requestorId(req.requestorId())
-                .status("PENDING")
+                .status(ApprovalStatus.PENDING)
                 .build();
         request = requestRepository.save(request);
 
@@ -91,7 +93,7 @@ public class ApprovalService {
                     .assignedRoleId(role.id())
                     .assignedUserId(resolvedUserId)
                     .assignedRegionId(resolvedRegionId)
-                    .status("PENDING")
+                    .status(ApprovalStatus.PENDING)
                     .build();
             tasks.add(taskRepository.save(task));
         }
@@ -104,11 +106,11 @@ public class ApprovalService {
         ApprovalTask task = taskRepository.findActiveById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Approval task", "id", taskId));
 
-        if (!"PENDING".equals(task.getStatus())) {
-            throw new IllegalStateException("Task is not in PENDING status");
+        if (task.getStatus() != ApprovalStatus.PENDING) {
+            throw new BadRequestException("Task is not in PENDING status");
         }
 
-        task.setStatus("APPROVED");
+        task.setStatus(ApprovalStatus.APPROVED);
         task.setApprovedBy(action.userId());
         task.setApprovedAt(LocalDateTime.now());
         task.setComments(action.comments());
@@ -124,11 +126,11 @@ public class ApprovalService {
         ApprovalTask task = taskRepository.findActiveById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Approval task", "id", taskId));
 
-        if (!"PENDING".equals(task.getStatus())) {
-            throw new IllegalStateException("Task is not in PENDING status");
+        if (task.getStatus() != ApprovalStatus.PENDING) {
+            throw new BadRequestException("Task is not in PENDING status");
         }
 
-        task.setStatus("REJECTED");
+        task.setStatus(ApprovalStatus.REJECTED);
         task.setRejectedBy(action.userId());
         task.setRejectedAt(LocalDateTime.now());
         task.setComments(action.comments());
@@ -137,7 +139,7 @@ public class ApprovalService {
 
         ApprovalRequest request = requestRepository.findActiveById(reqId)
                 .orElseThrow(() -> new ResourceNotFoundException("Approval request", "id", reqId));
-        request.setStatus("REJECTED");
+        request.setStatus(ApprovalStatus.REJECTED);
         requestRepository.save(request);
 
         return toTaskDto(task);
@@ -148,43 +150,30 @@ public class ApprovalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Approval request", "id", requestId));
 
         List<ApprovalTask> tasks = taskRepository.findByApprovalRequestIdOrderByCreatedAtAsc(requestId);
-        boolean anyRejected = tasks.stream().anyMatch(t -> "REJECTED".equals(t.getStatus()));
-        boolean allApproved = tasks.stream().allMatch(t -> "APPROVED".equals(t.getStatus()));
+        boolean anyRejected = tasks.stream().anyMatch(t -> t.getStatus() == ApprovalStatus.REJECTED);
+        boolean allApproved = tasks.stream().allMatch(t -> t.getStatus() == ApprovalStatus.APPROVED);
 
         if (anyRejected) {
-            request.setStatus("REJECTED");
+            request.setStatus(ApprovalStatus.REJECTED);
             requestRepository.save(request);
         } else if (allApproved) {
-            request.setStatus("APPROVED");
+            Long lastApprovedBy = tasks.stream()
+                    .filter(t -> t.getApprovedBy() != null)
+                    .reduce((first, second) -> second)
+                    .map(ApprovalTask::getApprovedBy)
+                    .orElse(null);
+            request.setStatus(ApprovalStatus.APPROVED);
             requestRepository.save(request);
-            eventPublisher.publishEvent(new WorkflowApprovedEvent(requestId, null, null));
+            eventPublisher.publishEvent(new WorkflowApprovedEvent(requestId, null, lastApprovedBy));
         }
     }
 
     private Long resolveApprover(Long regionId, String roleName) {
         if (regionId == null) return null;
 
-        List<Long> regionChain = new ArrayList<>();
-        regionChain.add(regionId);
-        try {
-            RegionResponse current = regionFacade.getById(regionId);
-            while (current != null && current.parentId() != null) {
-                Long parentId = current.parentId();
-                regionChain.add(parentId);
-                current = regionFacade.getById(parentId);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to resolve region chain for regionId {}: {}", regionId, e.getMessage());
-            return null;
-        }
+        List<Long> regionChain = buildRegionChain(regionId);
 
-        RoleResponse role;
-        try {
-            role = roleFacade.findByName(roleName);
-        } catch (Exception e) {
-            log.warn("Failed to find role by name {}: {}", roleName, e.getMessage());
-            return null;
-        }
+        RoleResponse role = roleFacade.findByName(roleName);
 
         for (Long rid : regionChain) {
             Long userId = regionApproverFacade.findApproverUserId(rid, role.id(), null);
@@ -197,18 +186,7 @@ public class ApprovalService {
     private Long resolveApproverRegion(Long regionId) {
         if (regionId == null) return null;
 
-        List<Long> chain = new ArrayList<>();
-        chain.add(regionId);
-        try {
-            RegionResponse current = regionFacade.getById(regionId);
-            while (current.parentId() != null) {
-                chain.add(current.parentId());
-                current = regionFacade.getById(current.parentId());
-            }
-        } catch (Exception e) {
-            log.warn("Failed to resolve region chain for regionId {}: {}", regionId, e.getMessage());
-            chain = List.of(regionId);
-        }
+        List<Long> chain = buildRegionChain(regionId);
 
         for (Long rid : chain) {
             if (regionApproverFacade.existsByRegionId(rid)) {
@@ -216,6 +194,18 @@ public class ApprovalService {
             }
         }
         return regionId;
+    }
+
+    private List<Long> buildRegionChain(Long regionId) {
+        List<Long> regionChain = new ArrayList<>();
+        regionChain.add(regionId);
+        RegionResponse current = regionFacade.getById(regionId);
+        while (current.parentId() != null) {
+            Long parentId = current.parentId();
+            regionChain.add(parentId);
+            current = regionFacade.getById(parentId);
+        }
+        return regionChain;
     }
 
     private ApprovalRequestResponse toDto(ApprovalRequest request) {
@@ -237,7 +227,7 @@ public class ApprovalService {
                 .requestRegionName(regionName)
                 .requestorId(request.getRequestorId())
                 .requestorName(requestorName)
-                .status(request.getStatus())
+                .status(request.getStatus().name())
                 .createdAt(request.getCreatedAt())
                 .updatedAt(request.getUpdatedAt())
                 .tasks(tasks)
@@ -247,12 +237,10 @@ public class ApprovalService {
     private ApprovalTaskResponse toTaskDto(ApprovalTask task) {
         String stepLabel = null;
         Integer stepOrder = null;
-        try {
+        if (task.getWorkflowStepId() != null) {
             WorkflowStepResponse step = workflowFacade.getStepById(task.getWorkflowStepId());
             stepLabel = step.label();
             stepOrder = step.stepOrder();
-        } catch (Exception e) {
-            log.warn("Failed to resolve step {} for task {}: {}", task.getWorkflowStepId(), task.getId(), e.getMessage());
         }
 
         String roleName = resolveRoleName(task.getAssignedRoleId());
@@ -273,7 +261,7 @@ public class ApprovalService {
                 .assignedUserName(userName)
                 .assignedRegionId(task.getAssignedRegionId())
                 .assignedRegionName(regionName)
-                .status(task.getStatus())
+                .status(task.getStatus().name())
                 .approvedBy(task.getApprovedBy())
                 .approvedByName(approvedByName)
                 .approvedAt(task.getApprovedAt())
@@ -287,42 +275,22 @@ public class ApprovalService {
 
     private String resolveWorkflowName(Long workflowId) {
         if (workflowId == null) return null;
-        try {
-            return workflowFacade.getWorkflowNameById(workflowId);
-        } catch (Exception e) {
-            log.warn("Failed to resolve workflow name for id {}: {}", workflowId, e.getMessage());
-            return null;
-        }
+        return workflowFacade.getWorkflowNameById(workflowId);
     }
 
     private String resolveRegionName(Long regionId) {
         if (regionId == null) return null;
-        try {
-            return regionFacade.getRegionNameById(regionId);
-        } catch (Exception e) {
-            log.warn("Failed to resolve region name for id {}: {}", regionId, e.getMessage());
-            return null;
-        }
+        return regionFacade.getRegionNameById(regionId);
     }
 
     private String resolveUserName(Long userId) {
         if (userId == null) return null;
-        try {
-            UserResponse u = userFacade.getById(userId);
-            return u.firstName() + " " + u.lastName();
-        } catch (Exception e) {
-            log.warn("Failed to resolve user name for id {}: {}", userId, e.getMessage());
-            return null;
-        }
+        UserResponse u = userFacade.getById(userId);
+        return u.firstName() + " " + u.lastName();
     }
 
     private String resolveRoleName(Long roleId) {
         if (roleId == null) return null;
-        try {
-            return roleFacade.getRoleNameById(roleId);
-        } catch (Exception e) {
-            log.warn("Failed to resolve role name for id {}: {}", roleId, e.getMessage());
-            return null;
-        }
+        return roleFacade.getRoleNameById(roleId);
     }
 }

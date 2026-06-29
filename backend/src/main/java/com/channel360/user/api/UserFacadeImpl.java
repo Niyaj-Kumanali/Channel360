@@ -1,9 +1,11 @@
 package com.channel360.user.api;
 
+import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.user.domain.User;
 import com.channel360.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -15,9 +17,10 @@ public class UserFacadeImpl implements UserFacade {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public UserResponse getById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         return toResponse(user);
     }
 
@@ -45,7 +48,7 @@ public class UserFacadeImpl implements UserFacade {
     public Long findByEmployeeId(String employeeId) {
         return userRepository.findByEmployeeId(employeeId)
                 .map(User::getId)
-                .orElseThrow(() -> new RuntimeException("User not found with employee id: " + employeeId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "employeeId", employeeId));
     }
 
     @Override
@@ -55,11 +58,11 @@ public class UserFacadeImpl implements UserFacade {
                 employeeId, status, createdBy, modifiedBy);
         if (employeeId != null) {
             return userRepository.findByEmployeeId(employeeId)
-                    .orElseThrow(() -> new RuntimeException("Failed to retrieve saved user"))
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "employeeId", employeeId))
                     .getId();
         }
         return userRepository.findTopByOrderByIdDesc()
-                .orElseThrow(() -> new RuntimeException("Failed to retrieve saved user"))
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", null))
                 .getId();
     }
 

@@ -113,10 +113,10 @@ public class MenuApplicationService {
 
     @Transactional
     public void deleteMenuItem(Long id) {
-        if (!menuItemRepository.existsById(id)) {
-            throw new EntityNotFoundException("Menu item not found with id: " + id);
-        }
-        menuItemRepository.deleteById(id);
+        com.channel360.menu.domain.MenuItem entity = menuItemRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Menu item not found with id: " + id));
+        entity.setActive(false);
+        menuItemRepository.save(entity);
     }
 
     @Transactional

@@ -66,8 +66,11 @@ public class UserService {
             UserResponse dto = userMapper.toDto(user);
             return populateRoles(dto, user);
         });
-        dtoPage.getContent().replaceAll(dto -> populateAuthFields(dto));
-        return PageResponse.from(dtoPage);
+        List<UserResponse> enriched = dtoPage.getContent().stream()
+                .map(this::populateAuthFields)
+                .toList();
+        Page<UserResponse> enrichedPage = new PageImpl<>(enriched, dtoPage.getPageable(), dtoPage.getTotalElements());
+        return PageResponse.from(enrichedPage);
     }
 
     public UserResponse getUserById(Long id) {
@@ -202,28 +205,18 @@ public class UserService {
     }
 
     private UserResponse populateRoles(UserResponse response, User user) {
-        try {
-            Set<RoleResponse> roleResponses = user.getRoles().stream()
-                    .map(role -> roleFacade.getById(role.getId()))
-                    .collect(Collectors.toSet());
-            return response.toBuilder().roles(roleResponses).build();
-        } catch (Exception e) {
-            log.warn("Failed to populate roles for user {}: {}", user.getId(), e.getMessage());
-            return response;
-        }
+        Set<RoleResponse> roleResponses = user.getRoles().stream()
+                .map(role -> roleFacade.getById(role.getId()))
+                .collect(Collectors.toSet());
+        return response.toBuilder().roles(roleResponses).build();
     }
 
     private UserResponse populateAuthFields(UserResponse response) {
-        try {
-            AuthUserDto authDto = authFacade.getAuthById(response.id());
-            return response.toBuilder()
-                    .email(authDto.email())
-                    .lastLoginAt(authDto.lastLoginAt())
-                    .build();
-        } catch (Exception e) {
-            log.warn("Failed to populate auth fields for user {}: {}", response.id(), e.getMessage());
-            return response;
-        }
+        AuthUserDto authDto = authFacade.getAuthById(response.id());
+        return response.toBuilder()
+                .email(authDto.email())
+                .lastLoginAt(authDto.lastLoginAt())
+                .build();
     }
 
     private String generateRandomPassword() {
@@ -236,10 +229,10 @@ public class UserService {
     }
 
     private void validateRolesExist(List<Long> roleIds) {
-        for (Long roleId : roleIds) {
+        roleIds.forEach(roleId -> {
             if (!roleFacade.existsById(roleId)) {
                 throw new ResourceNotFoundException("Role", "id", roleId);
             }
-        }
+        });
     }
 }
