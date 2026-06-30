@@ -18,8 +18,8 @@ import com.channel360.role.api.RoleFacade;
 import com.channel360.role.api.RoleResponse;
 import com.channel360.user.api.UserFacade;
 import com.channel360.user.api.UserResponse;
-import com.channel360.workflow.api.WorkflowFacade;
-import com.channel360.workflow.api.WorkflowStepResponse;
+import com.channel360.workflow.api.facade.LegacyWorkflowFacade;
+import com.channel360.workflow.api.dto.WorkflowStepResponse;
 import com.channel360.workflow.domain.event.WorkflowApprovedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +39,7 @@ public class ApprovalService {
 
     private final ApprovalRequestRepository requestRepository;
     private final ApprovalTaskRepository taskRepository;
-    private final WorkflowFacade workflowFacade;
+    private final LegacyWorkflowFacade workflowFacade;
     private final RegionFacade regionFacade;
     private final RegionApproverFacade regionApproverFacade;
     private final RoleFacade roleFacade;

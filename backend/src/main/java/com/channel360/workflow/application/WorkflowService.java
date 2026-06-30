@@ -1,14 +1,14 @@
 package com.channel360.workflow.application;
 
 import com.channel360.common.exception.ResourceNotFoundException;
-import com.channel360.workflow.api.WorkflowRequest;
-import com.channel360.workflow.api.WorkflowStepRequest;
-import com.channel360.workflow.api.WorkflowResponse;
-import com.channel360.workflow.api.WorkflowStepResponse;
+import com.channel360.workflow.api.dto.WorkflowRequest;
+import com.channel360.workflow.api.dto.WorkflowStepRequest;
+import com.channel360.workflow.api.dto.WorkflowResponse;
+import com.channel360.workflow.api.dto.WorkflowStepResponse;
 import com.channel360.workflow.domain.ApprovalWorkflow;
 import com.channel360.workflow.domain.ApprovalWorkflowStep;
 import com.channel360.workflow.domain.event.WorkflowCreatedEvent;
-import com.channel360.workflow.infrastructure.WorkflowRepository;
+import com.channel360.workflow.infrastructure.LegacyWorkflowRepository;
 import com.channel360.workflow.infrastructure.WorkflowStepRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,7 +22,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class WorkflowService {
 
-    private final WorkflowRepository workflowRepository;
+    private final LegacyWorkflowRepository workflowRepository;
     private final WorkflowStepRepository stepRepository;
     private final ApplicationEventPublisher eventPublisher;
 
