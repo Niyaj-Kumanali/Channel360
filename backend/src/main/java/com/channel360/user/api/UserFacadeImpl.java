@@ -1,6 +1,8 @@
 package com.channel360.user.api;
 
 import com.channel360.common.exception.ResourceNotFoundException;
+import com.channel360.role.api.RoleFacade;
+import com.channel360.role.api.RoleResponse;
 import com.channel360.user.domain.User;
 import com.channel360.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,12 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class UserFacadeImpl implements UserFacade {
 
     private final UserRepository userRepository;
+    private final RoleFacade roleFacade;
 
     @Override
     @Transactional(readOnly = true)
@@ -72,6 +76,9 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     private UserResponse toResponse(User user) {
+        Set<RoleResponse> roleResponses = user.getRoles().stream()
+                .map(role -> roleFacade.getById(role.getId()))
+                .collect(Collectors.toSet());
         return UserResponse.builder()
                 .id(user.getId())
                 .employeeId(user.getEmployeeId())
@@ -79,6 +86,7 @@ public class UserFacadeImpl implements UserFacade {
                 .lastName(user.getLastName())
                 .mobileNumber(user.getMobileNumber())
                 .status(user.getStatus())
+                .roles(roleResponses)
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

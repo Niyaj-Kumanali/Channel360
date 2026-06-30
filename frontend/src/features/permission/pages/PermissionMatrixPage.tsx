@@ -7,9 +7,9 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
 export const PermissionMatrixPage: React.FC = () => {
-  const { hasAnyRole } = useAuth();
-  const canEdit = hasAnyRole('SUPER_ADMIN');
-
+  const { user } = useAuth();
+  const userPerms = user?.roles?.flatMap(r => r.permissions ?? []) ?? [];
+  const canEdit = userPerms.includes('permissions.assign');
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
