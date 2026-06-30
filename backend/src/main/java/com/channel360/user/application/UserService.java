@@ -87,18 +87,16 @@ public class UserService {
         if (request.employeeId() != null && userRepository.existsByEmployeeId(request.employeeId())) {
             throw new BadRequestException("Employee ID already in use: " + request.employeeId());
         }
-        if (authFacade.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(request.email())) {
             throw new BadRequestException("Email already in use: " + request.email());
         }
 
-        userRepository.spSave(null, request.firstName(), request.lastName(),
+        String encodedPassword = passwordEncoder.encode(generateRandomPassword());
+        userRepository.spSave(null, request.email(), encodedPassword, request.firstName(), request.lastName(),
                 request.mobileNumber(), request.employeeId(), "ACTIVE", null, null);
 
-        User user = userRepository.findByEmployeeId(request.employeeId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "employeeId", request.employeeId()));
-
-        String encodedPassword = passwordEncoder.encode(generateRandomPassword());
-        authFacade.saveAuthUser(request.email(), encodedPassword, user.getId(), null);
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.email()));
 
         if (request.roleIds() != null && !request.roleIds().isEmpty()) {
             validateRolesExist(request.roleIds());
@@ -121,7 +119,7 @@ public class UserService {
 
         userMapper.updateEntity(request, user);
 
-        userRepository.spSave(id, user.getFirstName(), user.getLastName(),
+        userRepository.spSave(id, null, null, user.getFirstName(), user.getLastName(),
                 user.getMobileNumber(), user.getEmployeeId(),
                 user.getStatus(), null, null);
 
@@ -152,7 +150,7 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }
-        userRepository.spSave(id, null, null, null, null, "ACTIVE", null, null);
+        userRepository.spSave(id, null, null, null, null, null, null, "ACTIVE", null, null);
         User activatedUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         UserResponse response = userMapper.toDto(activatedUser);
@@ -166,7 +164,7 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }
-        userRepository.spSave(id, null, null, null, null, "INACTIVE", null, null);
+        userRepository.spSave(id, null, null, null, null, null, null, "INACTIVE", null, null);
         User deactivatedUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         UserResponse response = userMapper.toDto(deactivatedUser);
@@ -199,7 +197,7 @@ public class UserService {
             throw new ResourceNotFoundException("User", "id", id);
         }
         var newPassword = generateRandomPassword();
-        authFacade.changePassword(id, passwordEncoder.encode(newPassword));
+        userRepository.spChangePassword(id, passwordEncoder.encode(newPassword));
         log.info("Password reset for user {}", id);
         return newPassword;
     }
@@ -212,10 +210,11 @@ public class UserService {
     }
 
     private UserResponse populateAuthFields(UserResponse response) {
-        AuthUserDto authDto = authFacade.getAuthById(response.id());
+        User user = userRepository.findById(response.id())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", response.id()));
         return response.toBuilder()
-                .email(authDto.email())
-                .lastLoginAt(authDto.lastLoginAt())
+                .email(user.getEmail())
+                .lastLoginAt(user.getLastLoginAt())
                 .build();
     }
 

@@ -25,18 +25,29 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 
     boolean existsByEmployeeId(String employeeId);
 
+    boolean existsByEmail(String email);
+
     Optional<User> findByEmployeeId(String employeeId);
+
+    Optional<User> findByEmail(String email);
 
     Optional<User> findTopByOrderByIdDesc();
 
     @Procedure("sp_users_save")
-    void spSave(@Param("p_id") Long id, @Param("p_first_name") String firstName,
+    void spSave(@Param("p_id") Long id, @Param("p_email") String email,
+                @Param("p_password") String password, @Param("p_first_name") String firstName,
                 @Param("p_last_name") String lastName, @Param("p_mobile_number") String mobileNumber,
                 @Param("p_employee_id") String employeeId, @Param("p_status") String status,
                 @Param("p_created_by") String createdBy, @Param("p_modified_by") String modifiedBy);
 
     @Procedure("sp_users_delete")
     void spDelete(@Param("p_id") Long id);
+
+    @Procedure("sp_auth_change_password")
+    void spChangePassword(@Param("p_id") Long id, @Param("p_password") String password);
+
+    @Procedure("sp_auth_update_last_login")
+    void spUpdateLastLogin(@Param("p_id") Long id);
 
     @Procedure("sp_users_assign_roles")
     void spAssignRoles(@Param("p_user_id") Long userId,

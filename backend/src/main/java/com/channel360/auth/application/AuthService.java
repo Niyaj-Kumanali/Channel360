@@ -3,10 +3,10 @@ package com.channel360.auth.application;
 import com.channel360.auth.api.request.*;
 import com.channel360.auth.api.response.AuthUserDto;
 import com.channel360.auth.api.response.LoginResponse;
-import com.channel360.auth.domain.AuthUser;
 import com.channel360.auth.domain.PasswordResetToken;
 import com.channel360.auth.domain.RefreshToken;
-import com.channel360.auth.infrastructure.AuthUserRepository;
+import com.channel360.user.domain.User;
+import com.channel360.user.infrastructure.UserRepository;
 import com.channel360.auth.infrastructure.PasswordResetTokenRepository;
 import com.channel360.auth.infrastructure.RefreshTokenRepository;
 import com.channel360.common.constants.AppConstants;
@@ -44,7 +44,7 @@ public class AuthService {
     private final RoleFacade roleFacade;
 
 
-    private final AuthUserRepository authUserRepository;
+    private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
@@ -56,7 +56,7 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        AuthUser authUser = authUserRepository.findByEmail(request.email())
+        User authUser = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
         AuthUserDto user = toAuthDto(authUser);
 
@@ -86,21 +86,18 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
-        if (authUserRepository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(request.email())) {
             throw new DuplicateResourceException("User", "email", request.email());
         }
 
         String encodedPassword = passwordEncoder.encode(request.password());
 
-        Long userId = userFacade.saveUser(request.firstName(), request.lastName(),
+        userRepository.spSave(null, request.email(), encodedPassword, request.firstName(), request.lastName(),
                 request.mobileNumber(), request.employeeId(), "ACTIVE", null, null);
 
-        AuthUser user = AuthUser.builder()
-                .id(userId)
-                .email(request.email())
-                .password(encodedPassword)
-                .build();
-        authUserRepository.save(user);
+        User user = userRepository.findByEmail(request.email())
+            .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.email()));
+        Long userId = user.getId();
 
         RoleResponse defaultRole = roleFacade.findByName("ROLE_GUEST");
         userFacade.assignRoles(userId, String.valueOf(defaultRole.id()), null);
@@ -125,12 +122,12 @@ public class AuthService {
             throw new BadRequestException("Current password is incorrect");
         }
 
-        authUserRepository.spChangePassword(userDetails.getId(), passwordEncoder.encode(request.newPassword()));
+        userRepository.spChangePassword(userDetails.getId(), passwordEncoder.encode(request.newPassword()));
     }
 
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
-        authUserRepository.findByEmail(request.email())
+        userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.email()));
 
         PasswordResetToken resetToken = PasswordResetToken.builder()
@@ -155,10 +152,10 @@ public class AuthService {
             throw new BadRequestException("Invalid or expired reset token");
         }
 
-        AuthUser authUser = authUserRepository.findByEmail(resetToken.getEmail())
+        User authUser = userRepository.findByEmail(resetToken.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", resetToken.getEmail()));
 
-        authUserRepository.spChangePassword(authUser.getId(), passwordEncoder.encode(request.newPassword()));
+        userRepository.spChangePassword(authUser.getId(), passwordEncoder.encode(request.newPassword()));
 
         resetToken.setUsed(true);
         passwordResetTokenRepository.save(resetToken);
@@ -186,7 +183,7 @@ public class AuthService {
             throw new BadRequestException("Refresh token has expired");
         }
 
-        AuthUser authUserForRefresh = authUserRepository.findById(refreshToken.getUserId())
+        User authUserForRefresh = userRepository.findById(refreshToken.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", refreshToken.getUserId()));
         AuthUserDto user = toAuthDto(authUserForRefresh);
 
@@ -214,7 +211,7 @@ public class AuthService {
                 false);
     }
 
-    private AuthUserDto toAuthDto(AuthUser authUser) {
+    private AuthUserDto toAuthDto(User authUser) {
         return AuthUserDto.builder()
                 .id(authUser.getId())
                 .email(authUser.getEmail())

@@ -58,7 +58,7 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     public Long saveUser(String firstName, String lastName, String mobileNumber,
                           String employeeId, String status, String createdBy, String modifiedBy) {
-        userRepository.spSave(null, firstName, lastName, mobileNumber,
+        userRepository.spSave(null, null, null, firstName, lastName, mobileNumber,
                 employeeId, status, createdBy, modifiedBy);
         if (employeeId != null) {
             return userRepository.findByEmployeeId(employeeId)
@@ -82,6 +82,8 @@ public class UserFacadeImpl implements UserFacade {
         return UserResponse.builder()
                 .id(user.getId())
                 .employeeId(user.getEmployeeId())
+                .email(user.getEmail())
+                .lastLoginAt(user.getLastLoginAt())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .mobileNumber(user.getMobileNumber())

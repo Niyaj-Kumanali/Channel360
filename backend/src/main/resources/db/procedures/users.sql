@@ -1,5 +1,7 @@
 CREATE OR REPLACE PROCEDURE sp_users_save(
     INOUT p_id BIGINT,
+    IN p_email VARCHAR,
+    IN p_password VARCHAR,
     IN p_first_name VARCHAR,
     IN p_last_name VARCHAR,
     IN p_mobile_number VARCHAR,
@@ -11,12 +13,14 @@ CREATE OR REPLACE PROCEDURE sp_users_save(
 LANGUAGE plpgsql AS $$
 BEGIN
     IF p_id IS NULL THEN
-        INSERT INTO users (first_name, last_name, mobile_number, employee_id, status, created_by, created_at, updated_at)
-        VALUES (p_first_name, p_last_name, p_mobile_number, p_employee_id, COALESCE(p_status, 'ACTIVE'), p_created_by, NOW(), NOW())
+        INSERT INTO users (email, password, first_name, last_name, mobile_number, employee_id, status, created_by, created_at, updated_at)
+        VALUES (p_email, p_password, p_first_name, p_last_name, p_mobile_number, p_employee_id, COALESCE(p_status, 'ACTIVE'), p_created_by, NOW(), NOW())
         RETURNING id INTO p_id;
     ELSE
         UPDATE users
-        SET first_name = COALESCE(p_first_name, first_name),
+        SET email = COALESCE(p_email, email),
+            password = COALESCE(p_password, password),
+            first_name = COALESCE(p_first_name, first_name),
             last_name = COALESCE(p_last_name, last_name),
             mobile_number = COALESCE(p_mobile_number, mobile_number),
             employee_id = COALESCE(p_employee_id, employee_id),
@@ -36,7 +40,6 @@ BEGIN
     DELETE FROM user_roles WHERE user_id = p_id;
     DELETE FROM refresh_tokens WHERE user_id = p_id;
     DELETE FROM password_reset_tokens WHERE user_id = p_id;
-    DELETE FROM auth_users WHERE id = p_id;
     DELETE FROM users WHERE id = p_id;
 END;
 $$;
@@ -57,15 +60,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_auth_change_password(
-    IN p_id BIGINT,
-    IN p_password VARCHAR
-)
-LANGUAGE plpgsql AS $$
-BEGIN
-    UPDATE auth_users SET password = p_password, updated_at = NOW() WHERE id = p_id;
-END;
-$$;
+
 
 CREATE OR REPLACE PROCEDURE sp_users_list(
     IN p_search TEXT,

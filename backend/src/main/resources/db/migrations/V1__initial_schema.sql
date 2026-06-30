@@ -1,32 +1,24 @@
 CREATE TABLE IF NOT EXISTS users (
     id bigserial PRIMARY KEY,
     email varchar(255) not null unique,
+    password varchar(255) not null,
     first_name varchar(100) not null,
     last_name varchar(100) not null,
     mobile_number varchar(20),
+    employee_id varchar(100) unique,
     gender varchar(10),
     address text,
     date_of_birth date,
     profile_image_url text,
-    is_active boolean not null default true,
+    status varchar(50) not null default 'ACTIVE',
+    deleted_flag boolean not null default false,
+    last_login_at timestamp,
     created_by varchar(255),
-    updated_by varchar(255),
+    last_modified_by varchar(255),
     created_at timestamp not null default current_timestamp,
     updated_at timestamp not null default current_timestamp
 );
 
-CREATE TABLE IF NOT EXISTS auth_users (
-    id bigserial PRIMARY KEY,
-    user_id bigint not null references users(id) on delete cascade,
-    email varchar(255) not null unique,
-    password varchar(255) not null,
-    is_verified boolean not null default false,
-    failed_attempts integer not null default 0,
-    locked_until timestamp,
-    last_login timestamp,
-    created_at timestamp not null default current_timestamp,
-    updated_at timestamp not null default current_timestamp
-);
 
 CREATE TABLE IF NOT EXISTS roles (
     id bigserial PRIMARY KEY,
@@ -69,7 +61,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
 
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id bigserial PRIMARY KEY,
-    user_id bigint not null references auth_users(id) on delete cascade,
+    user_id bigint not null references users(id) on delete cascade,
     token varchar(500) not null unique,
     expires_at timestamp not null,
     created_at timestamp not null default current_timestamp
@@ -124,7 +116,6 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at timestamp not null default current_timestamp
 );
 
-CREATE INDEX IF NOT EXISTS idx_auth_users_email ON auth_users(email);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions(role_id);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions(permission_id);
 CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);

@@ -2,10 +2,11 @@ package com.channel360.auth.application;
 
 import com.channel360.auth.api.request.RegisterRequest;
 import com.channel360.auth.api.response.AuthUserDto;
-import com.channel360.auth.domain.AuthUser;
-import com.channel360.auth.infrastructure.AuthUserRepository;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.user.api.UserResponse;
+import com.channel360.user.api.UserFacade;
+import com.channel360.user.domain.User;
+import com.channel360.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,8 @@ import org.springframework.stereotype.Component;
 public class AuthFacadeImpl implements AuthFacade {
 
     private final AuthService authService;
-    private final AuthUserRepository authUserRepository;
+    private final UserRepository userRepository;
+    private final UserFacade userFacade;
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -23,49 +25,23 @@ public class AuthFacadeImpl implements AuthFacade {
 
     @Override
     public AuthUserDto findByEmail(String email) {
-        AuthUser user = authUserRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         return buildAuthUserDto(user);
     }
 
-    @Override
-    public AuthUserDto getAuthById(Long id) {
-        AuthUser user = authUserRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        return buildAuthUserDto(user);
-    }
-
-    @Override
-    public boolean existsByEmail(String email) {
-        return authUserRepository.existsByEmail(email);
-    }
-
-    @Override
-    public Long saveAuthUser(String email, String password, Long userId, String createdBy) {
-        AuthUser user = AuthUser.builder()
-                .id(userId)
-                .email(email)
-                .password(password)
-                .build();
-        authUserRepository.save(user);
-
-
-
-        return userId;
-    }
-
-    @Override
-    public void changePassword(Long userId, String encodedPassword) {
-        authUserRepository.spChangePassword(userId, encodedPassword);
-    }
-
-    private AuthUserDto buildAuthUserDto(AuthUser authUser) {
+    private AuthUserDto buildAuthUserDto(User user) {
         return AuthUserDto.builder()
-                .id(authUser.getId())
-                .email(authUser.getEmail())
-                .password(authUser.getPassword())
-                .deletedFlag(authUser.isDeletedFlag())
-                .lastLoginAt(authUser.getLastLoginAt())
+                .id(user.getId())
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .status(user.getStatus())
+                .deletedFlag(user.isDeletedFlag())
+                .lastLoginAt(user.getLastLoginAt())
+                .roleNames(userFacade.findRoleNamesByUserId(user.getId()))
+                .permissionNames(userFacade.findPermissionNamesByUserId(user.getId()))
                 .build();
     }
 }

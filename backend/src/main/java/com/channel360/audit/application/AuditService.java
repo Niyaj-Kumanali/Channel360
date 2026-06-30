@@ -3,7 +3,6 @@ package com.channel360.audit.application;
 import com.channel360.audit.api.AuditLogResponse;
 import com.channel360.audit.domain.AuditLog;
 import com.channel360.audit.infrastructure.AuditLogRepository;
-import com.channel360.auth.application.AuthFacade;
 import com.channel360.user.api.UserFacade;
 import com.channel360.user.api.UserResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,7 +22,6 @@ public class AuditService {
 
     private final AuditLogRepository auditLogRepository;
     private final UserFacade userFacade;
-    private final AuthFacade authFacade;
     private final ObjectMapper objectMapper;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -70,7 +68,7 @@ public class AuditService {
         if (auditLog.getUserId() != null) {
             UserResponse u = userFacade.getById(auditLog.getUserId());
             userName = u.firstName() + " " + u.lastName();
-            userEmail = authFacade.getAuthById(auditLog.getUserId()).email();
+            userEmail = u.email();
         }
         return AuditLogResponse.builder()
                 .id(auditLog.getId())
