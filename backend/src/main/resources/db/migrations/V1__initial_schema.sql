@@ -112,85 +112,6 @@ CREATE TABLE IF NOT EXISTS homepage_popups (
     updated_at timestamp not null default current_timestamp
 );
 
-CREATE TABLE IF NOT EXISTS regions (
-    id bigserial PRIMARY KEY,
-    name varchar(100) not null,
-    type varchar(50) not null,
-    code varchar(50),
-    parent_id bigint references regions(id) on delete cascade,
-    is_active boolean not null default true,
-    created_at timestamp not null default current_timestamp,
-    updated_at timestamp not null default current_timestamp
-);
-
-CREATE TABLE IF NOT EXISTS region_approvers (
-    id bigserial PRIMARY KEY,
-    region_id bigint not null references regions(id) on delete cascade,
-    user_id bigint not null references users(id) on delete cascade,
-    level integer not null default 1,
-    is_active boolean not null default true,
-    created_at timestamp not null default current_timestamp,
-    updated_at timestamp not null default current_timestamp
-);
-
-CREATE TABLE IF NOT EXISTS approval_workflows (
-    id bigserial PRIMARY KEY,
-    name varchar(255) not null,
-    description text,
-    module varchar(255),
-    active boolean not null default true,
-    created_by varchar(255),
-    created_at timestamp not null default current_timestamp,
-    updated_by varchar(255),
-    updated_at timestamp not null default current_timestamp,
-    deleted_flag boolean not null default false
-);
-
-CREATE TABLE IF NOT EXISTS approval_workflow_steps (
-    id bigserial PRIMARY KEY,
-    workflow_id bigint not null references approval_workflows(id) on delete cascade,
-    step_order integer not null,
-    role_name varchar(50) not null,
-    label varchar(255) not null,
-    mandatory boolean not null default true,
-    sla_hours integer,
-    escalation_role varchar(50),
-    description text,
-    created_by varchar(255),
-    created_at timestamp not null default current_timestamp,
-    updated_by varchar(255),
-    updated_at timestamp not null default current_timestamp,
-    deleted_flag boolean not null default false
-);
-
-CREATE TABLE IF NOT EXISTS approval_requests (
-    id bigserial PRIMARY KEY,
-    workflow_id bigint not null references approval_workflows(id) on delete cascade,
-    request_type varchar(100) not null,
-    request_reference_id bigint,
-    request_region_id bigint,
-    requestor_id bigint not null references users(id) on delete cascade,
-    status varchar(50) not null default 'PENDING',
-    created_at timestamp not null default current_timestamp,
-    updated_at timestamp not null default current_timestamp
-);
-
-CREATE TABLE IF NOT EXISTS approval_tasks (
-    id bigserial PRIMARY KEY,
-    approval_request_id bigint not null references approval_requests(id) on delete cascade,
-    workflow_step_id bigint not null references approval_workflow_steps(id) on delete cascade,
-    assigned_role_id bigint not null,
-    assigned_user_id bigint,
-    assigned_region_id bigint,
-    status varchar(50) not null default 'PENDING',
-    approved_by bigint,
-    approved_at timestamp,
-    rejected_by bigint,
-    rejected_at timestamp,
-    comments text,
-    created_at timestamp not null default current_timestamp
-);
-
 CREATE TABLE IF NOT EXISTS audit_logs (
     id bigserial PRIMARY KEY,
     user_id bigint,
@@ -214,18 +135,6 @@ CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_homepage_sections_section_type ON homepage_sections(section_type);
 CREATE INDEX IF NOT EXISTS idx_homepage_sections_active ON homepage_sections(active);
 CREATE INDEX IF NOT EXISTS idx_homepage_popups_active ON homepage_popups(active);
-CREATE INDEX IF NOT EXISTS idx_regions_parent_id ON regions(parent_id);
-CREATE INDEX IF NOT EXISTS idx_region_approvers_region_id ON region_approvers(region_id);
-CREATE INDEX IF NOT EXISTS idx_region_approvers_user_id ON region_approvers(user_id);
-CREATE INDEX IF NOT EXISTS idx_approval_workflow_steps_workflow_id ON approval_workflow_steps(workflow_id);
-CREATE INDEX IF NOT EXISTS idx_approval_requests_workflow_id ON approval_requests(workflow_id);
-CREATE INDEX IF NOT EXISTS idx_approval_requests_requestor_id ON approval_requests(requestor_id);
-CREATE INDEX IF NOT EXISTS idx_approval_requests_status ON approval_requests(status);
-CREATE INDEX IF NOT EXISTS idx_approval_tasks_approval_request_id ON approval_tasks(approval_request_id);
-CREATE INDEX IF NOT EXISTS idx_approval_tasks_assigned_user_id ON approval_tasks(assigned_user_id);
-CREATE INDEX IF NOT EXISTS idx_approval_tasks_assigned_role_id ON approval_tasks(assigned_role_id);
-CREATE INDEX IF NOT EXISTS idx_approval_tasks_workflow_step_id ON approval_tasks(workflow_step_id);
-CREATE INDEX IF NOT EXISTS idx_approval_tasks_status ON approval_tasks(status);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_module_name ON audit_logs(module_name);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_name ON audit_logs(entity_name);

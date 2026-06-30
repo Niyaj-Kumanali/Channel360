@@ -18,11 +18,5 @@
   { "name": "popups.delete", "description": "Delete homepage popups", "module": "popups" },
   { "name": "menu.manage", "description": "Manage sidebar menu items", "module": "menu" },
   { "name": "permissions.assign", "description": "Assign permissions to roles", "module": "permissions" },
-  { "name": "regions.view", "description": "View region hierarchy", "module": "regions" },
-  { "name": "regions.create", "description": "Create regions", "module": "regions" },
-  { "name": "regions.edit", "description": "Edit regions", "module": "regions" },
-  { "name": "regions.delete", "description": "Delete regions", "module": "regions" },
-  { "name": "workflows.view", "description": "View approval workflows", "module": "workflows" },
-  { "name": "workflows.configure", "description": "Configure approval workflow steps", "module": "workflows" },
   { "name": "audit.view", "description": "View audit logs", "module": "audit" }
 ]

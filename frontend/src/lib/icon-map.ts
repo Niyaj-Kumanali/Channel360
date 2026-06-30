@@ -27,6 +27,18 @@ import {
   Tag,
   Target,
   Truck,
+  GitFork,
+  GitBranch,
+  History,
+  UserCheck,
+  Play,
+  Save,
+  Send,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  ArrowRight,
+  Plus,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -59,6 +71,18 @@ export const iconMap: Record<string, LucideIcon> = {
   Tag,
   Target,
   Truck,
+  GitFork,
+  GitBranch,
+  History,
+  UserCheck,
+  Play,
+  Save,
+  Send,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  ArrowRight,
+  Plus,
 };
 
 export const ICON_NAMES = Object.keys(iconMap).sort();

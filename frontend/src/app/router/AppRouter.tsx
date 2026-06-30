@@ -16,11 +16,7 @@ import { PopupFormPage } from '@/features/cms/pages/PopupFormPage';
 import { RoleListPage } from '@/features/role/pages/RoleListPage';
 import { RoleFormPage } from '@/features/role/pages/RoleFormPage';
 import { MenuListPage } from '@/features/menu/pages/MenuListPage';
-import { RegionListPage } from '@/features/region/pages/RegionListPage';
-import { WorkflowListPage } from '@/features/workflow/pages/WorkflowListPage';
-import { RegionApproverListPage } from '@/features/region-approver/pages/RegionApproverListPage';
 import { AuditLogListPage } from '@/features/audit/pages/AuditLogListPage';
-import { ApprovalListPage } from '@/features/approval/pages/ApprovalListPage';
 import { PermissionMatrixPage } from '@/features/permission/pages/PermissionMatrixPage';
 import { UserListPage } from '@/features/user/pages/UserListPage';
 
@@ -53,13 +49,7 @@ export const AppRouter: React.FC = () => {
           <Route path="/admin/menu" element={<MenuListPage />} />
           <Route path="/admin/menu/new" element={<Navigate to="/admin/menu" replace />} />
           <Route path="/admin/menu/:id" element={<Navigate to="/admin/menu" replace />} />
-          <Route path="/admin/regions" element={<RegionListPage />} />
-          <Route path="/admin/regions/new" element={<Navigate to="/admin/regions" replace />} />
-          <Route path="/admin/regions/:id" element={<Navigate to="/admin/regions" replace />} />
-          <Route path="/admin/workflows" element={<WorkflowListPage />} />
-          <Route path="/admin/region-approvers" element={<RegionApproverListPage />} />
           <Route path="/admin/audit-logs" element={<AuditLogListPage />} />
-          <Route path="/admin/approval-requests" element={<ApprovalListPage />} />
           <Route path="/admin/permissions" element={<PermissionMatrixPage />} />
           <Route path="/admin/users" element={<UserListPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
