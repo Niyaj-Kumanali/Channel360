@@ -1,7 +1,7 @@
 package com.channel360.common.security;
 
-import com.channel360.auth.api.AuthFacade;
-import com.channel360.auth.api.AuthUserDto;
+import com.channel360.auth.application.AuthFacade;
+import com.channel360.auth.api.response.AuthUserDto;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

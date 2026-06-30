@@ -1,6 +1,7 @@
-package com.channel360.auth.api;
+package com.channel360.auth.application;
 
-import com.channel360.auth.application.AuthService;
+import com.channel360.auth.api.request.RegisterRequest;
+import com.channel360.auth.api.response.AuthUserDto;
 import com.channel360.auth.domain.AuthUser;
 import com.channel360.auth.infrastructure.AuthUserRepository;
 import com.channel360.common.exception.ResourceNotFoundException;
@@ -47,6 +48,9 @@ public class AuthFacadeImpl implements AuthFacade {
                 .password(password)
                 .build();
         authUserRepository.save(user);
+
+
+
         return userId;
     }
 

@@ -1,13 +1,8 @@
 package com.channel360.auth.api;
 
-import com.channel360.auth.api.ChangePasswordRequest;
-import com.channel360.auth.api.ForgotPasswordRequest;
-import com.channel360.auth.api.LoginRequest;
+import com.channel360.auth.api.request.*;
+import com.channel360.auth.api.response.LoginResponse;
 import com.channel360.auth.application.AuthService;
-import com.channel360.auth.api.RefreshTokenRequest;
-import com.channel360.auth.api.RegisterRequest;
-import com.channel360.auth.api.ResetPasswordRequest;
-import com.channel360.auth.api.LoginResponse;
 import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.dto.response.MenuItem;
 import com.channel360.menu.api.MenuFacade;

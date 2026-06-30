@@ -1,8 +1,8 @@
 package com.channel360.common.seeder;
 
-import com.channel360.auth.api.AuthFacade;
-import com.channel360.auth.api.AuthUserDto;
-import com.channel360.auth.api.RegisterRequest;
+import com.channel360.auth.application.AuthFacade;
+import com.channel360.auth.api.response.AuthUserDto;
+import com.channel360.auth.api.request.RegisterRequest;
 import com.channel360.common.config.AdminProperties;
 import com.channel360.common.config.SuperAdminProperties;
 import com.channel360.common.exception.DuplicateResourceException;

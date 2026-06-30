@@ -1,4 +1,4 @@
-package com.channel360.auth.api;
+package com.channel360.auth.api.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;

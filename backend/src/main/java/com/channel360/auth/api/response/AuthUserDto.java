@@ -1,4 +1,4 @@
-package com.channel360.auth.api;
+package com.channel360.auth.api.response;
 
 import lombok.Builder;
 

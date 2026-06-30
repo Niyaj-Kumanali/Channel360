@@ -1,6 +1,8 @@
 package com.channel360.auth.application;
 
-import com.channel360.auth.api.*;
+import com.channel360.auth.api.request.*;
+import com.channel360.auth.api.response.AuthUserDto;
+import com.channel360.auth.api.response.LoginResponse;
 import com.channel360.auth.domain.AuthUser;
 import com.channel360.auth.domain.PasswordResetToken;
 import com.channel360.auth.domain.RefreshToken;
@@ -29,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -41,6 +42,8 @@ public class AuthService {
 
     private final UserFacade userFacade;
     private final RoleFacade roleFacade;
+
+
     private final AuthUserRepository authUserRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;

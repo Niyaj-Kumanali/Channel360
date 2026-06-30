@@ -2,6 +2,7 @@ package com.channel360.common.migration;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
@@ -25,9 +26,18 @@ public class SchemaMigrator implements CommandLineRunner {
 
     private final JdbcTemplate jdbcTemplate;
 
+    @Value("${app.seed:false}")
+    private boolean seed;
+
     @Override
     public void run(String... args) {
         try {
+            if (seed) {
+                log.info("Clearing tables");
+                jdbcTemplate.execute("DROP SCHEMA public CASCADE");
+                jdbcTemplate.execute("CREATE SCHEMA public");
+            }
+
             jdbcTemplate.execute("""
                 CREATE TABLE IF NOT EXISTS schema_migrations (
                     version VARCHAR(255) PRIMARY KEY,
