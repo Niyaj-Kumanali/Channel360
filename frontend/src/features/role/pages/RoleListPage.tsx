@@ -48,7 +48,7 @@ export const RoleListPage: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Roles</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage roles and their permissions</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage roles</p>
         </div>
         <Link to="/admin/roles/new">
           <Button className="gap-2">
@@ -64,14 +64,13 @@ export const RoleListPage: React.FC = () => {
               <tr className="border-b border-border bg-muted/50">
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Name</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Description</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Permissions</th>
                 <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               {roles.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">
+                  <td colSpan={3} className="px-4 py-12 text-center text-muted-foreground">
                     No roles yet. Create your first role.
                   </td>
                 </tr>
@@ -82,22 +81,6 @@ export const RoleListPage: React.FC = () => {
                       <span className="font-medium text-foreground">{role.name}</span>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{role.description || '-'}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {role.permissions.length === 0 ? (
-                          <span className="text-muted-foreground text-xs">None</span>
-                        ) : (
-                          role.permissions.map((perm) => (
-                            <span
-                              key={perm}
-                              className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
-                            >
-                              {perm}
-                            </span>
-                          ))
-                        )}
-                      </div>
-                    </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Link
