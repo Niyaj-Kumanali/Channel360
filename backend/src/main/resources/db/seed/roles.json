@@ -1,5 +1,5 @@
 [
-  { "name": "ROLE_SUPER_ADMIN", "description": "Platform administrator — manages users, roles, menus, CMS, workflows, regions. No channel data access." },
+  { "name": "ROLE_SUPER_ADMIN", "description": "Platform administrator — manages users, roles, menus, CMS, workflows. No channel data access." },
   { "name": "ROLE_ADMIN", "description": "Highest business authority — full operational access, all regions, override approval chains." },
   { "name": "ROLE_MANAGER", "description": "Geographically scoped business approver — authority determined by assigned region." },
   { "name": "ROLE_INTERNAL_EMPLOYEE", "description": "Internal company employee — operations, sales, finance, product team." },

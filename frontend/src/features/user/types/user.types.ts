@@ -1,14 +1,5 @@
 import type { Role } from '@/features/auth/types/auth.types';
 
-export interface UserListItem {
-  id: number;
-  employeeId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  status: string;
-}
-
 export interface UserDetail {
   id: number;
   employeeId: string;

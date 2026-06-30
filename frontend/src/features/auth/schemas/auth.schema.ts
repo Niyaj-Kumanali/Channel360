@@ -14,13 +14,6 @@ export const resetPasswordSchema = yup.object({
   newPassword: yup.string().required('New password is required'),
 });
 
-export const changePasswordSchema = yup.object({
-  oldPassword: yup.string().required('Current password is required'),
-  newPassword: yup.string().required('New password is required'),
-  confirmPassword: yup.string().required('Please confirm your password').oneOf([yup.ref('newPassword')], 'Passwords do not match'),
-});
-
 export type LoginFormData = yup.InferType<typeof loginSchema>;
 export type ForgotPasswordFormData = yup.InferType<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = yup.InferType<typeof resetPasswordSchema>;
-export type ChangePasswordFormData = yup.InferType<typeof changePasswordSchema>;

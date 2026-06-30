@@ -29,9 +29,6 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     @Query("SELECT a FROM AuditLog a WHERE a.moduleName = :moduleName ORDER BY a.createdAt DESC")
     List<AuditLog> findByModule(@Param("moduleName") String moduleName);
 
-    @Query("SELECT a FROM AuditLog a WHERE a.entityName = :entityName AND a.entityId = :entityId ORDER BY a.createdAt DESC")
-    List<AuditLog> findByEntity(@Param("entityName") String entityName, @Param("entityId") Long entityId);
-
     @Query("SELECT a FROM AuditLog a WHERE a.userId = :userId ORDER BY a.createdAt DESC")
     List<AuditLog> findByUserId(@Param("userId") Long userId);
 }

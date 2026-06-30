@@ -1,10 +1,8 @@
 package com.channel360.role.api;
 
 import com.channel360.common.exception.ResourceNotFoundException;
-import com.channel360.menu.api.PermissionItem;
 import com.channel360.role.domain.Permission;
 import com.channel360.role.domain.Role;
-import com.channel360.role.infrastructure.PermissionRepository;
 import com.channel360.role.infrastructure.RoleRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +17,6 @@ import java.util.List;
 public class RoleFacadeImpl implements RoleFacade {
 
     private final RoleRepository roleRepository;
-    private final PermissionRepository permissionRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -40,14 +37,6 @@ public class RoleFacadeImpl implements RoleFacade {
     @Override
     public boolean existsById(Long id) {
         return roleRepository.existsById(id);
-    }
-
-    @Override
-    public List<PermissionItem> findPermissionsByMenuId(Long menuId) {
-        List<Permission> permissions = permissionRepository.findByMenuId(menuId);
-        return permissions.stream()
-                .map(p -> PermissionItem.builder().id(p.getId()).name(p.getName()).description(p.getDescription()).module(p.getModule()).build())
-                .toList();
     }
 
     @Override

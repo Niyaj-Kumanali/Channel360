@@ -7,7 +7,6 @@ import com.channel360.role.domain.Permission;
 import com.channel360.role.domain.Role;
 import com.channel360.role.application.RoleMapper;
 import com.channel360.role.domain.event.RoleCreatedEvent;
-import com.channel360.role.domain.event.RoleDeletedEvent;
 import com.channel360.role.domain.event.RoleUpdatedEvent;
 import com.channel360.role.infrastructure.PermissionRepository;
 import com.channel360.role.infrastructure.RoleRepository;

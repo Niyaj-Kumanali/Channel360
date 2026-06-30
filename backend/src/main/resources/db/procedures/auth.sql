@@ -69,11 +69,3 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_refresh_tokens_delete_by_user_id(
-    IN p_user_id BIGINT
-)
-LANGUAGE plpgsql AS $$
-BEGIN
-    DELETE FROM refresh_tokens WHERE user_id = p_user_id;
-END;
-$$;

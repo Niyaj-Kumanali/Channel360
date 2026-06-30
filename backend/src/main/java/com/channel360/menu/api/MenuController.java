@@ -5,7 +5,6 @@ import com.channel360.common.security.RequirePermission;
 import com.channel360.menu.application.MenuApplicationService;
 import com.channel360.menu.api.MenuRequest;
 import com.channel360.menu.api.MenuResponse;
-import com.channel360.menu.api.MenuWithPermissions;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +23,6 @@ public class MenuController {
     @RequirePermission("menu.manage")
     public ResponseEntity<ApiResponse<List<MenuResponse>>> getAllMenuItems() {
         return ResponseEntity.ok(ApiResponse.success(menuService.getAllMenuItems()));
-    }
-
-    @GetMapping("/{id}")
-    @RequirePermission("menu.manage")
-    public ResponseEntity<ApiResponse<MenuResponse>> getMenuItem(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(menuService.getMenuItemById(id)));
     }
 
     @PostMapping
@@ -51,18 +44,4 @@ public class MenuController {
         return ResponseEntity.ok(ApiResponse.success(null, "Menu item deleted"));
     }
 
-    @PutMapping("/reorder")
-    @RequirePermission("menu.manage")
-    public ResponseEntity<ApiResponse<Void>> reorderMenuItems(@RequestBody List<MenuRequest> items) {
-        for (MenuRequest item : items) {
-            menuService.reorderMenu(item.id(), item.displayOrder());
-        }
-        return ResponseEntity.ok(ApiResponse.success(null, "Menu items reordered"));
-    }
-
-    @GetMapping("/with-permissions")
-    @RequirePermission("menu.manage")
-    public ResponseEntity<ApiResponse<List<MenuWithPermissions>>> getMenusWithPermissions() {
-        return ResponseEntity.ok(ApiResponse.success(menuService.getMenusWithPermissions()));
-    }
 }

@@ -6,9 +6,6 @@ export const userApi = {
   getAll: (params?: UserFilterParams) =>
     apiClient.get<PageResponse<UserDetail>>('/users', params as Record<string, string>),
 
-  getById: (id: number) =>
-    apiClient.get<ApiResponse<UserDetail>>(`/users/${id}`),
-
   create: (data: CreateUserRequest) =>
     apiClient.post<ApiResponse<UserDetail>>('/users', data),
 
@@ -23,9 +20,6 @@ export const userApi = {
 
   deactivate: (id: number) =>
     apiClient.patch<ApiResponse<UserDetail>>(`/users/${id}/deactivate`),
-
-  assignRoles: (id: number, roleIds: number[]) =>
-    apiClient.put<ApiResponse<UserDetail>>(`/users/${id}/roles`, { roleIds }),
 
   resetPassword: (id: number) =>
     apiClient.post<ApiResponse<void>>(`/users/${id}/reset-password`),

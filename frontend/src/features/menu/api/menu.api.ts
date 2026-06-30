@@ -6,9 +6,6 @@ export const menuApi = {
   getAll: () =>
     apiClient.get<ApiResponse<MenuItemResponse[]>>('/menu-items'),
 
-  getById: (id: number) =>
-    apiClient.get<ApiResponse<MenuItemResponse>>(`/menu-items/${id}`),
-
   create: (data: Partial<MenuItemResponse>) =>
     apiClient.post<ApiResponse<MenuItemResponse>>('/menu-items', data),
 
@@ -17,7 +14,4 @@ export const menuApi = {
 
   delete: (id: number) =>
     apiClient.delete<ApiResponse<void>>(`/menu-items/${id}`),
-
-  reorder: (items: { id: number; parentId: number | null; displayOrder: number }[]) =>
-    apiClient.put<ApiResponse<void>>('/menu-items/reorder', items),
 };

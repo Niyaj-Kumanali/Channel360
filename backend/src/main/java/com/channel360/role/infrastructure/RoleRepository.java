@@ -13,8 +13,6 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 
     Optional<Role> findByName(String name);
 
-    boolean existsByName(String name);
-
     @Procedure("sp_roles_save")
     void spSave(@Param("p_id") Long id, @Param("p_name") String name,
                 @Param("p_description") String description);

@@ -12,17 +12,11 @@ export const authApi = {
   getMe: () =>
     apiClient.get<ApiResponse<User>>('/auth/me'),
 
-  changePassword: (data: { oldPassword: string; newPassword: string }) =>
-    apiClient.post<ApiResponse<void>>('/auth/change-password', data),
-
   forgotPassword: (data: { email: string }) =>
     apiClient.post<ApiResponse<void>>('/auth/forgot-password', data),
 
   resetPassword: (data: { token: string; newPassword: string }) =>
     apiClient.post<ApiResponse<void>>('/auth/reset-password', data),
-
-  refresh: (refreshToken: string) =>
-    apiClient.post<ApiResponse<LoginResponse>>('/auth/refresh', { refreshToken }),
 
   getMenu: () =>
     apiClient.get<ApiResponse<MenuItem[]>>('/auth/menu'),

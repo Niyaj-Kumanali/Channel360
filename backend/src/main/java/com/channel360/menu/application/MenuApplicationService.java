@@ -4,10 +4,8 @@ import com.channel360.common.dto.response.MenuItem;
 import com.channel360.common.security.CustomUserDetails;
 import com.channel360.menu.api.MenuRequest;
 import com.channel360.menu.api.MenuResponse;
-import com.channel360.menu.api.MenuWithPermissions;
-import com.channel360.menu.api.PermissionItem;
+
 import com.channel360.menu.infrastructure.MenuItemRepository;
-import com.channel360.role.api.RoleFacade;
 import com.channel360.user.api.UserFacade;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +28,6 @@ public class MenuApplicationService {
     private static final Logger log = LoggerFactory.getLogger(MenuApplicationService.class);
 
     private final MenuItemRepository menuItemRepository;
-    private final RoleFacade roleFacade;
     private final UserFacade userFacade;
 
     public List<MenuItem> getCurrentUserMenu() {
@@ -88,12 +85,6 @@ public class MenuApplicationService {
                 .toList();
     }
 
-    public MenuResponse getMenuItemById(Long id) {
-        com.channel360.menu.domain.MenuItem item = menuItemRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Menu item not found with id: " + id));
-        return toMenuResponse(item);
-    }
-
     @Transactional
     public MenuResponse createMenuItem(MenuRequest request) {
         com.channel360.menu.domain.MenuItem entity = new com.channel360.menu.domain.MenuItem();
@@ -117,33 +108,6 @@ public class MenuApplicationService {
                 .orElseThrow(() -> new EntityNotFoundException("Menu item not found with id: " + id));
         entity.setActive(false);
         menuItemRepository.save(entity);
-    }
-
-    @Transactional
-    public void reorderMenu(Long id, Integer newOrder) {
-        com.channel360.menu.domain.MenuItem entity = menuItemRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Menu item not found with id: " + id));
-        entity.setDisplayOrder(newOrder);
-        menuItemRepository.save(entity);
-    }
-
-    public List<MenuWithPermissions> getMenusWithPermissions() {
-        return menuItemRepository.findAllByOrderByDisplayOrder().stream()
-                .map(item -> {
-                    List<PermissionItem> permissions = roleFacade.findPermissionsByMenuId(item.getId());
-                    return MenuWithPermissions.builder()
-                            .id(item.getId())
-                            .parentId(item.getParentId())
-                            .label(item.getLabel())
-                            .path(item.getPath())
-                            .icon(item.getIcon())
-                            .permissionName(item.getPermissionName())
-                            .displayOrder(item.getDisplayOrder())
-                            .active(item.getActive())
-                            .permissions(permissions)
-                            .build();
-                })
-                .toList();
     }
 
     private MenuResponse toMenuResponse(com.channel360.menu.domain.MenuItem entity) {
