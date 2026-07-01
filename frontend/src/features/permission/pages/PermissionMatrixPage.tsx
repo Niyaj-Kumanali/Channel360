@@ -78,7 +78,7 @@ export const PermissionMatrixPage: React.FC = () => {
     </div>
 
     <div className="rounded-xl border border-border bg-card overflow-hidden">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" style={{ transform: 'translateZ(0)' }}>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-muted">
