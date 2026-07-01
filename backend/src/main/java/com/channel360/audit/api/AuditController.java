@@ -1,6 +1,6 @@
 package com.channel360.audit.api;
 
-import com.channel360.audit.api.AuditLogResponse;
+import com.channel360.audit.api.response.AuditLogResponse;
 import com.channel360.audit.application.AuditService;
 import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.security.RequirePermission;

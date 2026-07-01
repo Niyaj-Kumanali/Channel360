@@ -1,6 +1,5 @@
 package com.channel360.common.security;
 
-import com.channel360.user.api.UserFacade;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -19,10 +18,10 @@ public class PermissionAspect {
 
     private static final Logger log = LoggerFactory.getLogger(PermissionAspect.class);
 
-    private final UserFacade userFacade;
+    private final SecurityUserProvider securityUserProvider;
 
-    public PermissionAspect(UserFacade userFacade) {
-        this.userFacade = userFacade;
+    public PermissionAspect(SecurityUserProvider securityUserProvider) {
+        this.securityUserProvider = securityUserProvider;
     }
 
     @Around("@annotation(requirePermission)")
@@ -38,7 +37,7 @@ public class PermissionAspect {
 
         Set<String> permissions = userDetails.getPermissions();
         if (permissions == null || permissions.isEmpty()) {
-            permissions = userFacade.findPermissionNamesByUserId(userDetails.getId());
+            permissions = securityUserProvider.findPermissionNamesByUserId(userDetails.getId());
         }
 
         if (permissions.contains(requiredPermission)) {

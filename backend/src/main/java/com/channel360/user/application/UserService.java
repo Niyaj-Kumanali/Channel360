@@ -4,8 +4,8 @@ import com.channel360.common.exception.BadRequestException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.dto.response.PageResponse;
-import com.channel360.role.api.RoleFacade;
 import com.channel360.role.api.response.RoleResponse;
+import com.channel360.user.api.UserRoleProvider;
 import com.channel360.user.api.response.UserResponse;
 import com.channel360.user.api.request.CreateUserRequest;
 import com.channel360.user.api.request.UpdateUserRequest;
@@ -38,7 +38,7 @@ public class UserService {
     private static final int PASSWORD_LENGTH = 16;
 
     private final UserRepository userRepository;
-    private final RoleFacade roleFacade;
+    private final UserRoleProvider userRoleProvider;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
@@ -201,7 +201,7 @@ public class UserService {
 
     private UserResponse populateRoles(UserResponse response, User user) {
         Set<RoleResponse> roleResponses = user.getRoles().stream()
-                .map(role -> roleFacade.getById(role.getId()))
+                .map(role -> userRoleProvider.getById(role.getId()))
                 .collect(Collectors.toSet());
         return response.toBuilder().roles(roleResponses).build();
     }
@@ -226,7 +226,7 @@ public class UserService {
 
     private void validateRolesExist(List<Long> roleIds) {
         roleIds.forEach(roleId -> {
-            if (!roleFacade.existsById(roleId)) {
+            if (!userRoleProvider.existsById(roleId)) {
                 throw new ResourceNotFoundException("Role", "id", roleId);
             }
         });

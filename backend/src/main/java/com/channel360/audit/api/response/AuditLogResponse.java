@@ -1,4 +1,4 @@
-package com.channel360.audit.api;
+package com.channel360.audit.api.response;
 
 import lombok.Builder;
 

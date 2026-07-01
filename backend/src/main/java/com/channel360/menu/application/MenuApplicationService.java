@@ -5,8 +5,8 @@ import com.channel360.common.security.CustomUserDetails;
 import com.channel360.menu.api.MenuRequest;
 import com.channel360.menu.api.MenuResponse;
 
+import com.channel360.menu.api.MenuUserProvider;
 import com.channel360.menu.infrastructure.MenuItemRepository;
-import com.channel360.user.api.UserFacade;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ public class MenuApplicationService {
     private static final Logger log = LoggerFactory.getLogger(MenuApplicationService.class);
 
     private final MenuItemRepository menuItemRepository;
-    private final UserFacade userFacade;
+    private final MenuUserProvider menuUserProvider;
 
     public List<MenuItem> getCurrentUserMenu() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -37,7 +37,7 @@ public class MenuApplicationService {
         }
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        List<Long> roleIds = userFacade.findRoleIdsByUserId(userDetails.getId());
+        List<Long> roleIds = menuUserProvider.findRoleIdsByUserId(userDetails.getId());
 
         if (roleIds.isEmpty()) {
             return List.of();

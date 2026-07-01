@@ -1,9 +1,9 @@
 package com.channel360.audit.application;
 
-import com.channel360.audit.api.AuditLogResponse;
+import com.channel360.audit.api.AuditUserProvider;
+import com.channel360.audit.api.response.AuditLogResponse;
 import com.channel360.audit.domain.AuditLog;
 import com.channel360.audit.infrastructure.AuditLogRepository;
-import com.channel360.user.api.UserFacade;
 import com.channel360.user.api.response.UserResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +21,7 @@ import java.util.List;
 public class AuditService {
 
     private final AuditLogRepository auditLogRepository;
-    private final UserFacade userFacade;
+    private final AuditUserProvider auditUserProvider;
     private final ObjectMapper objectMapper;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -66,7 +66,7 @@ public class AuditService {
         String userName = null;
         String userEmail = null;
         if (auditLog.getUserId() != null) {
-            UserResponse u = userFacade.getById(auditLog.getUserId());
+            UserResponse u = auditUserProvider.getById(auditLog.getUserId());
             userName = u.firstName() + " " + u.lastName();
             userEmail = u.email();
         }

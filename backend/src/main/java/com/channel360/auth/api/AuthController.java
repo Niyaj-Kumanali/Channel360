@@ -5,7 +5,6 @@ import com.channel360.auth.api.response.LoginResponse;
 import com.channel360.auth.application.AuthService;
 import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.dto.response.MenuItem;
-import com.channel360.menu.api.MenuFacade;
 import com.channel360.user.api.response.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,7 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
-    private final MenuFacade menuFacade;
+    private final AuthMenuProvider authMenuProvider;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
@@ -81,7 +80,7 @@ public class AuthController {
 
     @GetMapping("/menu")
     public ResponseEntity<ApiResponse<List<MenuItem>>> getMenu() {
-        List<MenuItem> menu = menuFacade.getCurrentUserMenu();
+        List<MenuItem> menu = authMenuProvider.getCurrentUserMenu();
         return ResponseEntity.ok(ApiResponse.success(menu));
     }
 }

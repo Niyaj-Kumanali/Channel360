@@ -1,15 +1,15 @@
 package com.channel360.common.seeder;
 
-import com.channel360.auth.application.AuthFacade;
-import com.channel360.auth.api.response.AuthUserDto;
 import com.channel360.auth.api.request.RegisterRequest;
+import com.channel360.auth.application.AuthService;
 import com.channel360.common.config.AdminProperties;
 import com.channel360.common.config.SuperAdminProperties;
-import com.channel360.common.exception.DuplicateResourceException;
+import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.role.api.response.RoleResponse;
 import com.channel360.role.application.RoleService;
 import com.channel360.user.api.response.UserResponse;
 import com.channel360.user.application.UserService;
+import com.channel360.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,8 +21,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserSeeder {
 
-    private final AuthFacade authFacade;
+    private final AuthService authService;
     private final UserService userService;
+    private final UserRepository userRepository;
     private final RoleService roleService;
     private final AdminProperties adminProperties;
     private final SuperAdminProperties superAdminProperties;
@@ -64,11 +65,13 @@ public class UserSeeder {
                     .mobileNumber(mobileNumber)
                     .build();
 
-            user = authFacade.register(request);
+            user = authService.register(request);
             log.info("Created {} user: {}", label, email);
-        } catch (DuplicateResourceException e) {
-            AuthUserDto authUser = authFacade.findByEmail(email);
-            user = userService.getUserById(authUser.id());
+        } catch (Exception e) {
+            user = userService.getUserById(
+                    userRepository.findByEmail(email)
+                            .orElseThrow(() -> new ResourceNotFoundException("User", "email", email))
+                            .getId());
             log.info("{} user already exists: {}", label, email);
         }
 
