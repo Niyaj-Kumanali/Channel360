@@ -1,7 +1,8 @@
 package com.channel360.auth.application;
 
+import com.channel360.auth.api.AuthRoleProvider;
+import com.channel360.auth.api.AuthUserProvider;
 import com.channel360.auth.api.request.*;
-import com.channel360.auth.api.response.AuthUserDto;
 import com.channel360.auth.api.response.LoginResponse;
 import com.channel360.auth.domain.PasswordResetToken;
 import com.channel360.auth.domain.RefreshToken;
@@ -16,9 +17,7 @@ import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.security.CustomUserDetails;
 import com.channel360.common.security.JwtTokenProvider;
 import com.channel360.common.service.EmailService;
-import com.channel360.role.api.RoleFacade;
 import com.channel360.role.api.response.RoleResponse;
-import com.channel360.user.api.UserFacade;
 import com.channel360.user.api.response.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +39,8 @@ public class AuthService {
 
     private static final long RESET_TOKEN_EXPIRY_MINUTES = 30;
 
-    private final UserFacade userFacade;
-    private final RoleFacade roleFacade;
+    private final AuthUserProvider authUserProvider;
+    private final AuthRoleProvider authRoleProvider;
 
 
     private final UserRepository userRepository;
@@ -58,23 +57,22 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
         User authUser = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
-        AuthUserDto user = toAuthDto(authUser);
 
-        if (!passwordEncoder.matches(request.password(), user.password())) {
+        if (!passwordEncoder.matches(request.password(), authUser.getPassword())) {
             throw new BadCredentialsException("Invalid email or password");
         }
 
-        if (user.deletedFlag()) {
+        if (authUser.isDeletedFlag()) {
             throw new BadCredentialsException("Account has been deactivated");
         }
 
-        var roleNames = userFacade.findRoleNamesByUserId(user.id());
-        var permissionNames = userFacade.findPermissionNamesByUserId(user.id());
+        var roleNames = authUserProvider.findRoleNamesByUserId(authUser.getId());
+        var permissionNames = authUserProvider.findPermissionNamesByUserId(authUser.getId());
 
-        String accessToken = jwtTokenProvider.generateAccessToken(user.id(), roleNames, permissionNames);
-        String refreshTokenStr = jwtTokenProvider.generateRefreshToken(user.id());
+        String accessToken = jwtTokenProvider.generateAccessToken(authUser.getId(), roleNames, permissionNames);
+        String refreshTokenStr = jwtTokenProvider.generateRefreshToken(authUser.getId());
 
-        saveRefreshToken(user.id(), refreshTokenStr);
+        saveRefreshToken(authUser.getId(), refreshTokenStr);
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
@@ -99,9 +97,9 @@ public class AuthService {
             .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.email()));
         Long userId = user.getId();
 
-        RoleResponse defaultRole = roleFacade.findByName("ROLE_GUEST");
-        userFacade.assignRoles(userId, String.valueOf(defaultRole.id()), null);
-        return userFacade.getById(userId);
+        RoleResponse defaultRole = authRoleProvider.findByName("ROLE_GUEST");
+        authUserProvider.assignRoles(userId, List.of(defaultRole.id()));
+        return authUserProvider.getById(userId);
     }
 
     @Transactional
@@ -116,7 +114,7 @@ public class AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        userFacade.getById(userDetails.getId());
+        authUserProvider.getById(userDetails.getId());
 
         if (!passwordEncoder.matches(request.oldPassword(), userDetails.getPassword())) {
             throw new BadRequestException("Current password is incorrect");
@@ -167,7 +165,7 @@ public class AuthService {
             throw new BadRequestException("No authenticated user found");
         }
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return userFacade.getById(userDetails.getId());
+        return authUserProvider.getById(userDetails.getId());
     }
 
     public LoginResponse refreshToken(RefreshTokenRequest request) {
@@ -185,17 +183,16 @@ public class AuthService {
 
         User authUserForRefresh = userRepository.findById(refreshToken.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", refreshToken.getUserId()));
-        AuthUserDto user = toAuthDto(authUserForRefresh);
 
         refreshTokenRepository.spRevoke(request.refreshToken());
 
-        var roleNames = userFacade.findRoleNamesByUserId(user.id());
-        var permissionNames = userFacade.findPermissionNamesByUserId(user.id());
+        var roleNames = authUserProvider.findRoleNamesByUserId(authUserForRefresh.getId());
+        var permissionNames = authUserProvider.findPermissionNamesByUserId(authUserForRefresh.getId());
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(user.id(), roleNames, permissionNames);
-        String newRefreshTokenStr = jwtTokenProvider.generateRefreshToken(user.id());
+        String newAccessToken = jwtTokenProvider.generateAccessToken(authUserForRefresh.getId(), roleNames, permissionNames);
+        String newRefreshTokenStr = jwtTokenProvider.generateRefreshToken(authUserForRefresh.getId());
 
-        saveRefreshToken(user.id(), newRefreshTokenStr);
+        saveRefreshToken(authUserForRefresh.getId(), newRefreshTokenStr);
 
         return LoginResponse.builder()
                 .accessToken(newAccessToken)
@@ -211,13 +208,4 @@ public class AuthService {
                 false);
     }
 
-    private AuthUserDto toAuthDto(User authUser) {
-        return AuthUserDto.builder()
-                .id(authUser.getId())
-                .email(authUser.getEmail())
-                .password(authUser.getPassword())
-                .deletedFlag(authUser.isDeletedFlag())
-                .lastLoginAt(authUser.getLastLoginAt())
-                .build();
-    }
 }

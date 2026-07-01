@@ -1,10 +1,10 @@
 package com.channel360.auth.application;
 
+import com.channel360.auth.api.AuthUserProvider;
 import com.channel360.auth.api.request.RegisterRequest;
 import com.channel360.auth.api.response.AuthUserDto;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.user.api.response.UserResponse;
-import com.channel360.user.api.UserFacade;
 import com.channel360.user.domain.User;
 import com.channel360.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ public class AuthFacadeImpl implements AuthFacade {
 
     private final AuthService authService;
     private final UserRepository userRepository;
-    private final UserFacade userFacade;
+    private final AuthUserProvider authUserProvider;
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -40,8 +40,8 @@ public class AuthFacadeImpl implements AuthFacade {
                 .status(user.getStatus())
                 .deletedFlag(user.isDeletedFlag())
                 .lastLoginAt(user.getLastLoginAt())
-                .roleNames(userFacade.findRoleNamesByUserId(user.getId()))
-                .permissionNames(userFacade.findPermissionNamesByUserId(user.getId()))
+                .roleNames(authUserProvider.findRoleNamesByUserId(user.getId()))
+                .permissionNames(authUserProvider.findPermissionNamesByUserId(user.getId()))
                 .build();
     }
 }

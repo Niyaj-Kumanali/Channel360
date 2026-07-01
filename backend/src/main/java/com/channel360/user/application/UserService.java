@@ -1,6 +1,5 @@
 package com.channel360.user.application;
 
-import com.channel360.auth.application.AuthFacade;
 import com.channel360.common.exception.BadRequestException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.channel360.common.exception.ResourceNotFoundException;
@@ -41,7 +40,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleFacade roleFacade;
     private final UserMapper userMapper;
-    private final AuthFacade authFacade;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
 
