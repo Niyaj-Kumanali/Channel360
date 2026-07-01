@@ -81,8 +81,8 @@ export const PermissionMatrixPage: React.FC = () => {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-muted/50">
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground min-w-[200px] sticky left-0 bg-muted/50 z-10">Permission</th>
+            <tr className="border-b border-border bg-muted">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground min-w-[200px] sticky left-0 z-10 bg-muted">Permission</th>
               {roles.map(role => (
                 <th key={role.id} className="text-center px-3 py-3 font-medium text-muted-foreground min-w-[120px]">
                   <div className="text-xs">{role.name.replace('ROLE_', '')}</div>
@@ -94,7 +94,7 @@ export const PermissionMatrixPage: React.FC = () => {
             {modules.map(module => (
               <React.Fragment key={module}>
                 <tr className="border-b border-border bg-accent/20">
-                  <td className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider sticky left-0 z-10 bg-accent">
+                  <td className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider sticky left-0 z-10 bg-accent/20">
                     {module}
                   </td>
                   {roles.map(role => (
