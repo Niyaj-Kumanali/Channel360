@@ -1,7 +1,6 @@
 package com.channel360.common.event;
 
 import com.channel360.audit.application.AuditService;
-import com.channel360.common.service.EmailService;
 import com.channel360.role.domain.event.RoleCreatedEvent;
 import com.channel360.role.domain.event.RoleUpdatedEvent;
 import com.channel360.user.domain.event.RoleAssignedEvent;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 public class DomainEventListener {
 
     private final AuditService auditService;
-    private final EmailService emailService;
 
     @EventListener
     public void handleUserCreated(UserCreatedEvent event) {

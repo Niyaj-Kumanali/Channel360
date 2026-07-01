@@ -2,11 +2,11 @@ package com.channel360.homepage.api;
 
 import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.security.RequirePermission;
-import com.channel360.homepage.api.HomepagePopupRequest;
-import com.channel360.homepage.api.HomepageSectionRequest;
-import com.channel360.homepage.api.SectionReorderRequest;
-import com.channel360.homepage.api.HomepagePopupResponse;
-import com.channel360.homepage.api.HomepageSectionResponse;
+import com.channel360.homepage.api.request.HomepagePopupRequest;
+import com.channel360.homepage.api.request.HomepageSectionRequest;
+import com.channel360.homepage.api.request.SectionReorderRequest;
+import com.channel360.homepage.api.response.HomepagePopupResponse;
+import com.channel360.homepage.api.response.HomepageSectionResponse;
 import com.channel360.homepage.application.HomepageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

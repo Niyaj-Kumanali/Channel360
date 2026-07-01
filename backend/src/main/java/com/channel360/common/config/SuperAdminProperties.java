@@ -1,7 +1,9 @@
 package com.channel360.common.config;
 
+import lombok.Builder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+@Builder
 @ConfigurationProperties(prefix = "app.super-admin")
 public record SuperAdminProperties(
         String email,

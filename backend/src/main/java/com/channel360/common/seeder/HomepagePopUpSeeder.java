@@ -1,6 +1,6 @@
 package com.channel360.common.seeder;
 
-import com.channel360.homepage.api.HomepagePopupRequest;
+import com.channel360.homepage.api.request.HomepagePopupRequest;
 import com.channel360.homepage.application.HomepageService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

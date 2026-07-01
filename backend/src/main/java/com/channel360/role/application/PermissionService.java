@@ -14,21 +14,6 @@ public class PermissionService {
 
     private final PermissionRepository permissionRepository;
 
-    @Transactional
-    public PermissionResponse createIfNotExists(CreatePermissionRequest request) {
-        Permission permission = permissionRepository.findByName(request.name())
-                .orElseGet(() -> {
-                    Permission p = new Permission();
-                    p.setName(request.name());
-                    p.setDescription(request.description());
-                    p.setModule(request.module());
-                    return permissionRepository.save(p);
-                });
-        return new PermissionResponse(
-                permission.getId(), permission.getName(),
-                permission.getDescription(), permission.getModule(), permission.getMenuId()
-        );
-    }
 
     @Transactional
     public void setMenuId(String permissionName, Long menuItemId) {

@@ -28,6 +28,7 @@ public class RoleService {
     private final RoleMapper roleMapper;
     private final ApplicationEventPublisher eventPublisher;
 
+
     public List<RoleResponse> getAllRoles() {
         return roleRepository.findAll()
                 .stream()
@@ -49,7 +50,13 @@ public class RoleService {
 
     public List<PermissionResponse> getAllPermissions() {
         return permissionRepository.findAll().stream()
-                .map(p -> new PermissionResponse(p.getId(), p.getName(), p.getDescription(), p.getModule(), p.getMenuId()))
+                .map(p -> PermissionResponse.builder()
+                        .id(p.getId())
+                        .name(p.getName())
+                        .description(p.getDescription())
+                        .module(p.getModule())
+                        .menuId(p.getMenuId())
+                        .build())
                 .toList();
     }
 

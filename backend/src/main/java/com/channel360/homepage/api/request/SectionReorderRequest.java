@@ -1,4 +1,4 @@
-package com.channel360.homepage.api;
+package com.channel360.homepage.api.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;

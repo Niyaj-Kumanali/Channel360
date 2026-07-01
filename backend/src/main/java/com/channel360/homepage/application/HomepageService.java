@@ -1,10 +1,10 @@
 package com.channel360.homepage.application;
 
-import com.channel360.homepage.api.HomepagePopupRequest;
-import com.channel360.homepage.api.HomepageSectionRequest;
-import com.channel360.homepage.api.SectionReorderRequest;
-import com.channel360.homepage.api.HomepagePopupResponse;
-import com.channel360.homepage.api.HomepageSectionResponse;
+import com.channel360.homepage.api.request.HomepagePopupRequest;
+import com.channel360.homepage.api.request.HomepageSectionRequest;
+import com.channel360.homepage.api.request.SectionReorderRequest;
+import com.channel360.homepage.api.response.HomepagePopupResponse;
+import com.channel360.homepage.api.response.HomepageSectionResponse;
 import com.channel360.homepage.domain.HomepagePopup;
 import com.channel360.homepage.domain.HomepageSection;
 import com.channel360.common.exception.ResourceNotFoundException;

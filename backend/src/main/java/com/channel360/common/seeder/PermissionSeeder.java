@@ -1,7 +1,10 @@
 package com.channel360.common.seeder;
 
 import com.channel360.role.api.request.CreatePermissionRequest;
+import com.channel360.role.api.response.PermissionResponse;
 import com.channel360.role.application.PermissionService;
+import com.channel360.role.domain.Permission;
+import com.channel360.role.infrastructure.PermissionRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +21,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PermissionSeeder {
 
-    private final PermissionService permissionService;
     private final ObjectMapper objectMapper;
+    private final PermissionRepository permissionRepository;
 
     public void seed() {
         try {
@@ -31,16 +34,34 @@ public class PermissionSeeder {
                     new TypeReference<List<Map<String, String>>>() {});
 
             for (Map<String, String> entry : permissions) {
-                CreatePermissionRequest request = new CreatePermissionRequest(
-                        entry.get("name"),
-                        entry.get("description"),
-                        entry.get("module")
-                );
-                permissionService.createIfNotExists(request);
+                CreatePermissionRequest request = CreatePermissionRequest.builder()
+                        .name(entry.get("name"))
+                        .description(entry.get("description"))
+                        .module(entry.get("module"))
+                        .build();
+                createIfNotExists(request);
                 log.debug("Seeded permission: {}", entry.get("name"));
             }
         } catch (Exception e) {
             log.error("Failed to seed permissions", e);
         }
+    }
+
+    public void createIfNotExists(CreatePermissionRequest request) {
+        Permission permission = permissionRepository.findByName(request.name())
+                .orElseGet(() -> {
+                    Permission p = new Permission();
+                    p.setName(request.name());
+                    p.setDescription(request.description());
+                    p.setModule(request.module());
+                    return permissionRepository.save(p);
+                });
+        PermissionResponse.builder()
+                .id(permission.getId())
+                .name(permission.getName())
+                .description(permission.getDescription())
+                .module(permission.getModule())
+                .menuId(permission.getMenuId())
+                .build();
     }
 }

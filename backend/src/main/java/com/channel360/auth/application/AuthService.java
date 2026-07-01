@@ -16,7 +16,7 @@ import com.channel360.common.exception.DuplicateResourceException;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.security.CustomUserDetails;
 import com.channel360.common.security.JwtTokenProvider;
-import com.channel360.common.service.EmailService;
+import com.channel360.email.application.EmailService;
 import com.channel360.role.api.response.RoleResponse;
 import com.channel360.user.api.response.UserResponse;
 import lombok.RequiredArgsConstructor;

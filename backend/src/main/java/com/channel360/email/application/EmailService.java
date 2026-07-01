@@ -1,4 +1,4 @@
-package com.channel360.common.service;
+package com.channel360.email.application;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
