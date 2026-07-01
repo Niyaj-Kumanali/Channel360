@@ -1,10 +1,8 @@
-package com.channel360.common.seeder;
+package com.channel360.role.infrastructure;
 
 import com.channel360.role.api.request.CreatePermissionRequest;
 import com.channel360.role.api.response.PermissionResponse;
-import com.channel360.role.application.PermissionService;
 import com.channel360.role.domain.Permission;
-import com.channel360.role.infrastructure.PermissionRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

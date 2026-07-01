@@ -1,4 +1,4 @@
-package com.channel360.common.seeder;
+package com.channel360.role.infrastructure;
 
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.role.api.response.RoleResponse;

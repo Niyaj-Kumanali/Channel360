@@ -1,6 +1,6 @@
 package com.channel360.user.domain;
 
-import com.channel360.common.audit.BaseEntity;
+import com.channel360.common.domain.BaseEntity;
 import com.channel360.role.domain.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

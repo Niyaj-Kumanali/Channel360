@@ -1,4 +1,4 @@
-package com.channel360.common.seeder;
+package com.channel360.homepage.infrastructure;
 
 import com.channel360.homepage.api.request.HomepageSectionRequest;
 import com.channel360.homepage.application.HomepageService;
@@ -23,11 +23,6 @@ public class HomepageSectionSeeder {
 
     public void seed() {
         try {
-            if (!homepageService.getAllSections().isEmpty()) {
-                log.info("Homepage sections already exist, skipping seed");
-                return;
-            }
-
             String json = new String(
                     new ClassPathResource("db/seed/homepage-sections.json").getInputStream().readAllBytes(),
                     StandardCharsets.UTF_8
@@ -47,9 +42,12 @@ public class HomepageSectionSeeder {
                         .displayOrder((Integer) entry.get("displayOrder"))
                         .active((Boolean) entry.get("active"))
                         .build();
-
-                homepageService.saveSection(request, "system");
-                log.debug("Seeded homepage section: {}", entry.get("sectionName"));
+                try {
+                    homepageService.saveSection(request, "SYSTEM");
+                    log.debug("Seeded homepage section: {}", entry.get("sectionName"));
+                } catch (Exception e) {
+                    log.debug("Homepage section already exists: {}", entry.get("sectionName"));
+                }
             }
         } catch (Exception e) {
             log.error("Failed to seed homepage sections", e);

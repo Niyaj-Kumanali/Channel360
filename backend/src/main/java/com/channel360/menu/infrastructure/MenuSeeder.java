@@ -1,4 +1,4 @@
-package com.channel360.common.seeder;
+package com.channel360.menu.infrastructure;
 
 import com.channel360.menu.api.MenuRequest;
 import com.channel360.menu.application.MenuApplicationService;

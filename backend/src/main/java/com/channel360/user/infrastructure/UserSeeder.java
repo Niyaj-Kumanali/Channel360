@@ -1,4 +1,4 @@
-package com.channel360.common.seeder;
+package com.channel360.user.infrastructure;
 
 import com.channel360.auth.api.request.RegisterRequest;
 import com.channel360.auth.application.AuthService;
@@ -9,7 +9,6 @@ import com.channel360.role.api.response.RoleResponse;
 import com.channel360.role.application.RoleService;
 import com.channel360.user.api.response.UserResponse;
 import com.channel360.user.application.UserService;
-import com.channel360.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

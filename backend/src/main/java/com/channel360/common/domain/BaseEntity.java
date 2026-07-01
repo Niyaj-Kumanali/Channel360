@@ -1,4 +1,4 @@
-package com.channel360.common.audit;
+package com.channel360.common.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

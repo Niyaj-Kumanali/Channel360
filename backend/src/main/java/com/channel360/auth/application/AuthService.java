@@ -10,7 +10,6 @@ import com.channel360.user.domain.User;
 import com.channel360.user.infrastructure.UserRepository;
 import com.channel360.auth.infrastructure.PasswordResetTokenRepository;
 import com.channel360.auth.infrastructure.RefreshTokenRepository;
-import com.channel360.common.constants.AppConstants;
 import com.channel360.common.exception.BadRequestException;
 import com.channel360.common.exception.DuplicateResourceException;
 import com.channel360.common.exception.ResourceNotFoundException;
@@ -78,7 +77,7 @@ public class AuthService {
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshTokenStr)
-                .tokenType(AppConstants.TOKEN_TYPE)
+                .tokenType("Bearer")
                 .expiresIn(jwtTokenProvider.getAccessTokenExpiration())
                 .build();
     }
@@ -198,7 +197,7 @@ public class AuthService {
         return LoginResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshTokenStr)
-                .tokenType(AppConstants.TOKEN_TYPE)
+                .tokenType("Bearer")
                 .expiresIn(jwtTokenProvider.getAccessTokenExpiration())
                 .build();
     }

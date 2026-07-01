@@ -1,5 +1,12 @@
 package com.channel360.common.seeder;
 
+import com.channel360.homepage.infrastructure.HomepagePopUpSeeder;
+import com.channel360.homepage.infrastructure.HomepageSectionSeeder;
+import com.channel360.menu.infrastructure.MenuSeeder;
+import com.channel360.role.infrastructure.PermissionSeeder;
+import com.channel360.role.infrastructure.RolePermissionSeeder;
+import com.channel360.role.infrastructure.RoleSeeder;
+import com.channel360.user.infrastructure.UserSeeder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

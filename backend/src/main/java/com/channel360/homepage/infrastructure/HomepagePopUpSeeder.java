@@ -1,4 +1,4 @@
-package com.channel360.common.seeder;
+package com.channel360.homepage.infrastructure;
 
 import com.channel360.homepage.api.request.HomepagePopupRequest;
 import com.channel360.homepage.application.HomepageService;
@@ -23,11 +23,6 @@ public class HomepagePopUpSeeder {
 
     public void seed() {
         try {
-            if (!homepageService.getAllPopups().isEmpty()) {
-                log.info("Homepage popups already exist, skipping seed");
-                return;
-            }
-
             String json = new String(
                     new ClassPathResource("db/seed/homepage-popups.json").getInputStream().readAllBytes(),
                     StandardCharsets.UTF_8
@@ -44,9 +39,12 @@ public class HomepagePopUpSeeder {
                         .priority((Integer) entry.get("priority"))
                         .active((Boolean) entry.get("active"))
                         .build();
-
-                homepageService.savePopup(request, "system");
-                log.debug("Seeded homepage popup: {}", entry.get("title"));
+                try {
+                    homepageService.savePopup(request, "SYSTEM");
+                    log.debug("Seeded homepage popup: {}", entry.get("title"));
+                } catch (Exception e) {
+                    log.debug("Homepage popup already exists: {}", entry.get("title"));
+                }
             }
         } catch (Exception e) {
             log.error("Failed to seed homepage popups", e);
