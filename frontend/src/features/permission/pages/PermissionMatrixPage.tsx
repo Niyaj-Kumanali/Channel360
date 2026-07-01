@@ -69,68 +69,68 @@ export const PermissionMatrixPage: React.FC = () => {
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div>
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Permissions Matrix</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage role-permission assignments with a roles × permissions grid</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Permissions Matrix</h1>
+        <p className="text-sm text-muted-foreground mt-1">Manage role-permission assignments with a roles × permissions grid</p>
       </div>
+    </div>
 
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground min-w-[200px] sticky left-0 bg-muted/50 z-10">Permission</th>
-                {roles.map(role => (
-                  <th key={role.id} className="text-center px-3 py-3 font-medium text-muted-foreground min-w-[120px]">
-                    <div className="text-xs">{role.name.replace('ROLE_', '')}</div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {modules.map(module => (
-                <React.Fragment key={module}>
-                  <tr className="border-b border-border bg-accent/20">
-                    <td className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider sticky left-0 bg-accent/20" colSpan={roles.length + 1}>
-                      {module}
-                    </td>
-                  </tr>
-                  {permissions.filter(p => p.module === module).map(perm => (
-                    <tr key={perm.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3 text-foreground sticky left-0 bg-card hover:bg-muted/30">
-                        <div className="text-sm font-medium">{perm.name}</div>
-                        {perm.description && <div className="text-xs text-muted-foreground">{perm.description}</div>}
-                      </td>
-                      {roles.map(role => {
-                        const assigned = isAssigned(role.id, perm.id);
-                        return (
-                          <td key={role.id} className="text-center px-3 py-3">
-                            <label className="inline-flex items-center justify-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={assigned}
-                                disabled={!canEdit || savingRoleId === role.id}
-                                onChange={e => handleToggle(role.id, perm.id, e.target.checked)}
-                                className={cn(
-                                  'h-4 w-4 rounded border-input',
-                                  savingRoleId === role.id && 'opacity-50'
-                                )}
-                              />
-                            </label>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </React.Fragment>
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground min-w-[200px] sticky left-0 bg-muted/50 z-10">Permission</th>
+              {roles.map(role => (
+                <th key={role.id} className="text-center px-3 py-3 font-medium text-muted-foreground min-w-[120px]">
+                  <div className="text-xs">{role.name.replace('ROLE_', '')}</div>
+                </th>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </tr>
+          </thead>
+          <tbody>
+            {modules.map(module => (
+              <React.Fragment key={module}>
+                <tr className="border-b border-border bg-accent/20">
+                  <td className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider sticky left-0 bg-accent/20" colSpan={roles.length + 1}>
+                    {module}
+                  </td>
+                </tr>
+                {permissions.filter(p => p.module === module).map(perm => (
+                  <tr key={perm.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 text-foreground sticky left-0 bg-card hover:bg-muted/30">
+                      <div className="text-sm font-medium">{perm.name}</div>
+                      {perm.description && <div className="text-xs text-muted-foreground">{perm.description}</div>}
+                    </td>
+                    {roles.map(role => {
+                      const assigned = isAssigned(role.id, perm.id);
+                      return (
+                        <td key={role.id} className="text-center px-3 py-3">
+                          <label className="inline-flex items-center justify-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={assigned}
+                              disabled={!canEdit || savingRoleId === role.id}
+                              onChange={e => handleToggle(role.id, perm.id, e.target.checked)}
+                              className={cn(
+                                'h-4 w-4 rounded border-input',
+                                savingRoleId === role.id && 'opacity-50'
+                              )}
+                            />
+                          </label>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
       </div>
+    </div>
     </div>
   );
 };
