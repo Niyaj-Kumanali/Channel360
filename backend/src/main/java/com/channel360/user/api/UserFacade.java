@@ -1,5 +1,7 @@
 package com.channel360.user.api;
 
+import com.channel360.user.api.response.UserResponse;
+
 import java.util.List;
 import java.util.Set;
 

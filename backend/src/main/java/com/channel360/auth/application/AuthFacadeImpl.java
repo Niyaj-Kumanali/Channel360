@@ -3,7 +3,7 @@ package com.channel360.auth.application;
 import com.channel360.auth.api.request.RegisterRequest;
 import com.channel360.auth.api.response.AuthUserDto;
 import com.channel360.common.exception.ResourceNotFoundException;
-import com.channel360.user.api.UserResponse;
+import com.channel360.user.api.response.UserResponse;
 import com.channel360.user.api.UserFacade;
 import com.channel360.user.domain.User;
 import com.channel360.user.infrastructure.UserRepository;

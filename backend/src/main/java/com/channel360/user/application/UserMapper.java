@@ -1,8 +1,8 @@
 package com.channel360.user.application;
 
-import com.channel360.user.api.CreateUserRequest;
-import com.channel360.user.api.UpdateUserRequest;
-import com.channel360.user.api.UserResponse;
+import com.channel360.user.api.request.CreateUserRequest;
+import com.channel360.user.api.request.UpdateUserRequest;
+import com.channel360.user.api.response.UserResponse;
 import com.channel360.user.domain.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,17 +1,16 @@
 package com.channel360.user.application;
 
 import com.channel360.auth.application.AuthFacade;
-import com.channel360.auth.api.response.AuthUserDto;
 import com.channel360.common.exception.BadRequestException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.common.dto.response.PageResponse;
 import com.channel360.role.api.RoleFacade;
-import com.channel360.role.api.RoleResponse;
-import com.channel360.user.api.UserResponse;
-import com.channel360.user.api.CreateUserRequest;
-import com.channel360.user.api.UpdateUserRequest;
-import com.channel360.user.api.UserFilterRequest;
+import com.channel360.role.api.response.RoleResponse;
+import com.channel360.user.api.response.UserResponse;
+import com.channel360.user.api.request.CreateUserRequest;
+import com.channel360.user.api.request.UpdateUserRequest;
+import com.channel360.user.api.request.UserFilterRequest;
 import com.channel360.user.domain.User;
 import com.channel360.user.domain.event.RoleAssignedEvent;
 import com.channel360.user.domain.event.UserCreatedEvent;

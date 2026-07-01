@@ -2,6 +2,7 @@ package com.channel360.role.api;
 
 import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.security.RequirePermission;
+import com.channel360.role.api.response.PermissionResponse;
 import com.channel360.role.application.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

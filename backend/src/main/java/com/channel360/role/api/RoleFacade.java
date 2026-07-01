@@ -1,5 +1,6 @@
 package com.channel360.role.api;
 
+import com.channel360.role.api.response.RoleResponse;
 import org.springframework.lang.NonNull;
 
 public interface RoleFacade {

@@ -1,7 +1,7 @@
 package com.channel360.role.application;
 
-import com.channel360.role.api.CreatePermissionRequest;
-import com.channel360.role.api.PermissionResponse;
+import com.channel360.role.api.request.CreatePermissionRequest;
+import com.channel360.role.api.response.PermissionResponse;
 import com.channel360.role.domain.Permission;
 import com.channel360.role.infrastructure.PermissionRepository;
 import lombok.RequiredArgsConstructor;

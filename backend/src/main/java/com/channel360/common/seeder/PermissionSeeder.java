@@ -1,6 +1,6 @@
 package com.channel360.common.seeder;
 
-import com.channel360.role.api.CreatePermissionRequest;
+import com.channel360.role.api.request.CreatePermissionRequest;
 import com.channel360.role.application.PermissionService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

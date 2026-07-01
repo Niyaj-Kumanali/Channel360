@@ -6,7 +6,7 @@ import com.channel360.auth.application.AuthService;
 import com.channel360.common.dto.response.ApiResponse;
 import com.channel360.common.dto.response.MenuItem;
 import com.channel360.menu.api.MenuFacade;
-import com.channel360.user.api.UserResponse;
+import com.channel360.user.api.response.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

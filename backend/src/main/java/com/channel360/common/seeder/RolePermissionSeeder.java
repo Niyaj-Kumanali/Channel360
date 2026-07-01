@@ -1,8 +1,8 @@
 package com.channel360.common.seeder;
 
 import com.channel360.common.exception.ResourceNotFoundException;
-import com.channel360.role.api.PermissionResponse;
-import com.channel360.role.api.RoleResponse;
+import com.channel360.role.api.response.PermissionResponse;
+import com.channel360.role.api.response.RoleResponse;
 import com.channel360.role.application.RoleService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,6 +1,6 @@
 package com.channel360.role.application;
 
-import com.channel360.role.api.RoleResponse;
+import com.channel360.role.api.response.RoleResponse;
 import com.channel360.role.domain.Permission;
 import com.channel360.role.domain.Role;
 import org.mapstruct.Mapper;

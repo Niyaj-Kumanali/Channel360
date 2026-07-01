@@ -1,4 +1,4 @@
-package com.channel360.user.api;
+package com.channel360.user.api.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

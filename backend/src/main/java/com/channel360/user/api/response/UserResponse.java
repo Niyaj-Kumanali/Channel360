@@ -1,6 +1,6 @@
-package com.channel360.user.api;
+package com.channel360.user.api.response;
 
-import com.channel360.role.api.RoleResponse;
+import com.channel360.role.api.response.RoleResponse;
 import lombok.Builder;
 
 import java.time.LocalDateTime;

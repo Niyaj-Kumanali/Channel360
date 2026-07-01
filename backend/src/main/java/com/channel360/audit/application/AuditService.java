@@ -4,7 +4,7 @@ import com.channel360.audit.api.AuditLogResponse;
 import com.channel360.audit.domain.AuditLog;
 import com.channel360.audit.infrastructure.AuditLogRepository;
 import com.channel360.user.api.UserFacade;
-import com.channel360.user.api.UserResponse;
+import com.channel360.user.api.response.UserResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

@@ -1,11 +1,10 @@
 package com.channel360.role.application;
 
 import com.channel360.common.exception.ResourceNotFoundException;
-import com.channel360.role.api.PermissionResponse;
-import com.channel360.role.api.RoleResponse;
+import com.channel360.role.api.response.PermissionResponse;
+import com.channel360.role.api.response.RoleResponse;
 import com.channel360.role.domain.Permission;
 import com.channel360.role.domain.Role;
-import com.channel360.role.application.RoleMapper;
 import com.channel360.role.domain.event.RoleCreatedEvent;
 import com.channel360.role.domain.event.RoleUpdatedEvent;
 import com.channel360.role.infrastructure.PermissionRepository;

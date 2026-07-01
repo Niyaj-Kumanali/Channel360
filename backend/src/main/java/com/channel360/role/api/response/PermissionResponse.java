@@ -1,4 +1,4 @@
-package com.channel360.role.api;
+package com.channel360.role.api.response;
 
 public record PermissionResponse(
     Long id,

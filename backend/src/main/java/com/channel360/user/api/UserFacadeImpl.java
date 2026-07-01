@@ -2,7 +2,8 @@ package com.channel360.user.api;
 
 import com.channel360.common.exception.ResourceNotFoundException;
 import com.channel360.role.api.RoleFacade;
-import com.channel360.role.api.RoleResponse;
+import com.channel360.role.api.response.RoleResponse;
+import com.channel360.user.api.response.UserResponse;
 import com.channel360.user.domain.User;
 import com.channel360.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
