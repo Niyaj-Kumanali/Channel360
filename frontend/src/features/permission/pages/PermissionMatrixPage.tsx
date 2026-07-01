@@ -94,9 +94,12 @@ export const PermissionMatrixPage: React.FC = () => {
             {modules.map(module => (
               <React.Fragment key={module}>
                 <tr className="border-b border-border bg-accent/20">
-                  <td className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider sticky left-0 bg-accent/20" colSpan={roles.length + 1}>
+                  <td className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider sticky left-0 z-10 bg-accent">
                     {module}
                   </td>
+                  {roles.map(role => (
+                    <td key={role.id} className="px-4 py-2 bg-accent/20" />
+                  ))}
                 </tr>
                 {permissions.filter(p => p.module === module).map(perm => (
                   <tr key={perm.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
