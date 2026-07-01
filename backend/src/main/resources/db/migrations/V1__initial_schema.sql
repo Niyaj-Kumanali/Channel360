@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS homepage_sections (
     end_date timestamp,
     created_by varchar(255) not null default 'system',
     updated_by varchar(255),
+    deleted_flag boolean not null default false,
     created_at timestamp not null default current_timestamp,
     updated_at timestamp not null default current_timestamp
 );
@@ -100,6 +101,7 @@ CREATE TABLE IF NOT EXISTS homepage_popups (
     end_date timestamp,
     created_by varchar(255) not null default 'system',
     updated_by varchar(255),
+    deleted_flag boolean not null default false,
     created_at timestamp not null default current_timestamp,
     updated_at timestamp not null default current_timestamp
 );

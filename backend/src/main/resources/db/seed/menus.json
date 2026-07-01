@@ -44,6 +44,20 @@
     "permissionName": "menu.manage"
   },
   {
+    "label": "Permissions",
+    "path": "/admin/permissions",
+    "icon": "Key",
+    "displayOrder": 5,
+    "permissionName": "permissions.assign"
+  },
+  {
+    "label": "Audit Logs",
+    "path": "/admin/audit-logs",
+    "icon": "History",
+    "displayOrder": 6,
+    "permissionName": "audit.view"
+  },
+  {
     "label": "Users",
     "path": "/admin/users",
     "icon": "Users",
